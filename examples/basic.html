@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlipbookEngine - Basic Example</title>
+    <!-- Include compiled library stylesheet -->
+    <link rel="stylesheet" href="../dist/flipbook-engine.css">
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            margin-bottom: 8px;
+        }
+        p {
+            margin-bottom: 24px;
+            color: #64748b;
+        }
+        #viewer-container {
+            width: 100%;
+            max-width: 1000px;
+            height: 600px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+            border: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>FlipbookEngine Demo</h1>
+    <p>A basic demonstration of embedding the FlipbookEngine using the IIFE browser bundle.</p>
+
+    <!-- Target container for the viewer -->
+    <div id="viewer-container"></div>
+
+    <!-- Include compiled library script -->
+    <script src="../dist/flipbook-engine.iife.js"></script>
+    <script>
+        // Once the DOM is ready, initialize the engine
+        document.addEventListener('DOMContentLoaded', () => {
+            const engine = new FlipbookEngine('#viewer-container', {
+                allowDownload: true,
+                showThumbs: true,
+                primaryColor: '#7367f0', // Purple accent
+                theme: 'light'
+            });
+
+            // Pass sample image resources (replacing with dummy URLs for demonstration)
+            engine.init('sample.pdf', [
+                {
+                    kind: 'cover',
+                    pageNumber: 1,
+                    normal: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=1000&auto=format&fit=crop&q=80',
+                    low: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500&auto=format&fit=crop&q=80',
+                    thumb: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=150&auto=format&fit=crop&q=80'
+                },
+                {
+                    kind: 'single',
+                    pageNumber: 2,
+                    normal: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=1000&auto=format&fit=crop&q=80',
+                    low: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=500&auto=format&fit=crop&q=80',
+                    thumb: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=150&auto=format&fit=crop&q=80'
+                }
+            ]);
+
+            // Optional: Subscribe to page changes
+            engine.on('pageChange', (event) => {
+                console.log('Active page index changed to:', event.currentPage);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlipbookEngine - Dark Theme Example</title>
+    <!-- Include compiled library stylesheet -->
+    <link rel="stylesheet" href="../dist/flipbook-engine.css">
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #0f172a; /* Dark background */
+            color: #f8fafc;
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            margin-bottom: 8px;
+        }
+        p {
+            margin-bottom: 24px;
+            color: #94a3b8;
+        }
+        #viewer-container {
+            width: 100%;
+            max-width: 1000px;
+            height: 600px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.5);
+            background-color: #1e293b;
+            border: 1px solid #334155;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>FlipbookEngine - Custom Dark Theme</h1>
+    <p>Demonstrates forcing dark theme mode and passing custom CSS variables for custom styling.</p>
+
+    <!-- Target container for the viewer -->
+    <div id="viewer-container"></div>
+
+    <!-- Include compiled library script -->
+    <script src="../dist/flipbook-engine.iife.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const engine = new FlipbookEngine('#viewer-container', {
+                allowDownload: true,
+                showThumbs: false,
+                theme: 'dark', // Force dark theme mode
+                primaryColor: '#10b981', // Emerald Green accent
+                cssVariables: {
+                    // Custom background color overrides
+                    mainbgcolor: '#020617',     // Deepest navy/black canvas
+                    thumbrailbgcolor: '#0f172a' // Dark thumb rail background
+                }
+            });
+
+            engine.init('sample.pdf', [
+                {
+                    kind: 'cover',
+                    pageNumber: 1,
+                    normal: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=1000&auto=format&fit=crop&q=80',
+                    low: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=500&auto=format&fit=crop&q=80',
+                    thumb: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=150&auto=format&fit=crop&q=80'
+                },
+                {
+                    kind: 'single',
+                    pageNumber: 2,
+                    normal: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=1000&auto=format&fit=crop&q=80',
+                    low: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=500&auto=format&fit=crop&q=80',
+                    thumb: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=150&auto=format&fit=crop&q=80'
+                }
+            ]);
+        });
+    </script>
+</body>
+</html>

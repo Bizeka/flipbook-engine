@@ -1,0 +1,99 @@
+{
+  "name": "flipbookengine",
+  "version": "0.1.0",
+  "description": "A modern, embeddable HTML flipbook engine for PDF-backed catalogs and digital publications.",
+  "private": false,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && vite build --config vite.config.iife.js",
+    "test": "tsx --loader ./tests/css-loader.js --test tests/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "clean": "rimraf dist"
+  },
+  "keywords": [
+    "flipbook",
+    "catalog",
+    "pdf",
+    "viewer",
+    "publication",
+    "pageflip",
+    "digital-catalog",
+    "page-flip",
+    "typescript"
+  ],
+  "author": "Murat Dogan",
+  "license": "AGPL-3.0-or-later",
+  "homepage": "https://flipbookengine.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Bizeka/flipbook-engine.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Bizeka/flipbook-engine/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "COMMERCIAL_LICENSE.md",
+    "TRADEMARK_POLICY.md",
+    "THIRD-PARTY-NOTICES.md"
+  ],
+  "main": "./dist/flipbook-engine.js",
+  "module": "./dist/flipbook-engine.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/flipbook-engine.js",
+      "default": "./dist/flipbook-engine.js"
+    },
+    "./styles.css": {
+      "default": "./dist/flipbook-engine.css"
+    },
+    "./react": {
+      "types": "./dist/react/index.d.ts",
+      "import": "./dist/flipbook-engine.react.js"
+    },
+    "./vue": {
+      "types": "./dist/vue/index.d.ts",
+      "import": "./dist/flipbook-engine.vue.js"
+    }
+  },
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "vue": ">=3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "vue": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.10",
+    "@types/page-flip": "^2.0.4",
+    "@types/react": "^19.2.14",
+    "react": "^19.2.6",
+    "rimraf": "^6.0.0",
+    "tsx": "^4.22.4",
+    "typescript": "^5.0.0",
+    "vite": "^5.0.0",
+    "vite-plugin-dts": "^3.0.0",
+    "vue": "^3.5.34"
+  },
+  "type": "module",
+  "dependencies": {
+    "page-flip": "^2.0.7",
+    "pdfjs-dist": "^5.4.530"
+  }
+}

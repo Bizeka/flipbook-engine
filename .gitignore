@@ -1,0 +1,23 @@
+node_modules/
+dist/
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.*
+*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Build cache
+.vite/
+
+# Test coverage
+coverage/
