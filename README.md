@@ -157,7 +157,24 @@ FlipbookEngine features fully custom-property-based styling compatible with mode
 }
 ```
 
-## 🆚 FlipbookEngine vs. The Industry
+## 🚀 Performance & Bundle Metrics
+
+FlipbookEngine is engineered for high performance, utilizing hardware-accelerated CSS 3D transforms instead of heavy WebGL, ensuring a smooth **60 FPS** experience even on low-end mobile devices.
+
+### 📦 Bundle Size (Zero-Config PDF Engine)
+Unlike other libraries that require complex external PDF.js worker configurations, FlipbookEngine ships as an **"All-in-One"** package. It includes the Core Engine, UI layout, StPageFlip, and the full PDF.js rendering engine out of the box.
+
+*   **Core + PDF Engine (Gzipped):** `~788 KB` *(A single drop-in script, no external workers needed)*
+*   **Styles (CSS Gzipped):** `~2.9 KB`
+*   **React / Vue Wrappers (Gzipped):** `< 1 KB`
+
+### ⚡ Performance Highlights
+*   **Hardware Accelerated:** Uses purely CSS-based 3D transformations (`transform: rotateY`, `translateZ`) which offloads rendering to the GPU. No heavy WebGL overhead.
+*   **Smart Memory Management (Lazy Loading):** Automatically unloads hidden pages from the DOM and destroys unused PDF blobs to prevent memory leaks on large catalogs.
+*   **Zero-CLS Layouts:** Prevents Cumulative Layout Shift (CLS) by utilizing highly optimized `AbortController` bound resize event listeners and native CSS `aspect-ratio` calculations.
+*   **Eco-Friendly Standby:** Stops running layout calculations when the catalog is not actively being dragged or flipped.
+
+## 🥊 FlipbookEngine vs. The Industry
 
 When choosing a flipbook library, here is how we compare to other solutions:
 
