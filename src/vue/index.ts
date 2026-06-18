@@ -17,7 +17,8 @@ export const Flipbook = defineComponent({
         },
         pages: {
             type: Array as PropType<FlipbookPageAsset[]>,
-            required: true
+            required: false,
+            default: () => []
         },
         options: {
             type: Object as PropType<Omit<FlipbookEngineOptions, 'theme'> & { theme?: 'auto' | 'light' | 'dark' }>,
@@ -29,17 +30,17 @@ export const Flipbook = defineComponent({
         const containerRef = ref<HTMLElement | null>(null);
         let engine: FlipbookEngine | null = null;
         let unsubscribeChange: () => void;
-
+ 
         onMounted(() => {
             if (!containerRef.value) return;
-
+ 
             engine = new FlipbookEngine(containerRef.value, props.options as any);
-
+ 
             unsubscribeChange = engine.on('pageChange', (e: any) => emit('pageChange', e));
-
-            engine.init(props.pdfUrl, props.pages).catch(console.error);
+ 
+            engine.init(props.pdfUrl, props.pages || []).catch(console.error);
         });
-
+ 
         onBeforeUnmount(() => {
             if (unsubscribeChange) unsubscribeChange();
             if (engine) {
@@ -47,16 +48,16 @@ export const Flipbook = defineComponent({
                 engine = null;
             }
         });
-
+ 
         watch(() => props.options, (newOptions) => {
             if (engine) {
                 engine.updateOptions(newOptions as any);
             }
         }, { deep: true });
-
+ 
         watch(() => props.pages, (newPages) => {
             if (engine) {
-                engine.setPages(newPages);
+                engine.setPages(newPages || []);
             }
         }, { deep: true });
 

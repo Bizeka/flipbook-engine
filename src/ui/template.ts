@@ -28,6 +28,7 @@ export interface FlipbookUiElements {
     navPrev: HTMLElement;
     navNext: HTMLElement;
     bookWrapper: HTMLElement;
+    bookSizer: HTMLElement;
     book: HTMLElement;
     singleView: HTMLElement;
     singleImg: HTMLImageElement;
@@ -41,6 +42,7 @@ export interface FlipbookUiElements {
     zoomOut: HTMLElement;
     zoomIn: HTMLElement;
     fullscreen: HTMLElement;
+    btnSound: HTMLElement;
     btnSettings: HTMLElement;
     downloadBtn?: HTMLElement;
     thumbs: HTMLElement;
@@ -59,9 +61,11 @@ export function buildFlipbookUi(state: FlipbookUiState, options: FlipbookUiOptio
         (refs.area = el('div', { class: 'bk-main-area', id: 'bk-area' }, [
             (refs.navPrev = el('button', { class: 'nav-float', id: 'nav-prev' }, ['❮'])),
             (refs.bookWrapper = el('div', { id: 'bk-book-wrapper' }, [
-                (refs.book = el('div', { id: 'bk-book' })),
-                (refs.singleView = el('div', { id: 'bk-single-view' }, [
-                    (refs.singleImg = el('img', { id: 'bk-single-img', src: '' }) as HTMLImageElement)
+                (refs.bookSizer = el('div', { id: 'bk-book-sizer' }, [
+                    (refs.book = el('div', { id: 'bk-book' })),
+                    (refs.singleView = el('div', { id: 'bk-single-view' }, [
+                        (refs.singleImg = el('img', { id: 'bk-single-img', src: '' }) as HTMLImageElement)
+                    ]))
                 ]))
             ])),
             (refs.navNext = el('button', { class: 'nav-float', id: 'nav-next' }, ['❯'])),
@@ -101,6 +105,7 @@ export function buildFlipbookUi(state: FlipbookUiState, options: FlipbookUiOptio
                 (refs.zoomOut = el('button', { class: 'bk-btn', id: 'bk-zoom-out', title: options.messages.zoomOut }, ['🔍-'])),
                 (refs.zoomIn = el('button', { class: 'bk-btn', id: 'bk-zoom-in', title: options.messages.zoomIn }, ['🔍+'])),
                 (refs.fullscreen = el('button', { class: 'bk-btn', id: 'bk-fullscreen', title: options.messages.fullscreen }, ['⛶'])),
+                (refs.btnSound = el('button', { class: 'bk-btn', id: 'bk-sound', title: 'Toggle Sound' }, ['🔊'])),
                 (refs.btnSettings = el('button', { class: 'bk-btn', id: 'btn-settings', title: options.messages.settings }, ['⚙️'])),
                 downloadBtn
             ])

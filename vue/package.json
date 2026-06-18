@@ -1,0 +1,5 @@
+{
+  "main": "../dist/flipbook-engine.vue.js",
+  "module": "../dist/flipbook-engine.vue.js",
+  "types": "../dist/vue/index.d.ts"
+}

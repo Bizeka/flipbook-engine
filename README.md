@@ -135,6 +135,13 @@ unsubscribe();
 
 Supported events: `pageChange`, `zoomChange`, `singlePageModeChange`, `thumbsToggle`, `destroy`.
 
+| Option | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `soundEnabled` | `boolean` | `false` | Enables page turning sound effect. |
+| `flippingTime` | `number` | `1000` | Duration of the page turn animation in milliseconds. |
+| `maxShadowOpacity` | `number` | `0.5` | Maximum opacity of the shadow during page turn (0 to 1). |
+| `whiteLabel` | `boolean` | `false` | Hides the "Powered by FlipbookEngine" watermark. |
+
 ## Styling and Theming
 
 FlipbookEngine features fully custom-property-based styling compatible with modern styling systems.
@@ -150,7 +157,17 @@ FlipbookEngine features fully custom-property-based styling compatible with mode
 }
 ```
 
-## Licensing
+## 🆚 FlipbookEngine vs. The Industry
+
+When choosing a flipbook library, here is how we compare to other solutions:
+
+*   **Legacy Libraries (e.g., Turn.js):** Turn.js is over a decade old, relies on jQuery, and lacks native PDF support. **FlipbookEngine** uses a modern framework-agnostic stack (Vanilla/React/Vue), TypeScript, and has built-in PDF.js integration.
+*   **Heavy 3D Plugins (e.g., DearFlip, Real3D):** Many 3D plugins use WebGL, which drains CPU/RAM and can be sluggish on mobile. **FlipbookEngine** is powered by StPageFlip, delivering buttery-smooth 60FPS CSS 2D/3D performance while remaining lightweight.
+*   **Closed SaaS Platforms (e.g., Issuu, Heyzine):** These charge high monthly fees and lock your data on their servers. **FlipbookEngine** gives you 100% control to host and embed directly in your own code (AGPL-3.0).
+
+---
+
+## 📄 Licensing
 
 FlipbookEngine is distributed under a dual-license model:
 

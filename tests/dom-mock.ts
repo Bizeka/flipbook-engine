@@ -237,7 +237,9 @@ globalThis.document = {
   },
   createTextNode(text: string) {
     return new MockTextNode(text);
-  }
+  },
+  addEventListener: () => {},
+  removeEventListener: () => {}
 } as any;
 
 globalThis.window = {

@@ -12,7 +12,7 @@ export interface FlipbookProps extends Omit<FlipbookEngineOptions, 'theme'> {
     className?: string;
     style?: React.CSSProperties;
     pdfUrl: string;
-    pages: FlipbookPageAsset[];
+    pages?: FlipbookPageAsset[];
     theme?: 'auto' | 'light' | 'dark';
     onPageChange?: (e: { currentPage: number; totalPages: number }) => void;
 }
@@ -54,7 +54,7 @@ export const Flipbook = forwardRef<FlipbookRef, FlipbookProps>(({
 
         const unsubscribeChange = engine.on('pageChange', (e: any) => onPageChange?.(e));
 
-        engine.init(pdfUrl, pages).catch(console.error);
+        engine.init(pdfUrl, pages || []).catch(console.error);
 
         return () => {
             unsubscribeChange();
@@ -72,7 +72,7 @@ export const Flipbook = forwardRef<FlipbookRef, FlipbookProps>(({
 
     useEffect(() => {
         if (engineRef.current) {
-            engineRef.current.setPages(pages);
+            engineRef.current.setPages(pages || []);
         }
     }, [pages]);
 

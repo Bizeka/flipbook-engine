@@ -56,10 +56,64 @@
 
 .bk-theme-light {
   color-scheme: light;
+  --flipbook-bg-main: #f8fafc;
+  --flipbook-bg-surface: #ffffff;
+  --flipbook-bg-surface-alt: #f1f5f9;
+  --flipbook-bg-panel: #e2e8f0;
+  --flipbook-bg-panel-soft: #f1f5f9;
+  --flipbook-text-main: #0f172a;
+  --flipbook-text-muted: #64748b;
+  --flipbook-toolbar-text: #0f172a;
+  --flipbook-toolbar-button-text: #334155;
+  --flipbook-border: rgba(15, 23, 42, 0.1);
+  --flipbook-accent: #4f46e5;
+  --flipbook-accent-text: #ffffff;
+  --flipbook-thumbrail-bg: #f8fafc;
+  --flipbook-thumb-bg: #ffffff;
+  --flipbook-thumb-text: #0f172a;
+  --flipbook-thumbscroll-track: rgba(15, 23, 42, 0.08);
+  --flipbook-thumbscroll-thumb: rgba(15, 23, 42, 0.18);
+  --flipbook-navbutton-bg: rgba(15, 23, 42, 0.65);
+  --flipbook-navbutton-text: #ffffff;
+  --flipbook-shadow: rgba(15, 23, 42, 0.08);
+  --flipbook-bookpage-bg: #ffffff;
+  --flipbook-emptycover-bg: #e2e8f0;
+  --flipbook-download-bg: #10b981;
+  --flipbook-download-border: #10b981;
+  --flipbook-download-text: #ffffff;
+  --flipbook-settings-bg: #ffffff;
+  --flipbook-settings-text: #0f172a;
 }
 
 .bk-theme-dark {
   color-scheme: dark;
+  --flipbook-bg-main: #0b0f19;
+  --flipbook-bg-surface: #111827;
+  --flipbook-bg-surface-alt: #1f2937;
+  --flipbook-bg-panel: #111827;
+  --flipbook-bg-panel-soft: #1f2937;
+  --flipbook-text-main: #f9fafb;
+  --flipbook-text-muted: #9ca3af;
+  --flipbook-toolbar-text: #f9fafb;
+  --flipbook-toolbar-button-text: #e5e7eb;
+  --flipbook-border: rgba(255, 255, 255, 0.08);
+  --flipbook-accent: #7367f0;
+  --flipbook-accent-text: #ffffff;
+  --flipbook-thumbrail-bg: #0b0f19;
+  --flipbook-thumb-bg: #1f2937;
+  --flipbook-thumb-text: #f9fafb;
+  --flipbook-thumbscroll-track: rgba(255, 255, 255, 0.08);
+  --flipbook-thumbscroll-thumb: rgba(255, 255, 255, 0.18);
+  --flipbook-navbutton-bg: rgba(0, 0, 0, 0.6);
+  --flipbook-navbutton-text: #ffffff;
+  --flipbook-shadow: rgba(0, 0, 0, 0.5);
+  --flipbook-bookpage-bg: #ffffff;
+  --flipbook-emptycover-bg: #101522;
+  --flipbook-download-bg: #10b981;
+  --flipbook-download-border: #10b981;
+  --flipbook-download-text: #ffffff;
+  --flipbook-settings-bg: #1f2937;
+  --flipbook-settings-text: #f9fafb;
 }
 
 .bk-container,
@@ -118,10 +172,27 @@
   pointer-events: none;
 }
 
+#bk-book-sizer {
+  position: relative;
+  margin: 0 auto;
+  transition: transform 0.4s ease;
+}
+
+#bk-book-wrapper.bk-is-cover #bk-book-sizer {
+  transform: translateX(-25%);
+}
+
+#bk-book-wrapper.bk-is-back-cover #bk-book-sizer {
+  transform: translateX(25%);
+}
+
+.bk-container.double-mode:not(.bk-is-cover):not(.bk-is-back-cover) .stf__block {
+  background-color: rgba(0, 0, 0, 0.5); /* Acts as a dark spine for subpixel gaps */
+}
+
 #bk-book {
   width: 100%;
   height: 100%;
-  box-shadow: 0 0 20px var(--flipbook-shadow);
 }
 
 #bk-single-view {
@@ -158,6 +229,42 @@
 .bz-page {
   background-color: var(--flipbook-bg-main);
   overflow: hidden;
+  box-shadow: 0 0 15px var(--flipbook-shadow);
+}
+
+.page-shadow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* Sol sayfanın sağ kenarı (Cilt payı) ve sol dış kenarı */
+.bz-page--left .page-shadow {
+  background: linear-gradient(to right, 
+     rgba(0,0,0,0.1) 0%, 
+     rgba(0,0,0,0) 3%, 
+     rgba(0,0,0,0) 85%, 
+     rgba(0,0,0,0.4) 100%
+  );
+}
+
+/* Sağ sayfanın sol kenarı (Cilt payı) ve sağ dış kenarı */
+.bz-page--right .page-shadow {
+  background: linear-gradient(to right, 
+     rgba(0,0,0,0.4) 0%, 
+     rgba(0,0,0,0) 15%, 
+     rgba(0,0,0,0) 97%, 
+     rgba(0,0,0,0.1) 100%
+  );
+}
+
+/* Kapaklarda iç gölgeyi kapat */
+.bz-page--cover .page-shadow {
+  display: none !important;
 }
 
 .page-content {
@@ -205,12 +312,22 @@
   flex-shrink: 0;
   border-top: 1px solid var(--flipbook-border);
   gap: 0.75rem;
+  overflow-x: auto;
+}
+
+.bk-toolbar::-webkit-scrollbar {
+  height: 4px;
+}
+.bk-toolbar::-webkit-scrollbar-thumb {
+  background: var(--flipbook-border);
+  border-radius: 999px;
 }
 
 .bk-btn-group {
   display: flex;
-  gap: 8px;
   align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 .bk-btn-group--center {
@@ -515,3 +632,6 @@
     bottom: 60px;
   }
 }
+
+.bk-btn.muted { opacity: 0.5; position: relative; }
+.bk-btn.muted::after { content: ''; position: absolute; width: 80%; height: 2px; background: currentColor; top: 50%; left: 10%; transform: rotate(-45deg); border-radius: 1px; }
