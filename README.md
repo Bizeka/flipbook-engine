@@ -6,6 +6,7 @@ FlipbookEngine is a modern, lightweight, and embeddable HTML flipbook viewer for
 
 - **Dual-Mode Layout**: Seamlessly switches between single-page (mobile-optimized) and spread (book/catalog layout) modes.
 - **Rich Interaction**: Built-in thumbnail navigation rail, smooth zoom & pan, and HTML5 fullscreen support.
+- **Media & Autoplay**: Configurable page-flip sound effects and automated slideshow presentation with `Autoplay`.
 - **Theme Engine**: Styled with compiled CSS and CSS Custom Properties, featuring full support for light/dark modes (auto-responsive to Bootstrap 5 or tailorable per instance).
 - **Multi-Language (i18n)**: Out-of-the-box support for English (`en`) and Turkish (`tr`) with customizable overrides.
 - **Framework Wrappers**: Direct React and Vue wrapper exports for seamless modern integration.
@@ -137,7 +138,9 @@ Supported events: `pageChange`, `zoomChange`, `singlePageModeChange`, `thumbsTog
 
 | Option | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `soundEnabled` | `boolean` | `false` | Enables page turning sound effect. |
+| `soundEnabled` | `boolean` | `true` | Enables page turning sound effect. |
+| `soundUrl` | `string` | `'https://.../page-flip.mp3'` | URL of the audio file. |
+| `autoPlayInterval`| `number` | `3000` | Autoplay page duration in milliseconds. |
 | `flippingTime` | `number` | `1000` | Duration of the page turn animation in milliseconds. |
 | `maxShadowOpacity` | `number` | `0.5` | Maximum opacity of the shadow during page turn (0 to 1). |
 | `whiteLabel` | `boolean` | `false` | Hides the "Powered by FlipbookEngine" watermark. |

@@ -13,6 +13,11 @@ When instantiating `new FlipbookEngine(selector, options)`, you can configure th
 | `primaryColor` | `string` | `'#7367f0'` | Sets the primary theme accent color. |
 | `theme` | `'auto' \| 'light' \| 'dark'` | `'auto'` | Force light/dark mode or let it respond automatically. |
 | `locale` | `'en' \| 'tr' \| string` | `'en'` | Active language interface. |
+| `soundEnabled` | `boolean` | `true` | Enables page turning sound effect. |
+| `soundUrl` | `string` | `'https://flipbookengine.com/Content/page-flip.mp3'` | URL of the page turning audio file. |
+| `autoPlayInterval` | `number` | `3000` | Duration (ms) before automatically turning to the next page in Autoplay mode. |
+| `flippingTime` | `number` | `1000` | Duration (ms) of the page turning animation. |
+| `maxShadowOpacity` | `number` | `0.5` | Maximum opacity of the shadow during page turn (0 to 1). |
 | `messages` | `Record<string, PartialFlipbookMessages>` | `null` | Custom localization overrides. |
 | `cssVariables` | `Record<string, string>` | `null` | Per-instance custom CSS property overrides. |
 | `whiteLabel` | `boolean` | `false` | If true, hides the "Powered by FlipbookEngine" watermark. |

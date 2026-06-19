@@ -16,5 +16,7 @@ export const enMessages = {
   zoomIn: 'Zoom In',
   fullscreen: 'Fullscreen',
   settings: 'Settings',
-  downloadCatalog: 'Download Catalog'
+  downloadCatalog: 'Download Catalog',
+  play: 'Play',
+  pause: 'Pause'
 } as const;

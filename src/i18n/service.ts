@@ -20,6 +20,8 @@ export interface FlipbookMessages {
   fullscreen: string;
   settings: string;
   downloadCatalog: string;
+  play: string;
+  pause: string;
 }
 
 export const builtInMessages = {

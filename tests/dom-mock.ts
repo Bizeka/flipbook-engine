@@ -217,6 +217,7 @@ globalThis.HTMLElement = MockElement as any;
 globalThis.HTMLImageElement = MockElement as any;
 globalThis.HTMLInputElement = MockElement as any;
 globalThis.Image = MockImage as any;
+globalThis.SVGElement = MockElement as any;
 
 const headElement = new MockElement('head');
 const containerElement = new MockElement('div');
@@ -252,5 +253,6 @@ globalThis.window = {
     addEventListener: () => {},
     removeEventListener: () => {}
   }),
-  open: () => null
+  open: () => null,
+  SVGElement: MockElement
 } as any;

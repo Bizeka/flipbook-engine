@@ -124,6 +124,8 @@
 .bk-container {
   color: var(--flipbook-text-main);
   font-family: var(--flipbook-font-family);
+  flex: 1;
+  align-self: stretch;
 }
 
 .bk-wrapper {
@@ -137,6 +139,8 @@
   overflow: hidden;
   font-family: var(--flipbook-font-family);
   border-radius: var(--flipbook-radius-md);
+  flex: 1;
+  align-self: stretch;
 }
 
 .bk-main-area {
@@ -148,15 +152,27 @@
   background: var(--flipbook-bg-main);
 }
 
+.bk-container.single-mode .bk-main-area {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
 #bk-book-wrapper {
   position: absolute;
-  inset: 0;
-  padding: var(--flipbook-page-padding);
+  inset: var(--flipbook-page-padding);
+  padding: 0;
   display: flex;
   justify-content: center;
   align-items: center;
   transition: transform 0.3s ease;
   transform-origin: center center;
+}
+
+.bk-container.single-mode #bk-book-wrapper {
+  position: relative;
+  min-height: 100%;
+  inset: auto;
+  padding: var(--flipbook-page-padding);
 }
 
 #bk-book-wrapper.zoomed {
@@ -193,6 +209,7 @@
 #bk-book {
   width: 100%;
   height: 100%;
+  position: relative;
 }
 
 #bk-single-view {
@@ -313,6 +330,8 @@
   border-top: 1px solid var(--flipbook-border);
   gap: 0.75rem;
   overflow-x: auto;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .bk-toolbar::-webkit-scrollbar {
@@ -336,25 +355,32 @@
 }
 
 .bk-btn {
-  background: color-mix(in srgb, var(--flipbook-bg-surface) 18%, transparent 82%);
-  border: 1px solid color-mix(in srgb, var(--flipbook-border) 80%, transparent 20%);
+  background: transparent;
+  border: 1px solid transparent;
   color: var(--flipbook-toolbar-button-text);
-  padding: 0 15px;
+  width: 38px;
   height: 38px;
-  border-radius: var(--flipbook-radius-sm);
+  padding: 0;
+  border-radius: 50%;
   cursor: pointer;
-  font-size: 15px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.bk-btn:hover,
+.bk-btn:hover {
+  background: color-mix(in srgb, var(--flipbook-text-main) 10%, transparent);
+  transform: translateY(-1px);
+}
+
+.bk-btn:active {
+  transform: translateY(1px);
+}
+
 .bk-btn.active {
-  background: var(--flipbook-accent);
-  border-color: var(--flipbook-accent);
-  color: var(--flipbook-accent-text);
+  background: color-mix(in srgb, var(--flipbook-accent) 15%, transparent);
+  color: var(--flipbook-accent);
 }
 
 .bk-btn:focus-visible,
@@ -365,9 +391,10 @@
 }
 
 .bk-btn--download {
-  background: var(--flipbook-download-bg);
-  border-color: var(--flipbook-download-border);
-  color: var(--flipbook-download-text);
+  color: var(--flipbook-download-bg);
+}
+.bk-btn--download:hover {
+  background: color-mix(in srgb, var(--flipbook-download-bg) 15%, transparent);
 }
 
 #bk-page-info {
@@ -386,9 +413,41 @@
   padding: 15px;
   gap: 15px;
   z-index: 10;
+  display: flex;
   flex-shrink: 0;
   align-items: center;
   border-top: 1px solid var(--flipbook-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.bk-watermark {
+  position: absolute;
+  bottom: 12px;
+  right: 15px;
+  font-size: 11px;
+  color: var(--flipbook-text-muted);
+  background: color-mix(in srgb, var(--flipbook-bg-surface) 60%, transparent);
+  padding: 4px 10px;
+  border-radius: 99px;
+  backdrop-filter: blur(4px);
+  border: 1px solid var(--flipbook-border);
+  z-index: 100;
+  box-shadow: 0 2px 10px var(--flipbook-shadow);
+  transition: all 0.2s ease;
+  pointer-events: auto;
+}
+
+.bk-watermark:hover {
+  background: var(--flipbook-bg-surface);
+  color: var(--flipbook-text-main);
+  transform: translateY(-2px);
+}
+
+.bk-watermark a {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: none;
 }
 
 .bk-thumbs::-webkit-scrollbar {
@@ -415,30 +474,50 @@
   flex-direction: column;
   align-items: center;
   cursor: pointer;
-  opacity: 0.68;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+  min-width: 60px;
   flex-shrink: 0;
-  color: var(--flipbook-thumb-text);
+  gap: 5px;
 }
 
-.thumb-item:hover,
+.thumb-item:hover {
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
 .thumb-item.active {
   opacity: 1;
 }
 
-.thumb-item.active img {
+.thumb-item.active .thumb-img-wrapper {
   border-color: var(--flipbook-accent);
-  transform: scale(1.05);
-  box-shadow: 0 0 15px color-mix(in srgb, var(--flipbook-accent) 45%, transparent 55%);
+  box-shadow: 0 0 0 2px var(--flipbook-accent), 0 4px 12px var(--flipbook-shadow);
+}
+
+.thumb-item.active span {
+  color: var(--flipbook-accent);
+  font-weight: 700;
+}
+
+.thumb-img-wrapper {
+  width: 50px;
+  height: 65px;
+  background: var(--flipbook-bg-surface);
+  border: 1px solid var(--flipbook-border);
+  border-radius: var(--flipbook-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 2px 5px var(--flipbook-shadow);
+  transition: all 0.2s ease;
 }
 
 .thumb-img {
-  height: 60px;
-  width: auto;
-  border: 2px solid transparent;
-  border-radius: var(--flipbook-radius-sm);
-  background: var(--flipbook-thumb-bg);
-  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .thumb-img--split {

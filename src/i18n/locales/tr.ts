@@ -16,5 +16,7 @@ export const trMessages = {
   zoomIn: 'Yaklaş',
   fullscreen: 'Tam Ekran',
   settings: 'Ayarlar',
-  downloadCatalog: 'Katalogu Indir'
+  downloadCatalog: 'Kataloğu İndir',
+  play: 'Otomatik Oynat',
+  pause: 'Duraklat'
 } as const;

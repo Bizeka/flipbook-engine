@@ -5,6 +5,7 @@
  * https://flipbookengine.com
  */
 
+/** @jsxImportSource react */
 import React, { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import { FlipbookEngine, FlipbookEngineOptions, FlipbookPageAsset } from '../index';
 
@@ -37,11 +38,11 @@ export const Flipbook = forwardRef<FlipbookRef, FlipbookProps>(({
 
     useImperativeHandle(ref, () => ({
         get engine() { return engineRef.current; },
-        flipNext: () => (engineRef.current as any)?.ui?.bkNext?.click(),
-        flipPrev: () => (engineRef.current as any)?.ui?.bkPrev?.click(),
+        flipNext: () => engineRef.current?.nextPage(),
+        flipPrev: () => engineRef.current?.prevPage(),
         turnToPage: (idx: number) => {
-            if (engineRef.current && (engineRef.current as any).pageFlip) {
-                (engineRef.current as any).pageFlip.flip(idx);
+            if (engineRef.current) {
+                engineRef.current.goToPage(idx);
             }
         }
     }));

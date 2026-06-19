@@ -3,6 +3,10 @@ import { resolve } from 'path';
 import dts from 'vite-plugin-dts';
 
 export default defineConfig({
+  esbuild: {
+    jsx: 'automatic',
+    jsxImportSource: '@serenity-is/domwise'
+  },
   plugins: [dts({ insertTypesEntry: true, outDir: 'dist' })],
   build: {
     lib: {
@@ -18,7 +22,7 @@ export default defineConfig({
       formats: ['es']
     },
     rollupOptions: {
-      external: ['react', 'vue', 'react-dom'],
+      external: ['react', 'vue', 'react-dom', 'react/jsx-runtime'],
       output: {
         globals: {
           react: 'React',

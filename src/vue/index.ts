@@ -63,11 +63,11 @@ export const Flipbook = defineComponent({
 
         expose({
             getEngine: () => engine,
-            flipNext: () => (engine as any)?.ui?.bkNext?.click(),
-            flipPrev: () => (engine as any)?.ui?.bkPrev?.click(),
+            flipNext: () => engine?.nextPage(),
+            flipPrev: () => engine?.prevPage(),
             turnToPage: (idx: number) => {
-                if (engine && (engine as any).pageFlip) {
-                    (engine as any).pageFlip.flip(idx);
+                if (engine) {
+                    engine.goToPage(idx);
                 }
             }
         });

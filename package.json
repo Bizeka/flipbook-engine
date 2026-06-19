@@ -1,6 +1,6 @@
 {
   "name": "flipbookengine",
-  "version": "0.1.3",
+  "version": "0.2.4",
   "description": "A modern, embeddable HTML flipbook engine for PDF-backed catalogs and digital publications.",
   "private": false,
   "scripts": {
@@ -97,6 +97,8 @@
   },
   "type": "module",
   "dependencies": {
+    "@preact/signals-core": "^1.14.3",
+    "@serenity-is/domwise": "^10.2.3",
     "page-flip": "^2.0.7",
     "pdfjs-dist": "^5.4.530"
   }
