@@ -194,6 +194,12 @@ When choosing a flipbook library, here is how we compare to other solutions:
 
 ---
 
+## 🙏 Acknowledgments
+
+A special thanks to the incredible team behind **[Serenity](https://github.com/serenity-is/serenity)**. FlipbookEngine's reactive UI layer is proudly powered by **[domwise](https://github.com/serenity-is/serenity/tree/master/packages/domwise)** (a brilliant DOM manipulation library developed by the Serenity team). Coupled with `@preact/signals-core`, `domwise` allows us to completely bypass the heavy overhead of traditional Virtual DOM diffing. This architectural choice is a massive contributor to FlipbookEngine's lightning-fast UI updates, ensuring buttery-smooth 60 FPS performance even on low-end mobile devices.
+
+---
+
 ## 📄 Licensing
 
 FlipbookEngine is distributed under a dual-license model:
