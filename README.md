@@ -1,5 +1,12 @@
 # FlipbookEngine
 
+[![NPM Version](https://img.shields.io/npm/v/flipbookengine?style=flat-square&color=blue)](https://www.npmjs.com/package/flipbookengine)
+[![License](https://img.shields.io/npm/l/flipbookengine?style=flat-square)](https://github.com/Bizeka/flipbook-engine/blob/main/LICENSE)
+[![NPM Unpacked Size](https://img.shields.io/npm/unpacked-size/flipbookengine?style=flat-square)](https://www.npmjs.com/package/flipbookengine)
+[![NPM Downloads](https://img.shields.io/npm/dt/flipbookengine?style=flat-square)](https://www.npmjs.com/package/flipbookengine)
+
+**[🔥 Live Demo & Playground](https://flipbookengine.com)**
+
 FlipbookEngine is a modern, lightweight, and embeddable HTML flipbook viewer for PDF-backed catalogs, brochures, and digital publications. Written in TypeScript, it features single-page and spread modes, a thumbnail rail, smooth zoom/pan, full internationalization (i18n), and robust theme customization.
 
 ## Highlights
