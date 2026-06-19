@@ -5,32 +5,12 @@
  * https://flipbookengine.com
  */
 
-import flipbookEngineStyles from '../styles/flipbook-engine.css?inline';
-
 export type FlipbookThemeMode = 'auto' | 'light' | 'dark';
 
 export interface ThemeConfiguration {
   theme?: FlipbookThemeMode;
   primaryColor?: string;
   cssVariables?: Record<string, string>;
-}
-
-let styleInjected = false;
-
-export function ensureRuntimeStyles() {
-  if (typeof document === 'undefined' || styleInjected) return;
-
-  const styleId = 'flipbook-engine-runtime-styles';
-  if (document.getElementById(styleId)) {
-    styleInjected = true;
-    return;
-  }
-
-  const styleEl = document.createElement('style');
-  styleEl.id = styleId;
-  styleEl.textContent = flipbookEngineStyles;
-  document.head.appendChild(styleEl);
-  styleInjected = true;
 }
 
 export function applyThemeConfiguration(container: HTMLElement, config: ThemeConfiguration) {

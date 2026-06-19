@@ -32,7 +32,7 @@ import {
     autoPlayInterval
 } from './state/store';
 import { isFlipbookPageAsset, normalizeFlipbookPages, type FlipbookPageAsset, type NormalizedFlipbookPage } from './model/pages';
-import { applyThemeConfiguration, ensureRuntimeStyles, type FlipbookThemeMode } from './theme/theme';
+import { applyThemeConfiguration, type FlipbookThemeMode } from './theme/theme';
 import { resolveMessages, type FlipbookLocale, type PartialFlipbookMessages } from './i18n/service';
 import './styles/flipbook-engine.css';
 
@@ -178,7 +178,6 @@ export class FlipbookEngine {
         initStore(this.options, resolvedPages.length, resolvedPages, !!pdfUrl);
 
         // 2. Setup DOM container
-        ensureRuntimeStyles();
         applyThemeConfiguration(this.container, this.options);
         this.container.innerHTML = '';
 
