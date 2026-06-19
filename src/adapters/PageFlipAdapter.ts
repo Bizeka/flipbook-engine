@@ -31,7 +31,24 @@ export class PageFlipAdapter {
         this.options = options;
         if (options.soundUrl) {
             this.audioEl = new Audio(options.soundUrl);
+            this.unlockAudio();
         }
+    }
+
+    private unlockAudio() {
+        if (!this.audioEl) return;
+        const unlock = () => {
+            if (this.audioEl) {
+                this.audioEl.play().then(() => {
+                    this.audioEl!.pause();
+                    this.audioEl!.currentTime = 0;
+                }).catch(() => {});
+            }
+            document.removeEventListener('touchstart', unlock);
+            document.removeEventListener('click', unlock);
+        };
+        document.addEventListener('touchstart', unlock, { once: true });
+        document.addEventListener('click', unlock, { once: true });
     }
 
     public init(viewportWidth: number, viewportHeight: number) {
