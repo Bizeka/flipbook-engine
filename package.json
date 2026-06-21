@@ -1,6 +1,6 @@
 {
   "name": "flipbookengine",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "A modern, embeddable HTML flipbook engine for PDF-backed catalogs and digital publications.",
   "private": false,
   "scripts": {
