@@ -33,14 +33,14 @@ test('theme configuration - applies dark theme mode class', () => {
 });
 
 test('theme configuration - applies primary color as css variable', () => {
-  const container = document.createElement('div') as any;
+  const container = document.createElement('div');
   applyThemeConfiguration(container, { primaryColor: '#ff0000' });
 
-  assert.equal(container.styleProperties['--accentcolor'], '#ff0000');
+  assert.equal(container.style.getPropertyValue('--accentcolor'), '#ff0000');
 });
 
 test('theme configuration - applies custom css variables', () => {
-  const container = document.createElement('div') as any;
+  const container = document.createElement('div');
   applyThemeConfiguration(container, {
     cssVariables: {
       'custom-var': '12px',
@@ -48,8 +48,8 @@ test('theme configuration - applies custom css variables', () => {
     }
   });
 
-  assert.equal(container.styleProperties['--custom-var'], '12px');
-  assert.equal(container.styleProperties['--another-var'], 'blue');
+  assert.equal(container.style.getPropertyValue('--custom-var'), '12px');
+  assert.equal(container.style.getPropertyValue('--another-var'), 'blue');
 });
 
 test('i18n service - resolves to default en locale messages', () => {

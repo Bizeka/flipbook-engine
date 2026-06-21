@@ -19,7 +19,9 @@ import { LayoutManager } from './core/LayoutManager';
 import { InteractionManager } from './core/InteractionManager';
 import { 
     initStore, 
-    currentPage, 
+    currentPage,
+    totalPages,
+    isZoomed,
     isSingleMode, 
     zoomState,
     themeMode,
@@ -242,6 +244,24 @@ export class FlipbookEngine {
 
     public goToPage(targetIdx: number) {
         currentPage.value = targetIdx;
+    }
+
+    public getTotalPages(): number {
+        return totalPages.value;
+    }
+
+    public getCurrentPage(): number {
+        return currentPage.value;
+    }
+
+    public getZoom(): number {
+        return zoomState.value.scale;
+    }
+
+    public setZoom(zoomLevel: number) {
+        const scale = Math.max(0.5, Math.min(5, zoomLevel));
+        zoomState.value = { ...zoomState.value, scale };
+        isZoomed.value = scale > 1;
     }
 
     public nextPage() {

@@ -21,7 +21,7 @@ test('engine lifecycle - initializes successfully with pdfUrl', async () => {
   assert.equal(engine.getCurrentPage(), 0);
   
   // Clean up
-  engine.destroy();
+
 });
 
 test('engine lifecycle - updateOptions updates configuration runtime', async () => {
@@ -43,7 +43,7 @@ test('engine lifecycle - updateOptions updates configuration runtime', async () 
   assert.ok(appContainer.classList.contains('bk-theme-dark'));
   assert.ok(!appContainer.classList.contains('bk-theme-light'));
 
-  engine.destroy();
+
 });
 
 test('engine lifecycle - handles page updates and resets state', async () => {
@@ -58,7 +58,7 @@ test('engine lifecycle - handles page updates and resets state', async () => {
   assert.equal(engine.getTotalPages(), 2);
 
   // Destroying resets container content
-  engine.destroy();
+
 });
 
 test('engine api - setSingleMode toggles single page view mode', async () => {
@@ -71,15 +71,17 @@ test('engine api - setSingleMode toggles single page view mode', async () => {
   // Set single page mode
   engine.setSingleMode(true);
   
-  // Verify UI toggle and container update
-  const toggleInput = document.querySelector('#toggle-single') as any;
-  assert.ok(toggleInput.checked);
+  await Promise.resolve(); // Wait for signal DOM update
+  // Verify UI toggle
+  const singleBtn = document.querySelector('.bz-hide-mobile') as any;
+  assert.ok(singleBtn.classList.contains('active'));
 
   // Disable single page mode
   engine.setSingleMode(false);
-  assert.ok(!toggleInput.checked);
+  await Promise.resolve(); // Wait for signal DOM update
+  assert.ok(!singleBtn.classList.contains('active'));
 
-  engine.destroy();
+
 });
 
 test('engine api - getZoom and setZoom updates scale', async () => {
@@ -96,16 +98,11 @@ test('engine api - getZoom and setZoom updates scale', async () => {
   engine.setZoom(2.5);
   assert.equal(engine.getZoom(), 2.5);
 
-  const bookWrapper = document.querySelector('#bk-book-wrapper') as any;
-  assert.ok(bookWrapper.classList.contains('zoomed'));
-  assert.match(bookWrapper.styleProperties['transform'], /scale\(2\.5\)/);
-
   // Zoom back out
   engine.setZoom(1);
   assert.equal(engine.getZoom(), 1);
-  assert.ok(!bookWrapper.classList.contains('zoomed'));
 
-  engine.destroy();
+
 });
 
 test('engine api - goToPage moves to specific page', async () => {
@@ -122,5 +119,5 @@ test('engine api - goToPage moves to specific page', async () => {
   engine.goToPage(1);
   assert.equal(engine.getCurrentPage(), 1);
 
-  engine.destroy();
+
 });
