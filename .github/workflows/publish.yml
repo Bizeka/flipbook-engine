@@ -9,15 +9,15 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write
+      id-token: write # NPM Provenance (OIDC) için zorunlu izin
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18.x'
+          node-version: '22.x' # v4 aksiyonu ile güncel Node.js
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
@@ -28,5 +28,4 @@ jobs:
 
       - name: Publish package
         run: npm publish --provenance
-        env:
-          NODE_AUTH_TOKEN: ''
+        # env: NODE_AUTH_TOKEN satırına Trusted Publisher'da hiç gerek yok, tamamen kaldırıldı.
