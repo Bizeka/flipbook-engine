@@ -24,6 +24,7 @@ export const currentPage = signal<number>(0);
 export const totalPages = signal<number>(0);
 export const isSingleMode = signal<boolean>(false);
 export const showThumbs = signal<boolean>(true);
+export const showArrows = signal<boolean>(true);
 export const orientation = signal<'landscape' | 'portrait'>('landscape');
 export const flipState = signal<'read' | 'fold_corner' | 'flipping'>('read');
 export const themeMode = signal<FlipbookThemeMode>('auto');
@@ -77,6 +78,7 @@ export function initStore(options: FlipbookEngineOptions, total: number, mappedP
     if (options.theme !== undefined) themeMode.value = options.theme;
     if (options.primaryColor !== undefined) primaryColor.value = options.primaryColor;
     if (options.showThumbs !== undefined) showThumbs.value = options.showThumbs;
+    if (options.showArrows !== undefined) showArrows.value = options.showArrows;
     if (options.allowDownload !== undefined) allowDownload.value = options.allowDownload;
     if (options.whiteLabel !== undefined) whiteLabel.value = options.whiteLabel;
     if (options.soundEnabled !== undefined) soundEnabled.value = options.soundEnabled;

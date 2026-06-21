@@ -200,6 +200,17 @@ A special thanks to the incredible team behind **[Serenity](https://github.com/s
 
 ---
 
+## 🗺️ Roadmap (Upcoming in v1.0.0)
+
+We are constantly working to make FlipbookEngine the definitive choice for enterprise digital catalogs. The upcoming **v1.0.0 Major Release** will introduce several advanced features designed for commercial scale:
+
+- 📑 **Table of Contents (Index):** A dedicated, interactive side-menu allowing readers to instantly jump to specific chapters or product categories.
+- 📝 **Page Notes & Annotations:** Allow readers to drop personal notes or bookmarks directly onto pages.
+- 🔍 **Full-Text PDF Search:** Client-side search capabilities via extracted JSON indices, enabling instant text highlighting across hundreds of pages without locking the UI.
+- 🎯 **Interactive Hotspots & Pop-ups:** Draw custom coordinates over the canvas to embed YouTube videos, image galleries, or direct "Buy Now" e-commerce links right on top of the catalog pages.
+
+---
+
 ## 📄 Licensing
 
 FlipbookEngine is distributed under a dual-license model:

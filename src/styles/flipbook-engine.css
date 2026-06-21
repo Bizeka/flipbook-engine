@@ -421,6 +421,62 @@
   -webkit-backdrop-filter: blur(12px);
 }
 
+/* Navigation Arrows on Canvas */
+.bk-nav-arrows {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+
+.bk-nav-arrow {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--flipbook-bg-surface);
+  border: 1px solid var(--flipbook-border);
+  box-shadow: 0 4px 15px var(--flipbook-shadow);
+  color: var(--flipbook-text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: all 0.2s ease;
+  opacity: 0.7;
+}
+
+.bk-nav-arrow:hover {
+  opacity: 1;
+  background: var(--flipbook-primary);
+  color: #ffffff;
+  border-color: var(--flipbook-primary);
+  transform: scale(1.1);
+}
+
+.bk-arrow-icon {
+  width: 12px;
+  height: 12px;
+  border-top: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+}
+
+.bk-arrow-left {
+  transform: rotate(-135deg);
+  margin-left: 4px;
+}
+
+.bk-arrow-right {
+  transform: rotate(45deg);
+  margin-right: 4px;
+}
+
 .bk-watermark {
   position: absolute;
   bottom: 12px;

@@ -43,6 +43,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 export interface FlipbookEngineOptions {
     allowDownload?: boolean;
     showThumbs?: boolean;
+    showArrows?: boolean;
     primaryColor?: string;
     soundEnabled?: boolean;
     soundUrl?: string;

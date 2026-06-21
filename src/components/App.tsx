@@ -16,6 +16,7 @@ import { computed } from '@preact/signals-core';
 import { Toolbar } from './Toolbar';
 import { Thumbnails } from './Thumbnails';
 import { Viewer } from './Viewer';
+import { NavigationArrows } from './NavigationArrows';
 import { 
     themeMode, 
     whiteLabel, 
@@ -95,6 +96,11 @@ export function App(props: AppProps) {
                     bookContainerRef={props.bookContainerRef}
                 />
                 
+                <NavigationArrows 
+                    onPrevPage={handlePrevPage}
+                    onNextPage={handleNextPage}
+                />
+
                 {!whiteLabel.value ? (
                     <div class="bk-watermark">
                         Powered by <a href="https://flipbookengine.com" target="_blank" rel="noopener" style="text-decoration: underline;">FlipbookEngine</a>
