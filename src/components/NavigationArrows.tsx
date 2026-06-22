@@ -25,7 +25,7 @@ export function NavigationArrows(props: NavigationArrowsProps) {
     });
 
     return (
-        <div class="bk-nav-arrows" style={computed(() => showArrows.value ? 'display: block;' : 'display: none;')}>
+        <div class="bk-nav-arrows" style={computed(() => showArrows.value ? 'display: flex;' : 'display: none;')}>
             <button 
                 class="bk-nav-arrow bk-nav-prev" 
                 style={computed(() => isLeftVisible.value ? 'visibility: visible;' : 'visibility: hidden;')}

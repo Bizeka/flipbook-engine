@@ -36,11 +36,8 @@ import {
 import { isFlipbookPageAsset, normalizeFlipbookPages, type FlipbookPageAsset, type NormalizedFlipbookPage } from './model/pages';
 import { applyThemeConfiguration, type FlipbookThemeMode } from './theme/theme';
 import { resolveMessages, type FlipbookLocale, type PartialFlipbookMessages } from './i18n/service';
+import { PdfRenderer } from './core/PdfRenderer';
 import './styles/flipbook-engine.css';
-
-// @ts-ignore
-const pdfWorkerUrl = new URL('pdfjs-dist/build/pdf.worker.mjs', import.meta.url).href;
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
 export interface FlipbookEngineOptions {
     allowDownload?: boolean;
@@ -65,6 +62,9 @@ export interface FlipbookEngineOptions {
     isSingleMode?: boolean;
     autoPlay?: boolean;
     autoPlayInterval?: number;
+    pdfRenderScale?: number;
+    pdfRenderQuality?: number;
+    pdfRenderFormat?: string;
 }
 
 export interface PageImages extends FlipbookPageAsset {
@@ -98,7 +98,7 @@ export class FlipbookEngine {
     private layoutManager: LayoutManager | null = null;
     private interactionManager: InteractionManager | null = null;
     
-    private pdfDoc: any = null;
+    private pdfRenderer: PdfRenderer | null = null;
     private listeners: Partial<Record<FlipbookEngineEventName, Set<AnyFlipbookEventHandler>>> = {};
 
     constructor(private selector: string | HTMLElement, options: FlipbookEngineOptions = {}) {
@@ -109,6 +109,9 @@ export class FlipbookEngine {
             theme: 'auto', 
             soundUrl: 'https://flipbookengine.com/Content/page-flip.mp3',
             autoPlayInterval: 3000,
+            pdfRenderScale: 1.5,
+            pdfRenderQuality: 0.85,
+            pdfRenderFormat: 'image/webp',
             ...options 
         };
     }
@@ -146,29 +149,15 @@ export class FlipbookEngine {
             }
         } else if (pdfUrl) {
             try {
-                const loadingTask = pdfjsLib.getDocument(pdfUrl);
-                this.pdfDoc = await loadingTask.promise;
+                this.pdfRenderer = new PdfRenderer({
+                    scale: this.options.pdfRenderScale,
+                    quality: this.options.pdfRenderQuality,
+                    format: this.options.pdfRenderFormat
+                });
                 
-                for (let i = 1; i <= this.pdfDoc.numPages; i++) {
-                    resolvedPages.push({
-                        index: i - 1,
-                        assetId: `pdf-page-${i}`,
-                        pageNumber: i,
-                        cropMode: 'full',
-                        normal: '',
-                        low: '',
-                        thumb: ''
-                    });
-                }
-
-                const firstPage = await this.pdfDoc.getPage(1);
-                const vp = firstPage.getViewport({ scale: 1.0 });
-                const aspectRatio = vp.width / vp.height;
-
-                const baseShortSide = 420;
-                viewport = aspectRatio >= 1
-                    ? { width: Math.round(baseShortSide * aspectRatio), height: baseShortSide }
-                    : { width: baseShortSide, height: Math.round(baseShortSide / aspectRatio) };
+                await this.pdfRenderer.loadDocument(pdfUrl);
+                resolvedPages = await this.pdfRenderer.renderAllPages();
+                viewport = await this.pdfRenderer.calculateViewportDimensions();
             } catch (e) {
                 console.error("PDF load failed:", e);
                 return;
@@ -298,17 +287,26 @@ export class FlipbookEngine {
         this.init(pdfUrl || '', imageList);
     }
 
-    public destroy(clearMarkup = true) {
-        if (this.pageFlipAdapter) this.pageFlipAdapter.destroy();
-        if (this.layoutManager) this.layoutManager.destroy();
-        if (this.interactionManager) this.interactionManager.destroy();
-
+    public destroy(keepContainer = false) {
+        if (this.pageFlipAdapter) {
+            this.pageFlipAdapter.destroy();
+        }
+        if (this.layoutManager) {
+            this.layoutManager.destroy();
+        }
+        if (this.interactionManager) {
+            this.interactionManager.destroy();
+        }
+        if (this.pdfRenderer) {
+            this.pdfRenderer.destroy();
+        }
+        
         this.pageFlipAdapter = null;
         this.layoutManager = null;
         this.interactionManager = null;
-        this.pdfDoc = null;
+        this.pdfRenderer = null;
 
-        if (clearMarkup && this.container) {
+        if (!keepContainer && this.container) {
             this.container.innerHTML = '';
         }
 

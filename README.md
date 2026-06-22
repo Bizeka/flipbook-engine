@@ -1,11 +1,11 @@
 # FlipbookEngine
 
-[![NPM Version](https://img.shields.io/npm/v/flipbookengine?style=flat-square&color=blue)](https://www.npmjs.com/package/flipbookengine)
-[![License](https://img.shields.io/npm/l/flipbookengine?style=flat-square)](https://github.com/Bizeka/flipbook-engine/blob/main/LICENSE)
-[![NPM Unpacked Size](https://img.shields.io/npm/unpacked-size/flipbookengine?style=flat-square)](https://www.npmjs.com/package/flipbookengine)
-[![NPM Downloads](https://img.shields.io/npm/dt/flipbookengine?style=flat-square)](https://www.npmjs.com/package/flipbookengine)
+<a href="https://www.npmjs.com/package/flipbookengine" target="_blank"><img src="https://img.shields.io/npm/v/flipbookengine?style=flat-square&color=blue" alt="NPM Version"></a>
+<a href="https://github.com/Bizeka/flipbook-engine/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/npm/l/flipbookengine?style=flat-square" alt="License"></a>
+<a href="https://www.npmjs.com/package/flipbookengine" target="_blank"><img src="https://img.shields.io/npm/unpacked-size/flipbookengine?style=flat-square" alt="NPM Unpacked Size"></a>
+<a href="https://www.npmjs.com/package/flipbookengine" target="_blank"><img src="https://img.shields.io/npm/dt/flipbookengine?style=flat-square" alt="NPM Downloads"></a>
 
-**[🔥 Live Demo & Playground](https://flipbookengine.com)**
+**<a href="https://flipbookengine.com" target="_blank">Live Demo & Playground ↗</a>**
 
 FlipbookEngine is a modern, lightweight, and embeddable HTML flipbook viewer for PDF-backed catalogs, brochures, and digital publications. Written in TypeScript, it features single-page and spread modes, a thumbnail rail, smooth zoom/pan, full internationalization (i18n), and robust theme customization.
 
@@ -167,24 +167,24 @@ FlipbookEngine features fully custom-property-based styling compatible with mode
 }
 ```
 
-## 🚀 Performance & Bundle Metrics
+## Performance & Bundle Metrics
 
 FlipbookEngine is engineered for high performance, utilizing hardware-accelerated CSS 3D transforms instead of heavy WebGL, ensuring a smooth **60 FPS** experience even on low-end mobile devices.
 
-### 📦 Bundle Size (Zero-Config PDF Engine)
+### Bundle Size (Zero-Config PDF Engine)
 Unlike other libraries that require complex external PDF.js worker configurations, FlipbookEngine ships as an **"All-in-One"** package. It includes the Core Engine, UI layout, StPageFlip, and the full PDF.js rendering engine out of the box.
 
 *   **Core + PDF Engine (Gzipped):** `~788 KB` *(A single drop-in script, no external workers needed)*
 *   **Styles (CSS Gzipped):** `~2.9 KB`
 *   **React / Vue Wrappers (Gzipped):** `< 1 KB`
 
-### ⚡ Performance Highlights
+### Performance Highlights
 *   **Hardware Accelerated:** Uses purely CSS-based 3D transformations (`transform: rotateY`, `translateZ`) which offloads rendering to the GPU. No heavy WebGL overhead.
 *   **Smart Memory Management (Lazy Loading):** Automatically unloads hidden pages from the DOM and destroys unused PDF blobs to prevent memory leaks on large catalogs.
 *   **Zero-CLS Layouts:** Prevents Cumulative Layout Shift (CLS) by utilizing highly optimized `AbortController` bound resize event listeners and native CSS `aspect-ratio` calculations.
 *   **Eco-Friendly Standby:** Stops running layout calculations when the catalog is not actively being dragged or flipped.
 
-## 🥊 FlipbookEngine vs. The Industry
+## FlipbookEngine vs. The Industry
 
 When choosing a flipbook library, here is how we compare to other solutions:
 
@@ -194,24 +194,27 @@ When choosing a flipbook library, here is how we compare to other solutions:
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
-A special thanks to the incredible team behind **[Serenity](https://github.com/serenity-is/serenity)**. FlipbookEngine's reactive UI layer is proudly powered by **[domwise](https://github.com/serenity-is/serenity/tree/master/packages/domwise)** (a brilliant DOM manipulation library developed by the Serenity team). Coupled with `@preact/signals-core`, `domwise` allows us to completely bypass the heavy overhead of traditional Virtual DOM diffing. This architectural choice is a massive contributor to FlipbookEngine's lightning-fast UI updates, ensuring buttery-smooth 60 FPS performance even on low-end mobile devices.
+A special thanks to the incredible team behind **<a href="https://github.com/serenity-is/serenity" target="_blank">Serenity</a>**. FlipbookEngine's reactive UI layer is proudly powered by **<a href="https://github.com/serenity-is/serenity/tree/master/packages/domwise" target="_blank">domwise</a>** (a brilliant DOM manipulation library developed by the Serenity team). Coupled with `@preact/signals-core`, `domwise` allows us to completely bypass the heavy overhead of traditional Virtual DOM diffing. This architectural choice is a massive contributor to FlipbookEngine's lightning-fast UI updates, ensuring buttery-smooth 60 FPS performance even on low-end mobile devices.
 
 ---
 
-## 🗺️ Roadmap (Upcoming in v1.0.0)
+## Roadmap (Upcoming in v1.0.0)
 
 We are constantly working to make FlipbookEngine the definitive choice for enterprise digital catalogs. The upcoming **v1.0.0 Major Release** will introduce several advanced features designed for commercial scale:
 
-- 📑 **Table of Contents (Index):** A dedicated, interactive side-menu allowing readers to instantly jump to specific chapters or product categories.
-- 📝 **Page Notes & Annotations:** Allow readers to drop personal notes or bookmarks directly onto pages.
-- 🔍 **Full-Text PDF Search:** Client-side search capabilities via extracted JSON indices, enabling instant text highlighting across hundreds of pages without locking the UI.
-- 🎯 **Interactive Hotspots & Pop-ups:** Draw custom coordinates over the canvas to embed YouTube videos, image galleries, or direct "Buy Now" e-commerce links right on top of the catalog pages.
+- **Table of Contents (Index):** A dedicated, interactive side-menu allowing readers to instantly jump to specific chapters or product categories.
+- **Page Notes & Annotations:** Allow readers to drop personal notes or bookmarks directly onto pages.
+- **Full-Text PDF Search:** Client-side search capabilities via extracted JSON indices, enabling instant text highlighting across hundreds of pages without locking the UI.
+- **Interactive Hotspots & Pop-ups:** Draw custom coordinates over the canvas to embed YouTube videos, image galleries, or direct "Buy Now" e-commerce links right on top of the catalog pages.
+- **Partial PDF Downloads:** Allow readers to select and download specific pages. Features a hybrid architecture: standalone client-side generation using `pdf-lib`, or an event-driven `onDownloadRequest` hook to offload generation to your own secure backend.
+- **AI Chatbot (Chat with Docs):** A built-in AI assistant interface to help users query catalog contents, find products, and get page recommendations instantly.
+- **Deep Linking & Social Share:** Generate and share URLs that point to specific pages or spreads directly via social media.
 
 ---
 
-## 📄 Licensing
+## Licensing
 
 FlipbookEngine is distributed under a dual-license model:
 
