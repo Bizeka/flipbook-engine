@@ -1,11 +1,11 @@
 # FlipbookEngine
 
-<a href="https://www.npmjs.com/package/flipbookengine" target="_blank"><img src="https://img.shields.io/npm/v/flipbookengine?style=flat-square&color=blue" alt="NPM Version"></a>
-<a href="https://github.com/Bizeka/flipbook-engine/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/npm/l/flipbookengine?style=flat-square" alt="License"></a>
-<a href="https://www.npmjs.com/package/flipbookengine" target="_blank"><img src="https://img.shields.io/npm/unpacked-size/flipbookengine?style=flat-square" alt="NPM Unpacked Size"></a>
-<a href="https://www.npmjs.com/package/flipbookengine" target="_blank"><img src="https://img.shields.io/npm/dt/flipbookengine?style=flat-square" alt="NPM Downloads"></a>
+[![NPM Version](https://img.shields.io/npm/v/flipbookengine?style=flat-square&color=blue)](https://www.npmjs.com/package/flipbookengine)
+[![License](https://img.shields.io/npm/l/flipbookengine?style=flat-square)](https://github.com/Bizeka/flipbook-engine/blob/main/LICENSE)
+[![NPM Unpacked Size](https://img.shields.io/npm/unpacked-size/flipbookengine?style=flat-square)](https://www.npmjs.com/package/flipbookengine)
+[![NPM Downloads](https://img.shields.io/npm/dt/flipbookengine?style=flat-square)](https://www.npmjs.com/package/flipbookengine)
 
-**<a href="https://flipbookengine.com" target="_blank">Live Demo & Playground ↗</a>**
+**[Live Demo & Playground ↗](https://flipbookengine.com)**
 
 FlipbookEngine is a modern, lightweight, and embeddable HTML flipbook viewer for PDF-backed catalogs, brochures, and digital publications. Written in TypeScript, it features single-page and spread modes, a thumbnail rail, smooth zoom/pan, full internationalization (i18n), and robust theme customization.
 
@@ -196,7 +196,7 @@ When choosing a flipbook library, here is how we compare to other solutions:
 
 ## Acknowledgments
 
-A special thanks to the incredible team behind **<a href="https://github.com/serenity-is/serenity" target="_blank">Serenity</a>**. FlipbookEngine's reactive UI layer is proudly powered by **<a href="https://github.com/serenity-is/serenity/tree/master/packages/domwise" target="_blank">domwise</a>** (a brilliant DOM manipulation library developed by the Serenity team). Coupled with `@preact/signals-core`, `domwise` allows us to completely bypass the heavy overhead of traditional Virtual DOM diffing. This architectural choice is a massive contributor to FlipbookEngine's lightning-fast UI updates, ensuring buttery-smooth 60 FPS performance even on low-end mobile devices.
+A special thanks to the incredible team behind **[Serenity](https://github.com/serenity-is/serenity)**. FlipbookEngine's reactive UI layer is proudly powered by **[domwise](https://github.com/serenity-is/serenity/tree/master/packages/domwise)** (a brilliant DOM manipulation library developed by the Serenity team). Coupled with `@preact/signals-core`, `domwise` allows us to completely bypass the heavy overhead of traditional Virtual DOM diffing. This architectural choice is a massive contributor to FlipbookEngine's lightning-fast UI updates, ensuring buttery-smooth 60 FPS performance even on low-end mobile devices.
 
 ---
 
