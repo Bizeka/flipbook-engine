@@ -19,6 +19,16 @@ import { effect } from '@preact/signals-core';
 import type { FlipbookStore } from '../state/store';
 import type { FlipbookEngineOptions } from '../engine';
 
+export function prefersReducedMotion(): boolean {
+    return typeof window !== 'undefined'
+        && typeof window.matchMedia === 'function'
+        && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+export function resolveFlippingTime(flippingTime?: number, reducedMotion = prefersReducedMotion()): number {
+    if (reducedMotion) return 0;
+    return typeof flippingTime === 'number' && flippingTime >= 0 ? flippingTime : 1000;
+}
 export class PageFlipAdapter {
     private pageFlip: any = null;
     private bookContainer: HTMLElement;
@@ -75,7 +85,7 @@ export class PageFlipAdapter {
             usePortrait: true,
             mobileScrollSupport: false,
             maxShadowOpacity: this.options.maxShadowOpacity || 0.5,
-            flippingTime: this.options.flippingTime || 1000
+            flippingTime: resolveFlippingTime(this.options.flippingTime)
         });
 
         // Load the HTML pages from the DOM

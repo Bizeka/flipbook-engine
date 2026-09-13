@@ -773,5 +773,15 @@
 
 .bk-btn.muted { opacity: 0.5; position: relative; }
 .bk-btn.muted::after { content: ''; position: absolute; width: 80%; height: 2px; background: currentColor; top: 50%; left: 10%; transform: rotate(-45deg); border-radius: 1px; }
-
-
+/* Respect users who prefer reduced motion. PageFlip's JavaScript animation
+   duration is disabled in PageFlipAdapter; this covers CSS transitions. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
