@@ -88,6 +88,8 @@ export class FlipbookEngine {
     private pdfRenderer: PdfRenderer | null = null;
     private listeners: Partial<Record<FlipbookEngineEventName, Set<AnyFlipbookEventHandler>>> = {};
     private initializationTimer: ReturnType<typeof setTimeout> | null = null;
+    private initGeneration = 0;
+    private initAbortController: AbortController | null = null;
 
     constructor(private selector: string | HTMLElement, options: FlipbookEngineOptions = {}) {
         this.options = {
@@ -114,11 +116,15 @@ export class FlipbookEngine {
         if (!this.container) return;
 
         this.destroy(true);
+        const generation = this.initGeneration;
+        const abortController = new AbortController();
+        this.initAbortController = abortController;
 
         let resolvedPages: NormalizedFlipbookPage[] = [];
         let viewport = { ...FlipbookEngine.DEFAULT_PAGE_VIEWPORT };
 
         if (imageList && imageList.length > 0) {
+            if (abortController.signal.aborted) return;
             const sourceAssets = imageList.filter(isFlipbookPageAsset);
             resolvedPages = normalizeFlipbookPages(sourceAssets);
 
@@ -136,6 +142,7 @@ export class FlipbookEngine {
                 }
             }
         } else if (pdfUrl) {
+            if (abortController.signal.aborted) return;
             try {
                 this.pdfRenderer = new PdfRenderer({
                     scale: this.options.pdfRenderScale,
@@ -153,6 +160,7 @@ export class FlipbookEngine {
             }
         }
 
+        if (abortController.signal.aborted || generation !== this.initGeneration) return;
         if (!resolvedPages.length) return;
 
         // 1. Initialize State
@@ -200,18 +208,34 @@ export class FlipbookEngine {
         this.pageFlipAdapter = new PageFlipAdapter(bookContainerEl!, this.options, this.store);
         pageFlipAdapterRef.current = this.pageFlipAdapter;
 
-        // Wait a tick for styles to apply before initializing PageFlip
-        this.initializationTimer = setTimeout(() => {
-            this.initializationTimer = null;
-            if (!this.pageFlipAdapter) return;
+        // Wait a tick for styles to apply before initializing PageFlip.
+        // The init promise resolves only after this setup is complete.
+        await new Promise<void>((resolve) => {
+            const finish = () => {
+                abortController.signal.removeEventListener('abort', finish);
+                resolve();
+            };
+            abortController.signal.addEventListener('abort', finish, { once: true });
+            this.initializationTimer = setTimeout(() => {
+                this.initializationTimer = null;
+                abortController.signal.removeEventListener('abort', finish);
+                if (abortController.signal.aborted || generation !== this.initGeneration || !this.pageFlipAdapter) {
+                    resolve();
+                    return;
+                }
 
-            this.pageFlipAdapter.init(viewport.width, viewport.height);
-            this.interactionManager = new InteractionManager(bookWrapperEl!, this.pageFlipAdapter, this.store);
-            this.interactionManager.init();
-            interactionManagerRef.current = this.interactionManager;
+                this.pageFlipAdapter.init(viewport.width, viewport.height);
+                this.interactionManager = new InteractionManager(bookWrapperEl!, this.pageFlipAdapter, this.store);
+                this.interactionManager.init();
+                interactionManagerRef.current = this.interactionManager;
 
-            this.emit('init', { totalPages: resolvedPages.length });
-        }, 10);
+                this.emit('init', { totalPages: resolvedPages.length });
+                resolve();
+            }, 10);
+        });
+        if (this.initAbortController === abortController) {
+            this.initAbortController = null;
+        }
     }
 
     private loadImageSize(src: string): Promise<{ width: number; height: number } | null> {
@@ -289,6 +313,9 @@ export class FlipbookEngine {
     }
 
     public destroy(keepContainer = false) {
+        this.initGeneration++;
+        this.initAbortController?.abort();
+        this.initAbortController = null;
         if (this.initializationTimer) {
             clearTimeout(this.initializationTimer);
             this.initializationTimer = null;
