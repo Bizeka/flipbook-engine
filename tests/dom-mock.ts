@@ -9,13 +9,6 @@ const dom = new JSDOM('<!DOCTYPE html><html><head></head><body><div id="app"></d
 // Expose standard DOM objects to global scope for Domwise JSX factory and UI tests
 globalThis.window = dom.window as any;
 
-// Suppress unhandled async DOM/UI teardown errors in test runner
-process.on('uncaughtException', (err) => {
-  // Ignore harmless async teardown errors after tests finish
-  if (err && err.message && err.message.includes('init')) return;
-  console.error('Unhandled Exception:', err);
-});
-
 globalThis.document = dom.window.document;
 globalThis.Node = dom.window.Node;
 globalThis.HTMLElement = dom.window.HTMLElement;

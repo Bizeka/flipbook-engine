@@ -10,7 +10,7 @@ import { Flipbook } from '../src/react/index.tsx';
 import { FlipbookEngine } from '../src/engine.ts';
 import { PdfRenderer } from '../src/core/PdfRenderer.ts';
 
-const settle = () => new Promise((resolve) => setTimeout(resolve, 40));
+const settle = () => new Promise((resolve) => setTimeout(resolve, 100));
 
 function createHost() {
   const host = document.createElement('div');
@@ -85,4 +85,5 @@ test('React wrapper exposes core navigation methods through its ref', async () =
   root.unmount();
   host.remove();
 });
+
 
