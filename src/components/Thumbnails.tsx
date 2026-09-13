@@ -39,7 +39,17 @@ export function Thumbnails(props: ThumbnailsProps) {
                     <div
                         // @ts-ignore
                         class={computed(() => `thumb-item ${isActive() ? 'active' : ''}`)}
+                        role="button"
+                        tabindex="0"
+                        aria-label={`Go to page ${index + 1}`}
+                        aria-current={computed(() => isActive() ? 'page' : undefined)}
                         onClick={() => props.onThumbClick(index)}
+                        onKeyDown={(event: KeyboardEvent) => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault();
+                                props.onThumbClick(index);
+                            }
+                        }}
                     >
                         <div class="thumb-img-wrapper">
                             <img

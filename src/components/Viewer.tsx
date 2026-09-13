@@ -27,6 +27,8 @@ interface ViewerProps {
 export function Viewer(props: ViewerProps) {
     return (
         <div
+            role="region"
+            aria-label="Flipbook viewer"
             class={computed(() => {
                 let classes = 'bk-book-wrapper ';
                 if (props.store.isDoublePageLayout.value) classes += 'double-mode ';
@@ -82,6 +84,7 @@ export function Viewer(props: ViewerProps) {
                             <img
                                 class={`bk-single-img page-content ${page.cropMode !== 'full' ? 'page-content--split page-content--' + page.cropMode : ''}`}
                                 src={props.store.zoomState.value.isActive ? page.normal : (page.low || page.normal)}
+                                alt={`Page ${props.store.currentPage.value + 1}`}
                                 style="opacity: 1; transition: opacity 0.3s; box-shadow: var(--flipbook-shadow);"
                             />
                         );

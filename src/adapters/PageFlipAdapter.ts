@@ -207,7 +207,10 @@ export class PageFlipAdapter {
     public playSound() {
         if (this.store.soundEnabled.value && this.audioEl) {
             this.audioEl.currentTime = 0;
-            this.audioEl.play().catch(err => console.warn('Flipbook Audio Play Error:', err));
+            const playback = this.audioEl.play();
+            if (playback && typeof playback.catch === 'function') {
+                playback.catch(err => console.warn('Flipbook Audio Play Error:', err));
+            }
         }
     }
 

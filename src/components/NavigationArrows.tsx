@@ -29,7 +29,7 @@ export function NavigationArrows(props: NavigationArrowsProps) {
 
     return (
         <div class="bk-nav-arrows" style={computed(() => props.store.showArrows.value ? 'display: flex;' : 'display: none;')}>
-            <button
+            <button type="button"
                 class="bk-nav-arrow bk-nav-prev"
                 style={computed(() => isLeftVisible.value ? 'visibility: visible;' : 'visibility: hidden;')}
                 onClick={(e: Event) => { e.preventDefault(); props.onPrevPage(); }}
@@ -37,7 +37,7 @@ export function NavigationArrows(props: NavigationArrowsProps) {
             >
                 <div class="bk-arrow-icon bk-arrow-left"></div>
             </button>
-            <button
+            <button type="button"
                 class="bk-nav-arrow bk-nav-next"
                 style={computed(() => isRightVisible.value ? 'visibility: visible;' : 'visibility: hidden;')}
                 onClick={(e: Event) => { e.preventDefault(); props.onNextPage(); }}
