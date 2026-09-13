@@ -192,7 +192,7 @@ FlipbookEngine features fully custom-property-based styling compatible with mode
 
 ## Performance & Bundle Metrics
 
-FlipbookEngine is engineered for high performance, utilizing hardware-accelerated CSS 3D transforms instead of heavy WebGL, ensuring a smooth **60 FPS** experience even on low-end mobile devices.
+FlipbookEngine is designed for responsive rendering with hardware-accelerated CSS 3D transforms and a lightweight DOM update path.
 
 ### Package Size and PDF.js
 
@@ -203,24 +203,23 @@ FlipbookEngine does not bundle PDF.js or its worker. `pdfjs-dist` remains a norm
 *   **PDF rendering:** enabled by configuring `pdfWorkerSrc` as shown above.
 
 ### Performance Highlights
-*   **Hardware Accelerated:** Uses purely CSS-based 3D transformations (`transform: rotateY`, `translateZ`) which offloads rendering to the GPU. No heavy WebGL overhead.
-*   **Smart Memory Management (Lazy Loading):** Automatically unloads hidden pages from the DOM and destroys unused PDF blobs to prevent memory leaks on large catalogs.
-*   **Zero-CLS Layouts:** Prevents Cumulative Layout Shift (CLS) by utilizing highly optimized `AbortController` bound resize event listeners and native CSS `aspect-ratio` calculations.
-*   **Eco-Friendly Standby:** Stops running layout calculations when the catalog is not actively being dragged or flipped.
+*   **Hardware Accelerated:** Uses CSS-based 3D transformations (`transform: rotateY`, `translateZ`) without a WebGL runtime.
+*   **Progressive Image Quality:** Loads low-quality page assets first and upgrades visible pages to their normal-quality source through `IntersectionObserver`.
+*   **Bounded PDF Rendering:** PDF pages are rendered with configurable concurrency (`pdfRenderConcurrency`, default `3`) and can be cancelled when an initialization is superseded or destroyed.
 
 ## FlipbookEngine vs. The Industry
 
 When choosing a flipbook library, here is how we compare to other solutions:
 
 *   **Legacy Libraries (e.g., Turn.js):** Turn.js is over a decade old, relies on jQuery, and lacks native PDF support. **FlipbookEngine** uses a modern framework-agnostic stack (Vanilla/React/Vue), TypeScript, and has built-in PDF.js integration.
-*   **Heavy 3D Plugins (e.g., DearFlip, Real3D):** Many 3D plugins use WebGL, which drains CPU/RAM and can be sluggish on mobile. **FlipbookEngine** is powered by StPageFlip, delivering buttery-smooth 60FPS CSS 2D/3D performance while remaining lightweight.
+*   **Heavy 3D Plugins (e.g., DearFlip, Real3D):** Many 3D plugins use WebGL, which can increase runtime overhead on mobile. **FlipbookEngine** uses StPageFlip with CSS 2D/3D transforms and no WebGL runtime.
 *   **Closed SaaS Platforms (e.g., Issuu, Heyzine):** These charge high monthly fees and lock your data on their servers. **FlipbookEngine** gives you 100% control to host and embed directly in your own code (AGPL-3.0).
 
 ---
 
 ## Acknowledgments
 
-A special thanks to the incredible team behind **[Serenity](https://github.com/serenity-is/serenity)**. FlipbookEngine's reactive UI layer is proudly powered by **[domwise](https://github.com/serenity-is/serenity/tree/master/packages/domwise)** (a brilliant DOM manipulation library developed by the Serenity team). Coupled with `@preact/signals-core`, `domwise` allows us to completely bypass the heavy overhead of traditional Virtual DOM diffing. This architectural choice is a massive contributor to FlipbookEngine's lightning-fast UI updates, ensuring buttery-smooth 60 FPS performance even on low-end mobile devices.
+A special thanks to the incredible team behind **[Serenity](https://github.com/serenity-is/serenity)**. FlipbookEngine's reactive UI layer is powered by **[domwise](https://github.com/serenity-is/serenity/tree/master/packages/domwise)**. Coupled with `@preact/signals-core`, this keeps the UI update path small without requiring a traditional Virtual DOM runtime.
 
 ---
 
