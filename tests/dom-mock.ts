@@ -10,6 +10,7 @@ const dom = new JSDOM('<!DOCTYPE html><html><head></head><body><div id="app"></d
 globalThis.window = dom.window as any;
 
 globalThis.document = dom.window.document;
+Object.defineProperty(globalThis, 'navigator', { value: dom.window.navigator, configurable: true, enumerable: true, writable: true });
 globalThis.Node = dom.window.Node;
 globalThis.HTMLElement = dom.window.HTMLElement;
 globalThis.Element = dom.window.Element;
