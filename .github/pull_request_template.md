@@ -1,15 +1,30 @@
-## Summary
+## Description
 
-<!-- Describe the problem and the intended change. -->
+Please include a summary of the changes and the related issue. Please also include relevant motivation and context. List any dependencies that are required for this change.
 
-## Validation
+Fixes # (issue)
 
-- [ ] `npm run typecheck`
-- [ ] `npm test`
-- [ ] `npm run build`
-- [ ] Documentation updated when behavior or API changes
+## Type of Change
 
-## Licensing
+- [ ] Bug fix (non-breaking change which fixes an issue)
+- [ ] New feature (non-breaking change which adds functionality)
+- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [ ] This change requires a documentation update
 
-- [ ] I agree that this contribution is submitted under the project’s AGPL-3.0-or-later and commercial dual-license terms.
-- [ ] I have signed off each commit (`git commit -s`) under DCO 1.1.
+## How Has This Been Tested?
+
+Please describe the tests that you ran to verify your changes. Provide instructions so we can reproduce.
+
+- [ ] Unit Tests (`npm run test`)
+- [ ] Manual browser verification
+
+## Checklist:
+
+- [ ] My code follows the style guidelines of this project
+- [ ] I have performed a self-review of my code
+- [ ] I have commented my code, particularly in hard-to-understand areas
+- [ ] I have made corresponding changes to the documentation
+- [ ] My changes generate no new warnings
+- [ ] I have added tests that prove my fix is effective or that my feature works
+- [ ] New and existing unit tests pass locally with my changes
+- [ ] I have signed off my commits (using `git commit -s`) in accordance with the DCO guidelines

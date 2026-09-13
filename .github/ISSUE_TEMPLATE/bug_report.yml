@@ -1,33 +1,61 @@
-name: Bug report
-description: Report a reproducible defect in FlipbookEngine
-title: "[Bug]: "
-labels: [bug]
+name: Bug Report
+description: File a bug report to help us improve FlipbookEngine
+labels: ["bug", "triage"]
 body:
-  - type: textarea
-    id: reproduction
+  - type: markdown
     attributes:
-      label: Reproduction
-      description: Include a minimal reproduction or repository link.
+      value: |
+        Thanks for taking the time to fill out this bug report!
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Description
+      description: A clear and concise description of what the bug is.
+      placeholder: Tell us what you see!
     validations:
       required: true
   - type: textarea
-    id: expected
+    id: reproduction-steps
     attributes:
-      label: Expected behavior
-    validations:
-      required: true
-  - type: textarea
-    id: actual
-    attributes:
-      label: Actual behavior
+      label: Steps to Reproduce
+      description: Please provide a set of steps to reproduce the behavior.
+      placeholder: |
+        1. Initialize engine with '...'
+        2. Click on '....'
+        3. See error
     validations:
       required: true
   - type: input
-    id: version
+    id: engine-version
     attributes:
-      label: FlipbookEngine version
-      placeholder: 0.3.0
+      label: FlipbookEngine Version
+      description: Which version of FlipbookEngine are you using?
+      placeholder: e.g., 0.2.4
+    validations:
+      required: true
+  - type: dropdown
+    id: framework
+    attributes:
+      label: Framework
+      description: Which framework wrapper are you using?
+      options:
+        - Vanilla HTML/JS
+        - React
+        - Vue 3
+        - Other
+    validations:
+      required: true
   - type: input
-    id: environment
+    id: browser
     attributes:
-      label: Browser and OS
+      label: Browser & OS
+      description: E.g. Chrome 120 on Windows 11, or Safari on iOS 17
+      placeholder: Chrome 120 / Windows 11
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Console Logs
+      description: Any relevant browser console errors or stack traces.
+      render: shell
