@@ -13,7 +13,8 @@ export const Flipbook = defineComponent({
     props: {
         pdfUrl: {
             type: String,
-            required: true
+            required: false,
+            default: ''
         },
         pages: {
             type: Array as PropType<FlipbookPageAsset[]>,
@@ -29,47 +30,40 @@ export const Flipbook = defineComponent({
     setup(props, { emit, expose }) {
         const containerRef = ref<HTMLElement | null>(null);
         let engine: FlipbookEngine | null = null;
-        let unsubscribeChange: () => void;
- 
+        let unsubscribeChange: (() => void) | undefined;
+
         onMounted(() => {
             if (!containerRef.value) return;
- 
+
             engine = new FlipbookEngine(containerRef.value, props.options as any);
- 
             unsubscribeChange = engine.on('pageChange', (e: any) => emit('pageChange', e));
- 
-            engine.init(props.pdfUrl, props.pages || []).catch(console.error);
+            engine.setPages(props.pages, props.pdfUrl).catch(console.error);
         });
- 
+
         onBeforeUnmount(() => {
-            if (unsubscribeChange) unsubscribeChange();
-            if (engine) {
-                engine.destroy();
-                engine = null;
-            }
+            unsubscribeChange?.();
+            engine?.destroy();
+            engine = null;
         });
- 
+
         watch(() => props.options, (newOptions) => {
-            if (engine) {
-                engine.updateOptions(newOptions as any);
-            }
+            engine?.updateOptions(newOptions as any);
         }, { deep: true });
- 
-        watch(() => props.pages, (newPages) => {
-            if (engine) {
-                engine.setPages(newPages || []);
-            }
+
+        // Source changes are handled together to guarantee one reinitialization per update.
+        watch([() => props.pdfUrl, () => props.pages], ([newPdfUrl, newPages]) => {
+            engine?.setPages(newPages || [], newPdfUrl || '').catch(console.error);
         }, { deep: true });
 
         expose({
             getEngine: () => engine,
+            engine: () => engine,
+            nextPage: () => engine?.nextPage(),
+            prevPage: () => engine?.prevPage(),
+            goToPage: (index: number) => engine?.goToPage(index),
             flipNext: () => engine?.nextPage(),
             flipPrev: () => engine?.prevPage(),
-            turnToPage: (idx: number) => {
-                if (engine) {
-                    engine.goToPage(idx);
-                }
-            }
+            turnToPage: (index: number) => engine?.goToPage(index)
         });
 
         return () => h('div', {
