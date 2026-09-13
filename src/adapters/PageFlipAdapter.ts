@@ -26,6 +26,7 @@ export class PageFlipAdapter {
     private store: FlipbookStore;
     private unsubs: Array<() => void> = [];
     private audioEl: HTMLAudioElement | null = null;
+    private audioUnlockHandler: (() => void) | null = null;
     private isLibraryFlipping = false;
     private autoPlayTimer: any = null;
 
@@ -43,14 +44,19 @@ export class PageFlipAdapter {
         if (!this.audioEl) return;
         const unlock = () => {
             if (this.audioEl) {
-                this.audioEl.play().then(() => {
-                    this.audioEl!.pause();
-                    this.audioEl!.currentTime = 0;
-                }).catch(() => {});
+                const playback = this.audioEl.play();
+                if (playback && typeof playback.then === 'function') {
+                    playback.then(() => {
+                        this.audioEl!.pause();
+                        this.audioEl!.currentTime = 0;
+                    }).catch(() => {});
+                }
             }
             document.removeEventListener('touchstart', unlock);
             document.removeEventListener('click', unlock);
+            this.audioUnlockHandler = null;
         };
+        this.audioUnlockHandler = unlock;
         document.addEventListener('touchstart', unlock, { once: true });
         document.addEventListener('click', unlock, { once: true });
     }
@@ -212,6 +218,15 @@ export class PageFlipAdapter {
     }
 
     public destroy() {
+        if (this.autoPlayTimer) {
+            clearInterval(this.autoPlayTimer);
+            this.autoPlayTimer = null;
+        }
+        if (this.audioUnlockHandler) {
+            document.removeEventListener('touchstart', this.audioUnlockHandler);
+            document.removeEventListener('click', this.audioUnlockHandler);
+            this.audioUnlockHandler = null;
+        }
         this.unsubs.forEach(unsub => unsub());
         this.unsubs = [];
         if (this.pageFlip) {
@@ -220,4 +235,7 @@ export class PageFlipAdapter {
         }
     }
 }
+
+
+
 

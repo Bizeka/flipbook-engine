@@ -25,6 +25,7 @@ export class LayoutManager {
     private store: FlipbookStore;
     private resizeObserver: ResizeObserver | null = null;
     private orientationMediaQuery: MediaQueryList | null = null;
+    private orientationChangeHandler: ((e: MediaQueryListEvent | MediaQueryList) => void) | null = null;
     private unsubs: Array<() => void> = [];
     public onResizeCallback?: () => void;
 
@@ -79,6 +80,8 @@ export class LayoutManager {
                 }
                 this.updateBookAspectRatio();
             };
+
+            this.orientationChangeHandler = handleOrientationChange;
 
             // Add listener
             if (this.orientationMediaQuery.addEventListener) {
@@ -144,9 +147,19 @@ export class LayoutManager {
         }
 
         if (this.orientationMediaQuery) {
-            // Remove listeners (safely ignoring for brevity)
+            if (this.orientationChangeHandler) {
+                if (this.orientationMediaQuery.removeEventListener) {
+                    this.orientationMediaQuery.removeEventListener('change', this.orientationChangeHandler);
+                } else {
+                    this.orientationMediaQuery.removeListener(this.orientationChangeHandler);
+                }
+            }
+            this.orientationChangeHandler = null;
             this.orientationMediaQuery = null;
         }
     }
 }
+
+
+
 

@@ -24,11 +24,14 @@ export class InteractionManager {
     private store: FlipbookStore;
     private touchStartX: number | null = null;
     private unsubs: Array<() => void> = [];
+    private listenerAbortController: AbortController;
 
     constructor(container: HTMLElement, pageFlipAdapter: PageFlipAdapter, store: FlipbookStore) {
         this.container = container;
         this.pageFlipAdapter = pageFlipAdapter;
         this.store = store;
+        const AbortControllerCtor = container.ownerDocument.defaultView?.AbortController ?? globalThis.AbortController;
+        this.listenerAbortController = new AbortControllerCtor();
     }
 
     public init() {
@@ -63,7 +66,7 @@ export class InteractionManager {
                     this.store.zoomState.value.translateY - e.deltaY
                 );
             }
-        }, { passive: false });
+        }, { passive: false, signal: this.listenerAbortController.signal });
     }
 
     private bindMouseDrag() {
@@ -82,21 +85,21 @@ export class InteractionManager {
                 initialTy = this.store.zoomState.value.translateY;
                 this.container.style.cursor = 'grabbing';
             }
-        });
+        }, { signal: this.listenerAbortController.signal });
 
         window.addEventListener('mousemove', (e) => {
             if (!isDragging || !this.store.zoomState.value.isActive) return;
             const dx = e.clientX - startX;
             const dy = e.clientY - startY;
             this.updateZoomPan(initialTx + dx, initialTy + dy);
-        });
+        }, { signal: this.listenerAbortController.signal });
 
         window.addEventListener('mouseup', () => {
             if (isDragging) {
                 isDragging = false;
                 this.container.style.cursor = this.store.zoomState.value.isActive ? 'grab' : '';
             }
-        });
+        }, { signal: this.listenerAbortController.signal });
     }
 
     private bindTouch() {
@@ -117,7 +120,7 @@ export class InteractionManager {
                     (this.container as any)._touchStartY = touchStartY;
                 }
             }
-        }, { passive: true });
+        }, { passive: true, signal: this.listenerAbortController.signal });
 
         this.container.addEventListener('touchmove', (e) => {
             if (isDragging && this.store.zoomState.value.isActive && e.touches.length === 1 && this.touchStartX !== null) {
@@ -126,7 +129,7 @@ export class InteractionManager {
                 const dy = e.touches[0].clientY - (this.container as any)._touchStartY;
                 this.updateZoomPan(startTx + dx, startTy + dy);
             }
-        }, { passive: false });
+        }, { passive: false, signal: this.listenerAbortController.signal });
 
         this.container.addEventListener('touchend', (e) => {
             if (this.touchStartX !== null && !this.store.zoomState.value.isActive && this.store.isSingleMode.value && e.changedTouches.length === 1) {
@@ -139,7 +142,7 @@ export class InteractionManager {
             }
             this.touchStartX = null;
             isDragging = false;
-        }, { passive: true });
+        }, { passive: true, signal: this.listenerAbortController.signal });
     }
 
     public zoomIn() {
@@ -176,8 +179,14 @@ export class InteractionManager {
     }
 
     public destroy() {
+        this.listenerAbortController.abort();
         this.unsubs.forEach(unsub => unsub());
         this.unsubs = [];
     }
 }
+
+
+
+
+
 
