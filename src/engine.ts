@@ -1,14 +1,14 @@
 /**
  * @license FlipbookEngine v0.2.4
  * Copyright (c) 2026 Murat Dogan
- * 
+ *
  * This source code is dual-licensed under the AGPLv3 and a Commercial License.
- * 
+ *
  * 1. Open Source (AGPLv3): You may use, modify, and distribute this software
  *    under the terms of the GNU Affero General Public License v3.0.
- * 
- * 2. Commercial License: If you wish to use this software in commercial, 
- *    closed-source, or SaaS products without the AGPLv3 obligations, 
+ *
+ * 2. Commercial License: If you wish to use this software in commercial,
+ *    closed-source, or SaaS products without the AGPLv3 obligations,
  *    you must purchase a Commercial License from:
  *    https://flipbookengine.com/pricing
  */
@@ -17,22 +17,7 @@ import { App } from './components/App';
 import { PageFlipAdapter } from './adapters/PageFlipAdapter';
 import { LayoutManager } from './core/LayoutManager';
 import { InteractionManager } from './core/InteractionManager';
-import { 
-    initStore, 
-    currentPage,
-    totalPages,
-    isZoomed,
-    isSingleMode, 
-    zoomState,
-    themeMode,
-    primaryColor,
-    showThumbs,
-    allowDownload,
-    whiteLabel,
-    soundEnabled,
-    isAutoPlaying,
-    autoPlayInterval
-} from './state/store';
+import { createFlipbookStore, type FlipbookStore } from './state/store';
 import { isFlipbookPageAsset, normalizeFlipbookPages, type FlipbookPageAsset, type NormalizedFlipbookPage } from './model/pages';
 import { applyThemeConfiguration, type FlipbookThemeMode } from './theme/theme';
 import { resolveMessages, type FlipbookLocale, type PartialFlipbookMessages } from './i18n/service';
@@ -93,28 +78,29 @@ export class FlipbookEngine {
     private static readonly DEFAULT_PAGE_VIEWPORT = { width: 420, height: 594 };
     private container: HTMLElement | null = null;
     private options: FlipbookEngineOptions;
-    
+    private store: FlipbookStore = createFlipbookStore();
+
     // Core Managers
     private pageFlipAdapter: PageFlipAdapter | null = null;
     private layoutManager: LayoutManager | null = null;
     private interactionManager: InteractionManager | null = null;
-    
+
     private pdfRenderer: PdfRenderer | null = null;
     private listeners: Partial<Record<FlipbookEngineEventName, Set<AnyFlipbookEventHandler>>> = {};
     private initializationTimer: ReturnType<typeof setTimeout> | null = null;
 
     constructor(private selector: string | HTMLElement, options: FlipbookEngineOptions = {}) {
-        this.options = { 
-            allowDownload: true, 
-            showThumbs: true, 
-            primaryColor: '#7367f0', 
-            theme: 'auto', 
+        this.options = {
+            allowDownload: true,
+            showThumbs: true,
+            primaryColor: '#7367f0',
+            theme: 'auto',
             soundUrl: 'https://flipbookengine.com/Content/page-flip.mp3',
             autoPlayInterval: 3000,
             pdfRenderScale: 1.5,
             pdfRenderQuality: 0.85,
             pdfRenderFormat: 'image/webp',
-            ...options 
+            ...options
         };
     }
 
@@ -135,7 +121,7 @@ export class FlipbookEngine {
         if (imageList && imageList.length > 0) {
             const sourceAssets = imageList.filter(isFlipbookPageAsset);
             resolvedPages = normalizeFlipbookPages(sourceAssets);
-            
+
             // Resolve aspect ratio from first page
             const referencePage = resolvedPages[0];
             if (referencePage) {
@@ -157,7 +143,7 @@ export class FlipbookEngine {
                     format: this.options.pdfRenderFormat,
                     workerSrc: this.options.pdfWorkerSrc
                 });
-                
+
                 await this.pdfRenderer.loadDocument(pdfUrl);
                 resolvedPages = await this.pdfRenderer.renderAllPages();
                 viewport = await this.pdfRenderer.calculateViewportDimensions();
@@ -170,7 +156,7 @@ export class FlipbookEngine {
         if (!resolvedPages.length) return;
 
         // 1. Initialize State
-        initStore(this.options, resolvedPages.length, resolvedPages, !!pdfUrl);
+        this.store.init(this.options, resolvedPages.length, resolvedPages, !!pdfUrl);
 
         // 2. Setup DOM container
         applyThemeConfiguration(this.container, this.options);
@@ -181,7 +167,7 @@ export class FlipbookEngine {
         let bookWrapperEl: HTMLElement;
         let bookSizerEl: HTMLElement;
         let bookContainerEl: HTMLElement;
-        
+
         const pageFlipAdapterRef = { current: null as any };
         const interactionManagerRef = { current: null as any };
 
@@ -193,6 +179,7 @@ export class FlipbookEngine {
             bookSizerRef: (el) => bookSizerEl = el,
             bookContainerRef: (el) => bookContainerEl = el,
             className: this.options.className,
+            store: this.store,
             onDownload: () => {
                 if (this.options.onDownload) this.options.onDownload(pdfUrl);
                 else window.open(pdfUrl, '_blank');
@@ -202,7 +189,7 @@ export class FlipbookEngine {
         this.container.appendChild(appNode as unknown as Node);
 
         // 4. Initialize Core Managers
-        this.layoutManager = new LayoutManager(viewport);
+        this.layoutManager = new LayoutManager(viewport, this.store);
         this.layoutManager.onResizeCallback = () => {
             if (this.pageFlipAdapter) {
                 this.pageFlipAdapter.update();
@@ -210,16 +197,16 @@ export class FlipbookEngine {
         };
         this.layoutManager.init(bookWrapperEl!, bookSizerEl!);
 
-        this.pageFlipAdapter = new PageFlipAdapter(bookContainerEl!, this.options);
+        this.pageFlipAdapter = new PageFlipAdapter(bookContainerEl!, this.options, this.store);
         pageFlipAdapterRef.current = this.pageFlipAdapter;
-        
+
         // Wait a tick for styles to apply before initializing PageFlip
         this.initializationTimer = setTimeout(() => {
             this.initializationTimer = null;
             if (!this.pageFlipAdapter) return;
 
             this.pageFlipAdapter.init(viewport.width, viewport.height);
-            this.interactionManager = new InteractionManager(bookWrapperEl!, this.pageFlipAdapter);
+            this.interactionManager = new InteractionManager(bookWrapperEl!, this.pageFlipAdapter, this.store);
             this.interactionManager.init();
             interactionManagerRef.current = this.interactionManager;
 
@@ -237,25 +224,25 @@ export class FlipbookEngine {
     }
 
     public goToPage(targetIdx: number) {
-        currentPage.value = targetIdx;
+        this.store.currentPage.value = targetIdx;
     }
 
     public getTotalPages(): number {
-        return totalPages.value;
+        return this.store.totalPages.value;
     }
 
     public getCurrentPage(): number {
-        return currentPage.value;
+        return this.store.currentPage.value;
     }
 
     public getZoom(): number {
-        return zoomState.value.scale;
+        return this.store.zoomState.value.scale;
     }
 
     public setZoom(zoomLevel: number) {
         const scale = Math.max(0.5, Math.min(5, zoomLevel));
-        zoomState.value = { ...zoomState.value, scale };
-        isZoomed.value = scale > 1;
+        this.store.zoomState.value = { ...this.store.zoomState.value, scale };
+        this.store.isZoomed.value = scale > 1;
     }
 
     public nextPage() {
@@ -267,20 +254,20 @@ export class FlipbookEngine {
     }
 
     public setSingleMode(isSingle: boolean) {
-        isSingleMode.value = isSingle;
+        this.store.isSingleMode.value = isSingle;
     }
 
     public updateOptions(options: Partial<FlipbookEngineOptions>) {
         this.options = { ...this.options, ...options };
-        if (options.theme !== undefined) themeMode.value = options.theme;
-        if (options.primaryColor !== undefined) primaryColor.value = options.primaryColor;
-        if (options.showThumbs !== undefined) showThumbs.value = options.showThumbs;
-        if (options.allowDownload !== undefined) allowDownload.value = options.allowDownload;
-        if (options.whiteLabel !== undefined) whiteLabel.value = options.whiteLabel;
-        if (options.soundEnabled !== undefined) soundEnabled.value = options.soundEnabled;
-        if (options.singleMode !== undefined) isSingleMode.value = options.singleMode;
-        if (options.autoPlay !== undefined) isAutoPlaying.value = options.autoPlay;
-        if (options.autoPlayInterval !== undefined) autoPlayInterval.value = options.autoPlayInterval;
+        if (options.theme !== undefined) this.store.themeMode.value = options.theme;
+        if (options.primaryColor !== undefined) this.store.primaryColor.value = options.primaryColor;
+        if (options.showThumbs !== undefined) this.store.showThumbs.value = options.showThumbs;
+        if (options.allowDownload !== undefined) this.store.allowDownload.value = options.allowDownload;
+        if (options.whiteLabel !== undefined) this.store.whiteLabel.value = options.whiteLabel;
+        if (options.soundEnabled !== undefined) this.store.soundEnabled.value = options.soundEnabled;
+        if (options.singleMode !== undefined) this.store.isSingleMode.value = options.singleMode;
+        if (options.autoPlay !== undefined) this.store.isAutoPlaying.value = options.autoPlay;
+        if (options.autoPlayInterval !== undefined) this.store.autoPlayInterval.value = options.autoPlayInterval;
 
         if (this.container) {
             applyThemeConfiguration(this.container, this.options);
@@ -319,7 +306,7 @@ export class FlipbookEngine {
         if (this.pdfRenderer) {
             this.pdfRenderer.destroy();
         }
-        
+
         this.pageFlipAdapter = null;
         this.layoutManager = null;
         this.interactionManager = null;
@@ -354,3 +341,4 @@ const globalScope = globalThis as any;
 const flipbookNamespace = globalScope.FlipbookEngine || {};
 flipbookNamespace.FlipbookEngine = FlipbookEngine;
 globalScope.FlipbookEngine = flipbookNamespace;
+

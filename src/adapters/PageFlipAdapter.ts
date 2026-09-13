@@ -1,34 +1,38 @@
 /**
  * @license FlipbookEngine v0.2.4
  * Copyright (c) 2026 Murat Dogan
- * 
+ *
  * This source code is dual-licensed under the AGPLv3 and a Commercial License.
- * 
+ *
  * 1. Open Source (AGPLv3): You may use, modify, and distribute this software
  *    under the terms of the GNU Affero General Public License v3.0.
- * 
- * 2. Commercial License: If you wish to use this software in commercial, 
- *    closed-source, or SaaS products without the AGPLv3 obligations, 
+ *
+ * 2. Commercial License: If you wish to use this software in commercial,
+ *    closed-source, or SaaS products without the AGPLv3 obligations,
  *    you must purchase a Commercial License from:
  *    https://flipbookengine.com/pricing
  */
+
+
 import { PageFlip } from 'page-flip';
 import { effect } from '@preact/signals-core';
-import { currentPage, orientation, flipState, pages, isSingleMode, soundEnabled, isAutoPlaying, autoPlayInterval } from '../state/store';
+import type { FlipbookStore } from '../state/store';
 import type { FlipbookEngineOptions } from '../engine';
 
 export class PageFlipAdapter {
     private pageFlip: any = null;
     private bookContainer: HTMLElement;
     private options: FlipbookEngineOptions;
+    private store: FlipbookStore;
     private unsubs: Array<() => void> = [];
     private audioEl: HTMLAudioElement | null = null;
     private isLibraryFlipping = false;
     private autoPlayTimer: any = null;
 
-    constructor(bookContainer: HTMLElement, options: FlipbookEngineOptions) {
+    constructor(bookContainer: HTMLElement, options: FlipbookEngineOptions, store: FlipbookStore) {
         this.bookContainer = bookContainer;
         this.options = options;
+        this.store = store;
         if (options.soundUrl) {
             this.audioEl = new Audio(options.soundUrl);
             this.unlockAudio();
@@ -80,9 +84,9 @@ export class PageFlipAdapter {
         // When the library flips a page, update our signal
         this.pageFlip.on('flip', (e: any) => {
             // Check if we are not just initializing
-            if (currentPage.value !== e.data) {
+            if (this.store.currentPage.value !== e.data) {
                 this.isLibraryFlipping = true;
-                currentPage.value = e.data;
+                this.store.currentPage.value = e.data;
                 this.playSound();
                 this.isLibraryFlipping = false;
             }
@@ -90,13 +94,13 @@ export class PageFlipAdapter {
 
         // When the library changes state, update our signal
         this.pageFlip.on('changeState', (e: any) => {
-            flipState.value = e.data;
+            this.store.flipState.value = e.data;
         });
 
         // When the library changes orientation, update our signal
         this.pageFlip.on('changeOrientation', (e: any) => {
-            if (orientation.value !== e.data) {
-                orientation.value = e.data;
+            if (this.store.orientation.value !== e.data) {
+                this.store.orientation.value = e.data;
             }
         });
     }
@@ -105,16 +109,16 @@ export class PageFlipAdapter {
         // When our signal changes, tell the library to flip (if needed)
         this.unsubs.push(
             effect(() => {
-                const targetPage = currentPage.value;
-                const state = flipState.peek();
+                const targetPage = this.store.currentPage.value;
+                const state = this.store.flipState.peek();
                 if (!this.pageFlip || this.isLibraryFlipping || state !== 'read') return;
-                
+
                 const libCurrentPage = this.pageFlip.getCurrentPageIndex();
-                if (libCurrentPage !== targetPage && !isSingleMode.value) {
+                if (libCurrentPage !== targetPage && !this.store.isSingleMode.value) {
                     const getSpreadIndex = (p: number) => p === 0 ? 0 : Math.ceil(p / 2);
                     const targetSpread = getSpreadIndex(targetPage);
                     const currentSpread = getSpreadIndex(libCurrentPage);
-                    
+
                     if (targetSpread === currentSpread + 1) {
                         this.pageFlip.flipNext();
                     } else if (targetSpread === currentSpread - 1) {
@@ -129,9 +133,9 @@ export class PageFlipAdapter {
         // Watch for singleMode changes from DOMWise UI to trigger layout updates
         this.unsubs.push(
             effect(() => {
-                isSingleMode.value;
+                this.store.isSingleMode.value;
                 if (!this.pageFlip) return;
-                
+
                 // We use setTimeout to wait for LayoutManager to update the container dimensions first
                 setTimeout(() => {
                     if (this.pageFlip) {
@@ -141,26 +145,26 @@ export class PageFlipAdapter {
                 }, 50);
             })
         );
-        
+
         // AutoPlay loop
         this.unsubs.push(
             effect(() => {
-                const playing = isAutoPlaying.value;
-                const interval = autoPlayInterval.value || 3000;
-                
+                const playing = this.store.isAutoPlaying.value;
+                const interval = this.store.autoPlayInterval.value || 3000;
+
                 if (this.autoPlayTimer) {
                     clearInterval(this.autoPlayTimer);
                     this.autoPlayTimer = null;
                 }
-                
+
                 if (playing) {
                     this.autoPlayTimer = setInterval(() => {
                         // Check if we are at the end
-                        const maxIndex = pages.value.length - 1;
-                        if (currentPage.peek() >= maxIndex || (currentPage.peek() >= maxIndex - 1 && !isSingleMode.peek())) {
+                        const maxIndex = this.store.pages.value.length - 1;
+                        if (this.store.currentPage.peek() >= maxIndex || (this.store.currentPage.peek() >= maxIndex - 1 && !this.store.isSingleMode.peek())) {
                             // If at end, pause or loop
                             // Let's just pause
-                            isAutoPlaying.value = false;
+                            this.store.isAutoPlaying.value = false;
                             return;
                         }
                         this.turnToNextPage();
@@ -171,10 +175,10 @@ export class PageFlipAdapter {
     }
 
     public turnToNextPage() {
-        if (isSingleMode.value) {
-            const nextIdx = currentPage.value + 1;
-            if (nextIdx < pages.value.length) {
-                currentPage.value = nextIdx;
+        if (this.store.isSingleMode.value) {
+            const nextIdx = this.store.currentPage.value + 1;
+            if (nextIdx < this.store.pages.value.length) {
+                this.store.currentPage.value = nextIdx;
                 this.playSound();
             }
         } else if (this.pageFlip) {
@@ -183,10 +187,10 @@ export class PageFlipAdapter {
     }
 
     public turnToPrevPage() {
-        if (isSingleMode.value) {
-            const prevIdx = currentPage.value - 1;
+        if (this.store.isSingleMode.value) {
+            const prevIdx = this.store.currentPage.value - 1;
             if (prevIdx >= 0) {
-                currentPage.value = prevIdx;
+                this.store.currentPage.value = prevIdx;
                 this.playSound();
             }
         } else if (this.pageFlip) {
@@ -195,7 +199,7 @@ export class PageFlipAdapter {
     }
 
     public playSound() {
-        if (soundEnabled.value && this.audioEl) {
+        if (this.store.soundEnabled.value && this.audioEl) {
             this.audioEl.currentTime = 0;
             this.audioEl.play().catch(err => console.warn('Flipbook Audio Play Error:', err));
         }
@@ -216,3 +220,4 @@ export class PageFlipAdapter {
         }
     }
 }
+
