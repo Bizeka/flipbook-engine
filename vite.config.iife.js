@@ -14,7 +14,11 @@ export default defineConfig({
       formats: ['iife']
     },
     rollupOptions: {
+      external: ['pdfjs-dist'],
       output: {
+        globals: {
+          'pdfjs-dist': 'pdfjsLib'
+        },
         assetFileNames: (assetInfo) => {
           if (assetInfo.name?.endsWith('.css')) return 'flipbook-engine.css';
           return 'assets/[name][extname]';

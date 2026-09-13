@@ -26,35 +26,56 @@ Install via npm:
 npm install flipbookengine
 ```
 
-For direct CDN usage in the browser (Vanilla HTML/JS):
-
-```html
-<link rel="stylesheet" href="https://unpkg.com/flipbookengine/dist/flipbook-engine.css" />
-<script src="https://unpkg.com/flipbookengine/dist/flipbook-engine.iife.js"></script>
-```
+`pdfjs-dist` is a production dependency of FlipbookEngine. It is installed by npm, but is deliberately excluded from the FlipbookEngine bundle so applications can deduplicate, cache, and upgrade PDF.js independently.
 
 ## Quick Start
 
-### Vanilla HTML / JS
+### npm and Bundlers
 
-Include the styles and script, then initialize the engine:
+Configure the PDF.js worker in the consuming application. The `?url` suffix is supported by Vite and other modern bundlers that emit imported assets.
+
+```ts
+import { FlipbookEngine } from 'flipbookengine';
+import 'flipbookengine/styles.css';
+import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.mjs?url';
+
+const engine = new FlipbookEngine('#viewer', {
+  allowDownload: true,
+  showThumbs: true,
+  primaryColor: '#7367f0',
+  theme: 'auto',
+  locale: 'en',
+  pdfWorkerSrc
+});
+
+await engine.init('/files/catalog.pdf');
+```
+
+Passing `pages` remains optional. When omitted, FlipbookEngine renders the pages from `pdfUrl`.
+
+### Browser CDN
+
+Use the ESM build with an import map for PDF.js. The worker must be served from a URL your site permits in its Content Security Policy.
 
 ```html
+<link rel="stylesheet" href="https://unpkg.com/flipbookengine@0.3.0/dist/flipbook-engine.css" />
 <div id="viewer" style="width: 100%; height: 600px;"></div>
 
-<script>
+<script type="importmap">
+{
+  "imports": {
+    "pdfjs-dist": "https://unpkg.com/pdfjs-dist@5.4.530/build/pdf.min.mjs"
+  }
+}
+</script>
+<script type="module">
+  import { FlipbookEngine } from 'https://unpkg.com/flipbookengine@0.3.0/dist/flipbook-engine.js';
+
   const engine = new FlipbookEngine('#viewer', {
-    allowDownload: true,
-    showThumbs: true,
-    primaryColor: '#7367f0',
-    theme: 'auto',
-    locale: 'en'
+    pdfWorkerSrc: 'https://unpkg.com/pdfjs-dist@5.4.530/build/pdf.worker.min.mjs'
   });
 
-  engine.init('/files/catalog.pdf', [
-    { kind: 'cover', pageNumber: 1, normal: '/img/1.jpg', low: '/img/1-low.jpg', thumb: '/img/1-thumb.jpg' },
-    { kind: 'spread', pageNumbers: [2, 3], normal: '/img/2-3.jpg', low: '/img/2-3-low.jpg', thumb: '/img/2-3-thumb.jpg' }
-  ]);
+  await engine.init('/files/catalog.pdf');
 </script>
 ```
 
@@ -63,7 +84,7 @@ Include the styles and script, then initialize the engine:
 ```tsx
 import React, { useRef } from 'react';
 import { Flipbook, FlipbookRef } from 'flipbookengine/react';
-import 'flipbookengine/dist/flipbook-engine.css';
+import 'flipbookengine/styles.css';
 
 function CatalogViewer() {
   const flipbookRef = useRef<FlipbookRef>(null);
@@ -103,7 +124,7 @@ function CatalogViewer() {
 
 <script setup>
 import { Flipbook } from 'flipbookengine/vue';
-import 'flipbookengine/dist/flipbook-engine.css';
+import 'flipbookengine/styles.css';
 
 const pages = [
   { kind: 'cover', pageNumber: 1, normal: '/img/1.jpg', low: '/img/1-low.jpg', thumb: '/img/1-thumb.jpg' },
@@ -151,6 +172,7 @@ Supported events: `pageChange`, `zoomChange`, `singlePageModeChange`, `thumbsTog
 | `flippingTime` | `number` | `1000` | Duration of the page turn animation in milliseconds. |
 | `maxShadowOpacity` | `number` | `0.5` | Maximum opacity of the shadow during page turn (0 to 1). |
 | `whiteLabel` | `boolean` | `false` | Hides the "Powered by FlipbookEngine" watermark. |
+| `pdfWorkerSrc` | `string` | - | URL of the PDF.js worker emitted or hosted by the consuming application. |
 
 ## Styling and Theming
 
@@ -171,12 +193,13 @@ FlipbookEngine features fully custom-property-based styling compatible with mode
 
 FlipbookEngine is engineered for high performance, utilizing hardware-accelerated CSS 3D transforms instead of heavy WebGL, ensuring a smooth **60 FPS** experience even on low-end mobile devices.
 
-### Bundle Size (Zero-Config PDF Engine)
-Unlike other libraries that require complex external PDF.js worker configurations, FlipbookEngine ships as an **"All-in-One"** package. It includes the Core Engine, UI layout, StPageFlip, and the full PDF.js rendering engine out of the box.
+### Package Size and PDF.js
 
-*   **Core + PDF Engine (Gzipped):** `~788 KB` *(A single drop-in script, no external workers needed)*
-*   **Styles (CSS Gzipped):** `~2.9 KB`
-*   **React / Vue Wrappers (Gzipped):** `< 1 KB`
+FlipbookEngine does not bundle PDF.js or its worker. `pdfjs-dist` remains a normal npm dependency, while the host application supplies `pdfWorkerSrc`. This keeps the FlipbookEngine package smaller and lets the application control PDF.js versioning, caching, CSP, and worker hosting.
+
+*   **Core engine:** excludes PDF.js and the PDF worker.
+*   **Styles:** distributed as `flipbookengine/styles.css`.
+*   **PDF rendering:** enabled by configuring `pdfWorkerSrc` as shown above.
 
 ### Performance Highlights
 *   **Hardware Accelerated:** Uses purely CSS-based 3D transformations (`transform: rotateY`, `translateZ`) which offloads rendering to the GPU. No heavy WebGL overhead.

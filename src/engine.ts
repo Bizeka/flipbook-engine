@@ -65,6 +65,7 @@ export interface FlipbookEngineOptions {
     pdfRenderScale?: number;
     pdfRenderQuality?: number;
     pdfRenderFormat?: string;
+    pdfWorkerSrc?: string;
 }
 
 export interface PageImages extends FlipbookPageAsset {
@@ -153,7 +154,8 @@ export class FlipbookEngine {
                 this.pdfRenderer = new PdfRenderer({
                     scale: this.options.pdfRenderScale,
                     quality: this.options.pdfRenderQuality,
-                    format: this.options.pdfRenderFormat
+                    format: this.options.pdfRenderFormat,
+                    workerSrc: this.options.pdfWorkerSrc
                 });
                 
                 await this.pdfRenderer.loadDocument(pdfUrl);

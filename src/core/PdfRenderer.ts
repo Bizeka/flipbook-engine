@@ -1,14 +1,12 @@
 import * as pdfjsLib from 'pdfjs-dist';
 import type { NormalizedFlipbookPage } from '../model/pages';
 
-// @ts-ignore
-const pdfWorkerUrl = new URL('pdfjs-dist/build/pdf.worker.mjs', import.meta.url).href;
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
 export interface PdfRenderOptions {
     scale?: number;
     quality?: number;
     format?: string;
+    workerSrc?: string;
 }
 
 export class PdfRenderer {
@@ -19,8 +17,12 @@ export class PdfRenderer {
         this.options = {
             scale: options.scale || 1.5,
             quality: options.quality || 0.85,
-            format: options.format || 'image/webp'
+            format: options.format || 'image/webp',
+            workerSrc: options.workerSrc || ''
         };
+        if (this.options.workerSrc) {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = this.options.workerSrc;
+        }
     }
 
     /**

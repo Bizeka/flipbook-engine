@@ -22,7 +22,7 @@ export default defineConfig({
       formats: ['es']
     },
     rollupOptions: {
-      external: ['react', 'vue', 'react-dom', 'react/jsx-runtime'],
+      external: ['pdfjs-dist', 'react', 'vue', 'react-dom', 'react/jsx-runtime'],
       output: {
         globals: {
           react: 'React',
