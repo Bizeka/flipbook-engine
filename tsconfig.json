@@ -2,20 +2,16 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
-    "moduleResolution": "bundler",
-    "types": [ "vite/client" ],
+    "moduleResolution": "bundler", // Kritik: Vite gibi paketleyiciler için modül bulma mantığı
     "lib": [ "ESNext", "DOM", "DOM.Iterable" ],
     "useDefineForClassFields": true,
-    "skipLibCheck": true,
+    "skipLibCheck": true, // Kütüphane içindeki tip hatalarını görmezden gel (hız kazandırır)
     "allowJs": true,
-    "esModuleInterop": true,
+    "esModuleInterop": true, // CommonJS ve ESM uyumu için
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "noEmit": true,
-    "isolatedModules": true,
-    "jsx": "react-jsx",
-    "jsxImportSource": "@serenity-is/domwise"
+    "isolatedModules": true
   },
-  "include": [ "src" ],
-  "exclude": [ "node_modules", "dist" ]
+  "include": [ "src" ]
 }
