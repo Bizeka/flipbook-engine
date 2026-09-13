@@ -147,7 +147,7 @@ export class InteractionManager {
 
     public zoomIn() {
         let newScale = this.store.zoomState.value.scale + 0.5;
-        if (newScale > 3) newScale = 3;
+        if (newScale > 5) newScale = 5;
 
         this.store.zoomState.value = {
             ...this.store.zoomState.value,
@@ -184,6 +184,7 @@ export class InteractionManager {
         this.unsubs = [];
     }
 }
+
 
 
 
