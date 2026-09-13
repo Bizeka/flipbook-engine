@@ -70,6 +70,8 @@ export interface FlipbookEngineEventMap {
     thumbsToggle: { showThumbs: boolean };
     singlePageModeChange: { isSingle: boolean };
     orientationChange: { orientation: 'landscape' | 'portrait' };
+    progress: { phase: 'loading' | 'rendering'; completed: number; total: number };
+    error: { code: 'PDF_LOAD_FAILED' | 'PDF_RENDER_FAILED'; message: string; cause?: unknown };
 }
 
 export type FlipbookEngineEventName = keyof FlipbookEngineEventMap;
@@ -152,6 +154,7 @@ export class FlipbookEngine {
             }
         } else if (pdfUrl) {
             if (abortController.signal.aborted) return;
+            let pdfStage: 'load' | 'render' = 'load';
             try {
                 this.pdfRenderer = new PdfRenderer({
                     scale: this.options.pdfRenderScale,
@@ -161,11 +164,23 @@ export class FlipbookEngine {
                     workerSrc: this.options.pdfWorkerSrc
                 });
 
-                await this.pdfRenderer.loadDocument(pdfUrl, abortController.signal);
-                resolvedPages = await this.pdfRenderer.renderAllPages(abortController.signal);
+                this.emit('progress', { phase: 'loading', completed: 0, total: 0 });
+                const totalPages = await this.pdfRenderer.loadDocument(pdfUrl, abortController.signal);
+                pdfStage = 'render';
+                this.emit('progress', { phase: 'loading', completed: 1, total: totalPages });
+                resolvedPages = await this.pdfRenderer.renderAllPages(abortController.signal, ({ completed, total }) => {
+                    this.emit('progress', { phase: 'rendering', completed, total });
+                });
                 viewport = await this.pdfRenderer.calculateViewportDimensions();
             } catch (e: any) {
-                if (!abortController.signal.aborted) console.error("PDF load failed:", e);
+                if (!abortController.signal.aborted) {
+                    console.error("PDF load failed:", e);
+                    this.emit('error', {
+                        code: pdfStage === 'load' ? 'PDF_LOAD_FAILED' : 'PDF_RENDER_FAILED',
+                        message: e instanceof Error ? e.message : 'Unable to load PDF.',
+                        cause: e
+                    });
+                }
                 return;
             }
         }

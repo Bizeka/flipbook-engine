@@ -151,7 +151,7 @@ The `FlipbookEngine` class exposes the following public methods:
 
 ### Subscribing to Events
 
-You can subscribe to events using `.on()`:
+You can subscribe to events using `.on()`. PDF-backed initialization reports loading/rendering progress and emits a structured `error` event when loading or rendering fails:
 
 ```ts
 const unsubscribe = engine.on('pageChange', ({ currentPage, totalPages, isSingle }) => {
@@ -162,7 +162,7 @@ const unsubscribe = engine.on('pageChange', ({ currentPage, totalPages, isSingle
 unsubscribe();
 ```
 
-Supported events: `pageChange`, `zoomChange`, `singlePageModeChange`, `thumbsToggle`, `destroy`.
+Supported events: `init`, `progress`, `pageChange`, `zoomChange`, `singlePageModeChange`, `thumbsToggle`, `orientationChange`, `error`, `destroy`.
 
 | Option | Type | Default | Description |
 | :--- | :--- | :--- | :--- |

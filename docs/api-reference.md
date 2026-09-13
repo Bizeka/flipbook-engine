@@ -83,4 +83,8 @@ const unsubscribe = engine.on('pageChange', ({ currentPage, pageNumber, totalPag
   - Payload: `{ isSingle: boolean }`
 - **`thumbsToggle`**: Emitted when thumbnail rail is toggled.
   - Payload: `{ showThumbs: boolean }`
+- **`init`**: Emitted after the viewer is ready. Payload: `{ totalPages: number }`
+- **`progress`**: Emitted during PDF loading/rendering. Payload: `{ phase: 'loading' | 'rendering'; completed: number; total: number }`
+- **`orientationChange`**: Emitted when layout orientation changes.
+- **`error`**: Emitted when PDF loading/rendering fails. Payload: `{ code: 'PDF_LOAD_FAILED' | 'PDF_RENDER_FAILED'; message: string; cause?: unknown }`
 - **`destroy`**: Emitted when the engine is destroyed.

@@ -1,6 +1,8 @@
 import * as pdfjsLib from 'pdfjs-dist';
 import type { NormalizedFlipbookPage } from '../model/pages';
 
+export interface PdfRenderProgress { completed: number; total: number; }
+
 export interface PdfRenderOptions {
     scale?: number;
     quality?: number;
@@ -95,13 +97,14 @@ export class PdfRenderer {
     }
 
     /** Renders pages concurrently with a bounded worker pool and preserves page order. */
-    public async renderAllPages(signal?: AbortSignal): Promise<NormalizedFlipbookPage[]> {
+    public async renderAllPages(signal?: AbortSignal, onProgress?: (progress: PdfRenderProgress) => void): Promise<NormalizedFlipbookPage[]> {
         if (!this.pdfDoc) return [];
         this.throwIfAborted(signal);
 
         const pageCount = this.pdfDoc.numPages;
         const resolvedPages = new Array<NormalizedFlipbookPage>(pageCount);
         let nextPage = 1;
+        let completed = 0;
         const renderWorker = async () => {
             while (true) {
                 this.throwIfAborted(signal);
@@ -117,6 +120,8 @@ export class PdfRenderer {
                     low: normalSrc,
                     thumb: normalSrc
                 };
+                completed++;
+                onProgress?.({ completed, total: pageCount });
             }
         };
 
