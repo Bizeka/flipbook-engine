@@ -194,6 +194,7 @@ export class FlipbookEngine {
             bookContainerRef: (el) => bookContainerEl = el,
             className: this.options.className,
             store: this.store,
+            onToggleFullscreen: () => this.toggleFullscreen(),
             onDownload: () => {
                 if (this.options.onDownload) this.options.onDownload(pdfUrl);
                 else window.open(pdfUrl, '_blank');
@@ -287,6 +288,23 @@ export class FlipbookEngine {
         if (this.pageFlipAdapter) this.pageFlipAdapter.turnToNextPage();
     }
 
+    public toggleFullscreen() {
+        const target = this.container;
+        if (!target) return;
+        if (!document.fullscreenElement) {
+            target.requestFullscreen?.().catch((error) => console.warn('Fullscreen err:', error));
+        } else {
+            document.exitFullscreen?.().catch((error) => console.warn('Exit fullscreen err:', error));
+        }
+    }
+
+    public setLocale(locale: FlipbookLocale | string, messages?: Partial<Record<string, PartialFlipbookMessages>>) {
+        this.options = {
+            ...this.options,
+            locale,
+            ...(messages ? { messages: { ...this.options.messages, [locale]: messages[locale] ?? messages } } : {})
+        };
+    }
     public prevPage() {
         if (this.pageFlipAdapter) this.pageFlipAdapter.turnToPrevPage();
     }
@@ -430,6 +448,8 @@ const globalScope = globalThis as any;
 const flipbookNamespace = globalScope.FlipbookEngine || {};
 flipbookNamespace.FlipbookEngine = FlipbookEngine;
 globalScope.FlipbookEngine = flipbookNamespace;
+
+
 
 
 

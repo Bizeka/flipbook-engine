@@ -27,9 +27,8 @@ interface ViewerProps {
 export function Viewer(props: ViewerProps) {
     return (
         <div
-            id="bk-book-wrapper"
             class={computed(() => {
-                let classes = '';
+                let classes = 'bk-book-wrapper ';
                 if (props.store.isDoublePageLayout.value) classes += 'double-mode ';
                 if (props.store.isFrontCover.value) classes += 'bk-is-cover ';
                 if (props.store.isBackCover.value) classes += 'bk-is-back-cover ';
@@ -39,13 +38,12 @@ export function Viewer(props: ViewerProps) {
             ref={props.bookWrapperRef}
         >
             <div
-                id="bk-book-sizer"
+                class="bk-book-sizer"
                 ref={props.bookSizerRef}
             >
                 <div
-                    id="bk-book"
                     ref={props.bookContainerRef}
-                    class={computed(() => props.store.flipState.value !== 'read' ? 'is-flipping' : '')}
+                    class={computed(() => 'bk-book ' + (props.store.flipState.value !== 'read' ? 'is-flipping' : ''))}
                     style={computed(() => `display: ${props.store.isSingleMode.value ? 'none' : 'block'};`)}
                 >
                     {props.store.pages.value.map((page, index) => {
@@ -74,7 +72,7 @@ export function Viewer(props: ViewerProps) {
                 </div>
 
                 <div
-                    id="bk-single-view"
+                    class="bk-single-view"
                     style={computed(() => `display: ${props.store.isSingleMode.value ? 'flex' : 'none'}; width: 100%; height: 100%; justify-content: center; align-items: center; position: absolute; top: 0; left: 0; z-index: 10;`)}
                 >
                     {computed(() => {
@@ -82,8 +80,7 @@ export function Viewer(props: ViewerProps) {
                         if (!page) return null;
                         return (
                             <img
-                                id="bk-single-img"
-                                class={`page-content ${page.cropMode !== 'full' ? 'page-content--split page-content--' + page.cropMode : ''}`}
+                                class={`bk-single-img page-content ${page.cropMode !== 'full' ? 'page-content--split page-content--' + page.cropMode : ''}`}
                                 src={props.store.zoomState.value.isActive ? page.normal : (page.low || page.normal)}
                                 style="opacity: 1; transition: opacity 0.3s; box-shadow: var(--flipbook-shadow);"
                             />
@@ -94,4 +91,8 @@ export function Viewer(props: ViewerProps) {
         </div>
     );
 }
+
+
+
+
 

@@ -31,6 +31,7 @@ interface AppProps {
     bookContainerRef: (el: HTMLElement) => void;
     className?: string;
     onDownload: () => void;
+    onToggleFullscreen: () => void;
     store: FlipbookStore;
 }
 
@@ -55,16 +56,7 @@ export function App(props: AppProps) {
         props.interactionManagerRef.current?.zoomOut();
     };
 
-    const handleToggleFullscreen = () => {
-        if (!document.fullscreenElement) {
-            // Find the closest container or just use documentElement
-            const el = document.querySelector('.bk-wrapper')?.parentElement || document.documentElement;
-            el.requestFullscreen().catch(err => console.warn('Fullscreen err:', err));
-        } else {
-            document.exitFullscreen().catch(err => console.warn('Exit fullscreen err:', err));
-        }
-    };
-
+    const handleToggleFullscreen = () => props.onToggleFullscreen();
     const handleThumbClick = (index: number) => {
         if (props.store.currentPage.value !== index) {
             props.store.currentPage.value = index;
@@ -122,4 +114,6 @@ export function App(props: AppProps) {
         </div>
     );
 }
+
+
 
