@@ -22,6 +22,7 @@ When instantiating `new FlipbookEngine(selector, options)`, you can configure th
 | `cssVariables` | `Record<string, string>` | `null` | Per-instance custom CSS property overrides. |
 | `whiteLabel` | `boolean` | `false` | If true, hides the "Powered by FlipbookEngine" watermark. |
 | `watermarkUrl` | `string` | `null` | Custom image logo URL for watermark attribution. |
+| `pdfRenderConcurrency` | `number` | `3` | Maximum number of PDF pages rendered concurrently during initialization. |
 
 ---
 

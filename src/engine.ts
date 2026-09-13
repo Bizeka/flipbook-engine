@@ -51,6 +51,7 @@ export interface FlipbookEngineOptions {
     pdfRenderScale?: number;
     pdfRenderQuality?: number;
     pdfRenderFormat?: string;
+    pdfRenderConcurrency?: number;
     pdfWorkerSrc?: string;
 }
 
@@ -106,6 +107,7 @@ export class FlipbookEngine {
             pdfRenderScale: 1.5,
             pdfRenderQuality: 0.85,
             pdfRenderFormat: 'image/webp',
+            pdfRenderConcurrency: 3,
             ...options
         };
         this.setupEventSync();
@@ -154,14 +156,15 @@ export class FlipbookEngine {
                     scale: this.options.pdfRenderScale,
                     quality: this.options.pdfRenderQuality,
                     format: this.options.pdfRenderFormat,
+                    concurrency: this.options.pdfRenderConcurrency,
                     workerSrc: this.options.pdfWorkerSrc
                 });
 
-                await this.pdfRenderer.loadDocument(pdfUrl);
-                resolvedPages = await this.pdfRenderer.renderAllPages();
+                await this.pdfRenderer.loadDocument(pdfUrl, abortController.signal);
+                resolvedPages = await this.pdfRenderer.renderAllPages(abortController.signal);
                 viewport = await this.pdfRenderer.calculateViewportDimensions();
-            } catch (e) {
-                console.error("PDF load failed:", e);
+            } catch (e: any) {
+                if (!abortController.signal.aborted) console.error("PDF load failed:", e);
                 return;
             }
         }

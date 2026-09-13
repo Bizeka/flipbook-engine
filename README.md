@@ -173,6 +173,7 @@ Supported events: `pageChange`, `zoomChange`, `singlePageModeChange`, `thumbsTog
 | `maxShadowOpacity` | `number` | `0.5` | Maximum opacity of the shadow during page turn (0 to 1). |
 | `whiteLabel` | `boolean` | `false` | Hides the "Powered by FlipbookEngine" watermark. |
 | `pdfWorkerSrc` | `string` | - | URL of the PDF.js worker emitted or hosted by the consuming application. |
+| `pdfRenderConcurrency` | `number` | `3` | Maximum number of PDF pages rendered concurrently during initialization. |
 
 ## Styling and Theming
 
