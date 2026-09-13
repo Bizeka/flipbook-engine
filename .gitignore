@@ -24,3 +24,7 @@ coverage/
 
 # Local audit report (kept in the project folder, never committed)
 FlipbookEngine-Denetim-Raporu-v1.docx
+
+# Playwright output
+test-results/
+playwright-report/
