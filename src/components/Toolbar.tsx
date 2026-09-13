@@ -100,7 +100,7 @@ export function Toolbar(props: ToolbarProps) {
                 </button>
 
                 {computed(() => {
-                    if (props.store.allowDownload.value && props.onDownload) {
+                    if (props.store.allowDownload.value && props.store.hasDownloadUrl.value && props.onDownload) {
                         return (
                             <button class="bk-btn bk-btn--download" onClick={props.onDownload} title={computed(() => messages.value.downloadCatalog || 'Download')}>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
@@ -113,9 +113,7 @@ export function Toolbar(props: ToolbarProps) {
                 <button
                     // @ts-ignore
                     class={computed(() => `bk-btn ${!props.store.soundEnabled.value ? 'muted' : ''}`)}
-                    onClick={() => {
-                        props.onSoundToggle();
-                    }}
+                    onClick={props.onSoundToggle}
                     title="Sound"
                 >
                     <svg style={{ display: computed(() => props.store.soundEnabled.value ? 'block' : 'none') as any }} xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>

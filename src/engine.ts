@@ -196,6 +196,7 @@ export class FlipbookEngine {
             store: this.store,
             onToggleFullscreen: () => this.toggleFullscreen(),
             onDownload: () => {
+                if (!pdfUrl) return;
                 if (this.options.onDownload) this.options.onDownload(pdfUrl);
                 else window.open(pdfUrl, '_blank');
             }
