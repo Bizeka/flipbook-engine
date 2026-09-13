@@ -204,11 +204,11 @@ Supported events: `init`, `progress`, `pageChange`, `zoomChange`, `singlePageMod
 | `soundEnabled` | `boolean` | `true` | Enables page turning sound effect. |
 | `soundUrl` | `string` | `'https://.../page-flip.mp3'` | URL of the audio file. |
 | `autoPlayInterval`| `number` | `3000` | Autoplay page duration in milliseconds. |
-| `flippingTime` | `number` | `1000` | Duration of the page turn animation in milliseconds. |
+| `flippingTime` | `number` | `1000` | Duration of the page turn animation in milliseconds; automatically disabled when reduced motion is preferred. |
 | `maxShadowOpacity` | `number` | `0.5` | Maximum opacity of the shadow during page turn (0 to 1). |
 | `whiteLabel` | `boolean` | `false` | Hides the "Powered by FlipbookEngine" watermark. |
 | `pdfWorkerSrc` | `string` | - | URL of the PDF.js worker emitted or hosted by the consuming application. |
-| `pdfRenderConcurrency` | `number` | `3` | Maximum number of PDF pages rendered concurrently during initialization. |
+| `pdfRenderConcurrency` | `number` | `3` | Maximum number of PDF pages rendered concurrently when on-demand pages are requested. |
 | `pdfRenderCacheSize` | `number` | `32` | Maximum number of rendered PDF page images retained per engine instance (LRU); `0` disables caching. |
 
 ## Styling and Theming

@@ -17,13 +17,13 @@ When instantiating `new FlipbookEngine(selector, options)`, you can configure th
 | `soundEnabled` | `boolean` | `true` | Enables page turning sound effect. |
 | `soundUrl` | `string` | `'https://flipbookengine.com/Content/page-flip.mp3'` | URL of the page turning audio file. |
 | `autoPlayInterval` | `number` | `3000` | Duration (ms) before automatically turning to the next page in Autoplay mode. |
-| `flippingTime` | `number` | `1000` | Duration (ms) of the page turning animation. |
+| `flippingTime` | `number` | `1000` | Duration (ms) of the page turning animation; automatically set to `0` when reduced motion is preferred. |
 | `maxShadowOpacity` | `number` | `0.5` | Maximum opacity of the shadow during page turn (0 to 1). |
 | `messages` | `Record<string, PartialFlipbookMessages>` | `null` | Custom localization overrides. |
 | `cssVariables` | `Record<string, string>` | `null` | Per-instance custom CSS property overrides. |
 | `whiteLabel` | `boolean` | `false` | If true, hides the "Powered by FlipbookEngine" watermark. |
 | `watermarkUrl` | `string` | `null` | Custom image logo URL for watermark attribution. |
-| `pdfRenderConcurrency` | `number` | `3` | Maximum number of PDF pages rendered concurrently during initialization. |
+| `pdfRenderConcurrency` | `number` | `3` | Maximum number of PDF pages rendered concurrently when on-demand pages are requested. |
 | `pdfRenderCacheSize` | `number` | `32` | Maximum number of rendered PDF page images retained per engine instance (LRU); `0` disables caching. |
 
 ---
