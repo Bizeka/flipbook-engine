@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.5.0 (upcoming)
+## 0.5.0
 
 - added on-demand PDF page rendering with first-page readiness and next-page prefetch
 - added bounded per-instance PDF render cache via `pdfRenderCacheSize`

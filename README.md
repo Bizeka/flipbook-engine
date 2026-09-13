@@ -62,7 +62,7 @@ Passing `pages` remains optional. When omitted, FlipbookEngine creates the page 
 Use the ESM build with an import map for PDF.js. The worker must be served from a URL your site permits in its Content Security Policy.
 
 ```html
-<link rel="stylesheet" href="https://unpkg.com/flipbookengine@0.4.0/dist/flipbook-engine.css" />
+<link rel="stylesheet" href="https://unpkg.com/flipbookengine@0.5.0/dist/flipbook-engine.css" />
 <div id="viewer" style="width: 100%; height: 600px;"></div>
 
 <script type="importmap">
@@ -73,7 +73,7 @@ Use the ESM build with an import map for PDF.js. The worker must be served from 
 }
 </script>
 <script type="module">
-  import { FlipbookEngine } from 'https://unpkg.com/flipbookengine@0.4.0/dist/flipbook-engine.js';
+  import { FlipbookEngine } from 'https://unpkg.com/flipbookengine@0.5.0/dist/flipbook-engine.js';
 
   const engine = new FlipbookEngine('#viewer', {
     pdfWorkerSrc: 'https://unpkg.com/pdfjs-dist@5.4.530/build/pdf.worker.min.mjs'
@@ -141,32 +141,9 @@ const pages = [
 
 Upgrading from 0.3.x to 0.4.0 keeps the public engine methods intact. The release isolates state per engine instance, makes wrapper updates lifecycle-safe, and scopes viewer markup to its container. If host CSS or automation selected the former fixed viewer IDs, migrate those selectors to the instance classes documented in the theming guide. PDF-backed consumers should configure `pdfWorkerSrc`; image-only viewers do not expose a download control.
 
-For the upcoming 0.5.0 behavior, see the [0.5.0 migration guide](./docs/migration-0.5.0.md). PDF-backed viewers now render on demand; callers should use `progress` and `error` events for rendering telemetry.
+For 0.5.0 behavior, see the [0.5.0 migration guide](./docs/migration-0.5.0.md). PDF-backed viewers now render on demand; callers should use `progress` and `error` events for rendering telemetry.
 
 
-## Local npm Release
-
-Run the complete release verification locally before publishing:
-
-```bash
-npm ci
-npm run release:verify
-npm login
-npm publish --provenance --access public
-```
-
-Confirm the package version with `npm pkg get version` before publishing. The publish command is intentionally separate from `release:verify` so credentials and the final npm upload remain under the maintainer's direct control.
-### Windows PowerShell
-
-If PowerShell blocks `npm.ps1` because script execution is disabled, use the Windows command shim explicitly:
-
-```powershell
-npm.cmd ci
-npm.cmd run release:verify
-npm.cmd login
-npm.cmd whoami
-npm.cmd publish --access public
-```
 ## Public API Reference
 
 The `FlipbookEngine` class exposes the following public methods:
@@ -257,21 +234,35 @@ When choosing a flipbook library, here is how we compare to other solutions:
 
 ## Acknowledgments
 
-A special thanks to the incredible team behind **[Serenity](https://github.com/serenity-is/serenity)**. FlipbookEngine's reactive UI layer is powered by **[domwise](https://github.com/serenity-is/serenity/tree/master/packages/domwise)**. Coupled with `@preact/signals-core`, this keeps the UI update path small without requiring a traditional Virtual DOM runtime.
+A special thanks to the domwise project. FlipbookEngine's reactive UI layer is powered by **domwise** and `@preact/signals-core`, keeping the UI update path small without requiring a traditional Virtual DOM runtime.
 
 ---
+## Roadmap
 
-## Roadmap (Upcoming in v1.0.0)
+FlipbookEngine has two complementary targets: an AGPL open-source viewer package and a separate closed-source commercial backend edition.
 
-We are constantly working to make FlipbookEngine the definitive choice for enterprise digital catalogs. The upcoming **v1.0.0 Major Release** will introduce several advanced features designed for commercial scale:
+### Open-source v1.0.0 (AGPL viewer)
 
-- **Table of Contents (Index):** A dedicated, interactive side-menu allowing readers to instantly jump to specific chapters or product categories.
-- **Page Notes & Annotations:** Allow readers to drop personal notes or bookmarks directly onto pages.
-- **Full-Text PDF Search:** Client-side search capabilities via extracted JSON indices, enabling instant text highlighting across hundreds of pages without locking the UI.
-- **Interactive Hotspots & Pop-ups:** Draw custom coordinates over the canvas to embed YouTube videos, image galleries, or direct "Buy Now" e-commerce links right on top of the catalog pages.
-- **Partial PDF Downloads:** Allow readers to select and download specific pages. Features a hybrid architecture: standalone client-side generation using `pdf-lib`, or an event-driven `onDownloadRequest` hook to offload generation to your own secure backend.
-- **AI Chatbot (Chat with Docs):** A built-in AI assistant interface to help users query catalog contents, find products, and get page recommendations instantly.
-- **Deep Linking & Social Share:** Generate and share URLs that point to specific pages or spreads directly via social media.
+The npm package remains an embeddable, framework-agnostic PDF viewer. The open-source v1.0.0 target focuses on client-side reader capabilities:
+
+- **Table of Contents (Index):** Interactive navigation to chapters or product categories.
+- **Page Notes & Annotations:** Reader notes and bookmarks stored by the host application.
+- **Full-Text PDF Search:** Client-side text extraction and highlighting without blocking the viewer.
+- **Interactive Hotspots & Pop-ups:** Custom overlays for media, galleries, and commerce links.
+- **Deep Linking & Social Share:** URLs that address specific pages or spreads.
+
+The open-source viewer continues to use PDF.js as an external npm dependency and does not require a backend renderer.
+
+### Commercial edition (closed-source backend)
+
+The commercial roadmap is separate from the AGPL package and is intended for a separate backend project. It will provide licensed server-side capabilities, including:
+
+- **Backend PDF rendering:** Secure, server-side rendering and caching for protected documents and high-volume workloads.
+- **Protected partial downloads:** Server-generated page selections and authorization-aware download policies.
+- **AI-assisted document features:** Backend indexing, catalog search, and Chat with Docs integrations.
+- **Enterprise identity and provenance:** OIDC, auditability, tenant controls, and deployment integration.
+
+These backend renderer and enterprise features will not be included in the public `flipbookengine` npm package; they will be delivered under the commercial license.
 
 ---
 
