@@ -10,6 +10,7 @@ When instantiating `new FlipbookEngine(selector, options)`, you can configure th
 |---|---|---|---|
 | `allowDownload` | `boolean` | `true` | Exposes a download button in the toolbar. |
 | `showThumbs` | `boolean` | `true` | Starts the viewer with the thumbnail navigation rail open. |
+| `showArrows` | `boolean` | `true` | Shows the previous/next navigation arrows. |
 | `primaryColor` | `string` | `'#7367f0'` | Sets the primary theme accent color. |
 | `theme` | `'auto' \| 'light' \| 'dark'` | `'auto'` | Force light/dark mode or let it respond automatically. |
 | `locale` | `'en' \| 'tr' \| string` | `'en'` | Active language interface. |

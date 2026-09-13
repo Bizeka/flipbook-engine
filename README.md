@@ -166,6 +166,7 @@ Supported events: `init`, `progress`, `pageChange`, `zoomChange`, `singlePageMod
 
 | Option | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
+| `showArrows` | `boolean` | `true` | Shows the previous/next navigation arrows. |
 | `soundEnabled` | `boolean` | `true` | Enables page turning sound effect. |
 | `soundUrl` | `string` | `'https://.../page-flip.mp3'` | URL of the audio file. |
 | `autoPlayInterval`| `number` | `3000` | Autoplay page duration in milliseconds. |

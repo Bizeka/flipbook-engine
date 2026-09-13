@@ -295,7 +295,8 @@ export class FlipbookEngine {
     }
 
     public setZoom(zoomLevel: number) {
-        const scale = Math.max(0.5, Math.min(5, zoomLevel));
+        const requestedZoom = Number.isFinite(zoomLevel) ? zoomLevel : 1;
+        const scale = Math.max(0.5, Math.min(5, requestedZoom));
         this.store.zoomState.value = {
             ...this.store.zoomState.value,
             scale,
@@ -340,12 +341,14 @@ export class FlipbookEngine {
         if (options.theme !== undefined) this.store.themeMode.value = options.theme;
         if (options.primaryColor !== undefined) this.store.primaryColor.value = options.primaryColor;
         if (options.showThumbs !== undefined) this.store.showThumbs.value = options.showThumbs;
+        if (options.showArrows !== undefined) this.store.showArrows.value = options.showArrows;
         if (options.allowDownload !== undefined) this.store.allowDownload.value = options.allowDownload;
         if (options.whiteLabel !== undefined) this.store.whiteLabel.value = options.whiteLabel;
         if (options.soundEnabled !== undefined) this.store.soundEnabled.value = options.soundEnabled;
         if (options.locale !== undefined) this.store.locale.value = options.locale;
         if (options.messages !== undefined) this.store.messages.value = options.messages;
         if (options.singleMode !== undefined) this.store.isSingleMode.value = options.singleMode;
+        if (options.isSingleMode !== undefined) this.store.isSingleMode.value = options.isSingleMode;
         if (options.autoPlay !== undefined) this.store.isAutoPlaying.value = options.autoPlay;
         if (options.autoPlayInterval !== undefined) this.store.autoPlayInterval.value = options.autoPlayInterval;
 
