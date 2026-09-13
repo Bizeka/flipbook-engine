@@ -13,6 +13,7 @@
  *    https://flipbookengine.com/pricing
  */
 import * as pdfjsLib from 'pdfjs-dist';
+import { effect } from '@preact/signals-core';
 import { App } from './components/App';
 import { PageFlipAdapter } from './adapters/PageFlipAdapter';
 import { LayoutManager } from './core/LayoutManager';
@@ -90,6 +91,9 @@ export class FlipbookEngine {
     private initializationTimer: ReturnType<typeof setTimeout> | null = null;
     private initGeneration = 0;
     private initAbortController: AbortController | null = null;
+    private eventsReady = false;
+    private lastEventState = { currentPage: 0, zoom: 1, zoomActive: false, showThumbs: true, isSingle: false, orientation: '' as '' | 'landscape' | 'portrait' };
+    private eventSyncStop: (() => void) | null = null;
 
     constructor(private selector: string | HTMLElement, options: FlipbookEngineOptions = {}) {
         this.options = {
@@ -104,6 +108,7 @@ export class FlipbookEngine {
             pdfRenderFormat: 'image/webp',
             ...options
         };
+        this.setupEventSync();
     }
 
     public async init(pdfUrl: string, imageList?: Array<PageImages | FlipbookPageAsset>) {
@@ -116,6 +121,7 @@ export class FlipbookEngine {
         if (!this.container) return;
 
         this.destroy(true);
+        this.eventsReady = false;
         const generation = this.initGeneration;
         const abortController = new AbortController();
         this.initAbortController = abortController;
@@ -229,6 +235,8 @@ export class FlipbookEngine {
                 this.interactionManager.init();
                 interactionManagerRef.current = this.interactionManager;
 
+                this.eventsReady = true;
+                this.captureEventState();
                 this.emit('init', { totalPages: resolvedPages.length });
                 resolve();
             }, 10);
@@ -248,7 +256,8 @@ export class FlipbookEngine {
     }
 
     public goToPage(targetIdx: number) {
-        this.store.currentPage.value = targetIdx;
+        const maxIndex = Math.max(0, this.store.totalPages.value - 1);
+        this.store.currentPage.value = Math.max(0, Math.min(maxIndex, Math.trunc(targetIdx)));
     }
 
     public getTotalPages(): number {
@@ -265,7 +274,12 @@ export class FlipbookEngine {
 
     public setZoom(zoomLevel: number) {
         const scale = Math.max(0.5, Math.min(5, zoomLevel));
-        this.store.zoomState.value = { ...this.store.zoomState.value, scale };
+        this.store.zoomState.value = {
+            ...this.store.zoomState.value,
+            scale,
+            isActive: scale > 1,
+            ...(scale <= 1 ? { translateX: 0, translateY: 0 } : {})
+        };
         this.store.isZoomed.value = scale > 1;
     }
 
@@ -312,6 +326,54 @@ export class FlipbookEngine {
         await this.init(pdfUrl || '', imageList);
     }
 
+    private setupEventSync() {
+        this.eventSyncStop = effect(() => {
+            const state = {
+                currentPage: this.store.currentPage.value,
+                zoom: this.store.zoomState.value.scale,
+                zoomActive: this.store.zoomState.value.isActive,
+                showThumbs: this.store.showThumbs.value,
+                isSingle: this.store.isSingleMode.value,
+                orientation: this.store.orientation.value
+            };
+            if (!this.eventsReady) {
+                this.lastEventState = state;
+                return;
+            }
+            if (state.currentPage !== this.lastEventState.currentPage) {
+                this.emit('pageChange', {
+                    currentPage: state.currentPage,
+                    pageNumber: state.currentPage + 1,
+                    totalPages: this.store.totalPages.value,
+                    isSingle: state.isSingle
+                });
+            }
+            if (state.zoom !== this.lastEventState.zoom || state.zoomActive !== this.lastEventState.zoomActive) {
+                this.emit('zoomChange', { zoom: state.zoom, isActive: state.zoomActive });
+            }
+            if (state.showThumbs !== this.lastEventState.showThumbs) {
+                this.emit('thumbsToggle', { showThumbs: state.showThumbs });
+            }
+            if (state.isSingle !== this.lastEventState.isSingle) {
+                this.emit('singlePageModeChange', { isSingle: state.isSingle });
+            }
+            if (state.orientation !== this.lastEventState.orientation) {
+                this.emit('orientationChange', { orientation: state.orientation });
+            }
+            this.lastEventState = state;
+        });
+    }
+
+    private captureEventState() {
+        this.lastEventState = {
+            currentPage: this.store.currentPage.value,
+            zoom: this.store.zoomState.value.scale,
+            zoomActive: this.store.zoomState.value.isActive,
+            showThumbs: this.store.showThumbs.value,
+            isSingle: this.store.isSingleMode.value,
+            orientation: this.store.orientation.value
+        };
+    }
     public destroy(keepContainer = false) {
         this.initGeneration++;
         this.initAbortController?.abort();
@@ -368,4 +430,7 @@ const globalScope = globalThis as any;
 const flipbookNamespace = globalScope.FlipbookEngine || {};
 flipbookNamespace.FlipbookEngine = FlipbookEngine;
 globalScope.FlipbookEngine = flipbookNamespace;
+
+
+
 
