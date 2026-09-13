@@ -299,11 +299,12 @@ export class FlipbookEngine {
     }
 
     public setLocale(locale: FlipbookLocale | string, messages?: Partial<Record<string, PartialFlipbookMessages>>) {
-        this.options = {
-            ...this.options,
-            locale,
-            ...(messages ? { messages: { ...this.options.messages, [locale]: messages[locale] ?? messages } } : {})
-        };
+        const mergedMessages = messages
+            ? { ...this.options.messages, [locale]: messages[locale] ?? messages }
+            : this.options.messages;
+        this.options = { ...this.options, locale, messages: mergedMessages };
+        this.store.locale.value = locale;
+        if (mergedMessages) this.store.messages.value = mergedMessages;
     }
     public prevPage() {
         if (this.pageFlipAdapter) this.pageFlipAdapter.turnToPrevPage();
@@ -321,6 +322,8 @@ export class FlipbookEngine {
         if (options.allowDownload !== undefined) this.store.allowDownload.value = options.allowDownload;
         if (options.whiteLabel !== undefined) this.store.whiteLabel.value = options.whiteLabel;
         if (options.soundEnabled !== undefined) this.store.soundEnabled.value = options.soundEnabled;
+        if (options.locale !== undefined) this.store.locale.value = options.locale;
+        if (options.messages !== undefined) this.store.messages.value = options.messages;
         if (options.singleMode !== undefined) this.store.isSingleMode.value = options.singleMode;
         if (options.autoPlay !== undefined) this.store.isAutoPlaying.value = options.autoPlay;
         if (options.autoPlayInterval !== undefined) this.store.autoPlayInterval.value = options.autoPlayInterval;
@@ -448,6 +451,7 @@ const globalScope = globalThis as any;
 const flipbookNamespace = globalScope.FlipbookEngine || {};
 flipbookNamespace.FlipbookEngine = FlipbookEngine;
 globalScope.FlipbookEngine = flipbookNamespace;
+
 
 
 

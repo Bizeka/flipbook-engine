@@ -21,7 +21,7 @@ export function applyThemeConfiguration(container: HTMLElement, config: ThemeCon
   if (config.theme === 'dark') container.classList.add('bk-theme-dark');
 
   if (config.primaryColor) {
-    container.style.setProperty('--accentcolor', config.primaryColor);
+    container.style.setProperty('--flipbook-accent', config.primaryColor);
   }
 
   const userVariables = config.cssVariables ?? {};
@@ -30,3 +30,4 @@ export function applyThemeConfiguration(container: HTMLElement, config: ThemeCon
     container.style.setProperty(variableName, value);
   });
 }
+

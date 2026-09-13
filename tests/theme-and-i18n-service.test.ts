@@ -36,7 +36,7 @@ test('theme configuration - applies primary color as css variable', () => {
   const container = document.createElement('div');
   applyThemeConfiguration(container, { primaryColor: '#ff0000' });
 
-  assert.equal(container.style.getPropertyValue('--accentcolor'), '#ff0000');
+  assert.equal(container.style.getPropertyValue('--flipbook-accent'), '#ff0000');
 });
 
 test('theme configuration - applies custom css variables', () => {
@@ -84,3 +84,4 @@ test('i18n service - merges custom overrides correctly', () => {
   assert.equal(msgs.next, 'Forwards');
   assert.equal(msgs.settings, 'Settings'); // remains default
 });
+

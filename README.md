@@ -184,7 +184,7 @@ FlipbookEngine features fully custom-property-based styling compatible with mode
 :root {
   --mainbgcolor: #f3f6fb;
   --panelbgcolor: #172033;
-  --accentcolor: #7367f0;
+  --flipbook-accent: #7367f0;
   --thumbrailbgcolor: #0f172a;
 }
 ```
@@ -245,3 +245,4 @@ FlipbookEngine is distributed under a dual-license model:
 - **Commercial**: For use in closed-source projects, proprietary SaaS platforms, or agency client deliveries (see [COMMERCIAL_LICENSE.md](./COMMERCIAL_LICENSE.md)).
 
 For commercial licenses and inquiries, contact: **murat.dogan@hotmail.com.tr**
+
