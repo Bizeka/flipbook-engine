@@ -1,5 +1,6 @@
 import * as pdfjsLib from 'pdfjs-dist';
 import type { NormalizedFlipbookPage } from '../model/pages';
+import { PdfRenderCache } from './PdfRenderCache';
 
 export interface PdfRenderProgress { completed: number; total: number; }
 
@@ -9,21 +10,28 @@ export interface PdfRenderOptions {
     format?: string;
     workerSrc?: string;
     concurrency?: number;
+    cacheSize?: number;
 }
 
 export class PdfRenderer {
     private pdfDoc: any = null;
     private loadingTask: any = null;
     private options: Required<PdfRenderOptions>;
+    private readonly cache: PdfRenderCache;
 
     constructor(options: PdfRenderOptions = {}) {
+        const cacheSize = Number.isFinite(options.cacheSize)
+            ? Math.max(0, Math.floor(options.cacheSize as number))
+            : 32;
         this.options = {
             scale: options.scale || 1.5,
             quality: options.quality || 0.85,
             format: options.format || 'image/webp',
             workerSrc: options.workerSrc || '',
-            concurrency: Math.max(1, Math.floor(options.concurrency || 3))
+            concurrency: Math.max(1, Math.floor(options.concurrency || 3)),
+            cacheSize
         };
+        this.cache = new PdfRenderCache(this.options.cacheSize);
         if (this.options.workerSrc) {
             pdfjsLib.GlobalWorkerOptions.workerSrc = this.options.workerSrc;
         }
@@ -32,6 +40,7 @@ export class PdfRenderer {
     /** Loads a PDF document and cancels PDF.js loading when the signal aborts. */
     public async loadDocument(pdfUrl: string, signal?: AbortSignal): Promise<number> {
         this.throwIfAborted(signal);
+        this.cache.clear();
         const loadingTask = pdfjsLib.getDocument(pdfUrl);
         this.loadingTask = loadingTask;
         const abortLoading = () => loadingTask.destroy?.();
@@ -53,6 +62,8 @@ export class PdfRenderer {
     public async renderPageToDataUrl(pageIndex: number, signal?: AbortSignal): Promise<string> {
         if (!this.pdfDoc) throw new Error('PDF document is not loaded.');
         this.throwIfAborted(signal);
+        const cached = this.cache.get(pageIndex);
+        if (cached !== undefined) return cached;
 
         try {
             const page = await this.pdfDoc.getPage(pageIndex);
@@ -73,7 +84,9 @@ export class PdfRenderer {
                 } finally {
                     signal?.removeEventListener('abort', cancelRender);
                 }
-                return canvas.toDataURL(this.options.format, this.options.quality);
+                const dataUrl = canvas.toDataURL(this.options.format, this.options.quality);
+                this.cache.set(pageIndex, dataUrl);
+                return dataUrl;
             }
         } catch (error) {
             if (signal?.aborted) throw this.createAbortError();
@@ -131,6 +144,10 @@ export class PdfRenderer {
         return resolvedPages;
     }
 
+    public getCacheStats() {
+        return this.cache.getStats();
+    }
+
     private throwIfAborted(signal?: AbortSignal) {
         if (signal?.aborted) throw this.createAbortError();
     }
@@ -148,5 +165,6 @@ export class PdfRenderer {
             this.pdfDoc.destroy?.();
             this.pdfDoc = null;
         }
+        this.cache.clear();
     }
 }
