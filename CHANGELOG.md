@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.3
+
+- pinned the jsdom test dependency to a Node 18-compatible release so the full CI matrix runs consistently
+
+
+
 ## 0.5.2
 
 - restored the domwise project acknowledgement in the package README
