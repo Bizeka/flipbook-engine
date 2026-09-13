@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.2
+
+- restored the domwise project acknowledgement in the package README
+- kept commercial backend roadmap details separate from the open-source viewer documentation
+
+
+
 ## 0.5.1
 
 - removed maintainer-only npm publishing instructions from the package README

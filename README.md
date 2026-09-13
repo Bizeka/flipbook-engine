@@ -234,7 +234,7 @@ When choosing a flipbook library, here is how we compare to other solutions:
 
 ## Acknowledgments
 
-A special thanks to the domwise project. FlipbookEngine's reactive UI layer is powered by **domwise** and `@preact/signals-core`, keeping the UI update path small without requiring a traditional Virtual DOM runtime.
+A special thanks to the incredible team behind **[Serenity](https://github.com/serenity-is/serenity)**. FlipbookEngine's reactive UI layer is powered by **[domwise](https://github.com/serenity-is/serenity/tree/master/packages/domwise)**. Coupled with `@preact/signals-core`, this keeps the UI update path small without requiring a traditional Virtual DOM runtime.
 
 ---
 ## Roadmap
