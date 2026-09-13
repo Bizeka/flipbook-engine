@@ -17,6 +17,7 @@ FlipbookEngine is a modern, lightweight, and embeddable HTML flipbook viewer for
 - **Theme Engine**: Styled with compiled CSS and CSS Custom Properties, featuring full support for light/dark modes (auto-responsive to Bootstrap 5 or tailorable per instance).
 - **Multi-Language (i18n)**: Out-of-the-box support for English (`en`) and Turkish (`tr`) with customizable overrides.
 - **Framework Wrappers**: Direct React and Vue wrapper exports for seamless modern integration.
+- **Progressive PDF Rendering**: PDF pages render on demand with bounded concurrency and an instance-local LRU cache, keeping large documents responsive.
 
 ## Installation
 
@@ -45,13 +46,16 @@ const engine = new FlipbookEngine('#viewer', {
   primaryColor: '#7367f0',
   theme: 'auto',
   locale: 'en',
-  pdfWorkerSrc
+  pdfWorkerSrc,
+  pdfRenderCacheSize: 32
 });
 
 await engine.init('/files/catalog.pdf');
 ```
 
-Passing `pages` remains optional. When omitted, FlipbookEngine renders the pages from `pdfUrl`.
+Passing `pages` remains optional. When omitted, FlipbookEngine creates the page structure from `pdfUrl`, renders the first page before `init` resolves, and prefetches the next page. Additional pages render as they become visible or are selected.
+
+`pdfRenderCacheSize` controls the per-instance LRU cache (default `32`, set to `0` to disable it).
 
 ### Browser CDN
 
@@ -137,6 +141,8 @@ const pages = [
 
 Upgrading from 0.3.x to 0.4.0 keeps the public engine methods intact. The release isolates state per engine instance, makes wrapper updates lifecycle-safe, and scopes viewer markup to its container. If host CSS or automation selected the former fixed viewer IDs, migrate those selectors to the instance classes documented in the theming guide. PDF-backed consumers should configure `pdfWorkerSrc`; image-only viewers do not expose a download control.
 
+For the upcoming 0.5.0 behavior, see the [0.5.0 migration guide](./docs/migration-0.5.0.md). PDF-backed viewers now render on demand; callers should use `progress` and `error` events for rendering telemetry.
+
 
 ## Local npm Release
 
@@ -203,6 +209,7 @@ Supported events: `init`, `progress`, `pageChange`, `zoomChange`, `singlePageMod
 | `whiteLabel` | `boolean` | `false` | Hides the "Powered by FlipbookEngine" watermark. |
 | `pdfWorkerSrc` | `string` | - | URL of the PDF.js worker emitted or hosted by the consuming application. |
 | `pdfRenderConcurrency` | `number` | `3` | Maximum number of PDF pages rendered concurrently during initialization. |
+| `pdfRenderCacheSize` | `number` | `32` | Maximum number of rendered PDF page images retained per engine instance (LRU); `0` disables caching. |
 
 ## Styling and Theming
 
@@ -234,7 +241,9 @@ FlipbookEngine does not bundle PDF.js or its worker. `pdfjs-dist` remains a norm
 ### Performance Highlights
 *   **Hardware Accelerated:** Uses CSS-based 3D transformations (`transform: rotateY`, `translateZ`) without a WebGL runtime.
 *   **Progressive Image Quality:** Loads low-quality page assets first and upgrades visible pages to their normal-quality source through `IntersectionObserver`.
+*   **On-demand PDF Rendering:** Large PDFs create lightweight placeholders first; the current page and next page render before or during navigation.
 *   **Bounded PDF Rendering:** PDF pages are rendered with configurable concurrency (`pdfRenderConcurrency`, default `3`) and can be cancelled when an initialization is superseded or destroyed.
+*   **PDF Render Cache:** A bounded per-instance LRU cache (`pdfRenderCacheSize`, default `32`) avoids repeated canvas work while preventing unbounded memory growth.
 
 ## FlipbookEngine vs. The Industry
 

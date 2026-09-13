@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.0 (upcoming)
+
+- added on-demand PDF page rendering with first-page readiness and next-page prefetch
+- added bounded per-instance PDF render cache via `pdfRenderCacheSize`
+- added React/Vue wrapper, browser E2E, and large-document regression coverage
+- added reduced-motion support for JavaScript page turns and CSS transitions
+- removed test exception suppression so asynchronous teardown failures surface
+
+
+
 ## 0.4.0
 
 - externalized PDF.js as an npm dependency with consumer-provided worker configuration

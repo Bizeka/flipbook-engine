@@ -24,6 +24,7 @@ When instantiating `new FlipbookEngine(selector, options)`, you can configure th
 | `whiteLabel` | `boolean` | `false` | If true, hides the "Powered by FlipbookEngine" watermark. |
 | `watermarkUrl` | `string` | `null` | Custom image logo URL for watermark attribution. |
 | `pdfRenderConcurrency` | `number` | `3` | Maximum number of PDF pages rendered concurrently during initialization. |
+| `pdfRenderCacheSize` | `number` | `32` | Maximum number of rendered PDF page images retained per engine instance (LRU); `0` disables caching. |
 
 ---
 
@@ -89,3 +90,10 @@ const unsubscribe = engine.on('pageChange', ({ currentPage, pageNumber, totalPag
 - **`orientationChange`**: Emitted when layout orientation changes.
 - **`error`**: Emitted when PDF loading/rendering fails. Payload: `{ code: 'PDF_LOAD_FAILED' | 'PDF_RENDER_FAILED'; message: string; cause?: unknown }`
 - **`destroy`**: Emitted when the engine is destroyed.
+
+
+## PDF rendering lifecycle
+
+When `pdfUrl` is supplied without a `pages` list, the engine creates lightweight page placeholders immediately after the document metadata loads. The first page is rendered before `init()` resolves, and the next page is prefetched. Remaining pages render on demand as they become visible or are selected. Rendering requests are deduplicated per page and cancelled when initialization is superseded or the engine is destroyed.
+
+Use `pdfRenderConcurrency` to bound concurrent PDF.js work and `pdfRenderCacheSize` to configure the per-instance LRU cache. Set the cache size to `0` when rendered page data should not be retained.
