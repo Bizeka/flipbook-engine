@@ -57,10 +57,10 @@ Toggles browser fullscreen.
 ### `updateOptions(options: Partial<FlipbookEngineOptions>)`
 Updates options dynamically at runtime.
 
-### `setLocale(locale: string, messages?: PartialFlipbookMessages)`
+### `setLocale(locale: string, messages?: PartialFlipbookMessages | Record<string, PartialFlipbookMessages>)`
 Changes the UI language programmatically.
 
-### `destroy(clearMarkup = true)`
+### `destroy(keepContainer = false)`
 Tears down the instance, unsubscribes all event handlers, and optionally clears the container element HTML.
 
 ---
@@ -87,7 +87,7 @@ const unsubscribe = engine.on('pageChange', ({ currentPage, pageNumber, totalPag
   - Payload: `{ showThumbs: boolean }`
 - **`init`**: Emitted after the viewer is ready. Payload: `{ totalPages: number }`
 - **`progress`**: Emitted during PDF loading/rendering. Payload: `{ phase: 'loading' | 'rendering'; completed: number; total: number }`
-- **`orientationChange`**: Emitted when layout orientation changes.
+- **`orientationChange`**: Emitted when layout orientation changes. Payload: `{ orientation: 'landscape' | 'portrait' }`.
 - **`error`**: Emitted when PDF loading/rendering fails. Payload: `{ code: 'PDF_LOAD_FAILED' | 'PDF_RENDER_FAILED'; message: string; cause?: unknown }`
 - **`destroy`**: Emitted when the engine is destroyed.
 

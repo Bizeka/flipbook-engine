@@ -8,6 +8,7 @@
 export {
   FlipbookEngine,
   type FlipbookEngineOptions,
+  type FlipbookLocaleMessages,
   type PageImages,
   type FlipbookEngineEventMap,
   type FlipbookEngineEventName

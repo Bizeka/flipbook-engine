@@ -20,5 +20,8 @@ test('locale and message overrides reach toolbar labels', async () => {
   engine.setLocale('tr');
   await new Promise((resolve) => setTimeout(resolve, 0));
   assert.equal(nextButton.title, 'Sonraki');
+  engine.setLocale('tr', { next: 'İleri' });
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.equal(nextButton.title, 'İleri');
   engine.destroy();
 });

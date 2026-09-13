@@ -157,8 +157,8 @@ The `FlipbookEngine` class exposes the following public methods:
 - **`setSingleMode(isSingle: boolean)`**: Programmatically toggles between single-page mode (`true`) and double-page spread mode (`false`).
 - **`toggleFullscreen()`**: Programmatically toggles fullscreen mode.
 - **`updateOptions(options: Partial<FlipbookEngineOptions>)`**: Updates instance options at runtime.
-- **`setLocale(locale: string, messages?: PartialFlipbookMessages)`**: Updates the locale programmatically.
-- **`destroy(clearMarkup = true)`**: Tears down the instance and clean up DOM listeners.
+- **`setLocale(locale: string, messages?: PartialFlipbookMessages | Record<string, PartialFlipbookMessages>)`**: Updates the locale programmatically and optionally overrides messages for that locale.
+- **`destroy(keepContainer = false)`**: Tears down the instance and listeners; when `true`, keeps the container markup for an immediate reinitialization.
 
 ### Subscribing to Events
 

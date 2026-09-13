@@ -76,6 +76,8 @@ export interface FlipbookEngineEventMap {
 }
 
 export type FlipbookEngineEventName = keyof FlipbookEngineEventMap;
+export type FlipbookLocaleMessages = PartialFlipbookMessages | Partial<Record<string, PartialFlipbookMessages>>;
+
 type FlipbookEventHandler<T extends FlipbookEngineEventName> = (payload: FlipbookEngineEventMap[T]) => void;
 type AnyFlipbookEventHandler = (payload: FlipbookEngineEventMap[FlipbookEngineEventName]) => void;
 
@@ -402,9 +404,9 @@ export class FlipbookEngine {
         }
     }
 
-    public setLocale(locale: FlipbookLocale | string, messages?: Partial<Record<string, PartialFlipbookMessages>>) {
+    public setLocale(locale: FlipbookLocale | string, messages?: FlipbookLocaleMessages) {
         const mergedMessages = messages
-            ? { ...this.options.messages, [locale]: messages[locale] ?? messages }
+            ? { ...this.options.messages, [locale]: (messages as Partial<Record<string, PartialFlipbookMessages>>)[locale] ?? messages }
             : this.options.messages;
         this.options = { ...this.options, locale, messages: mergedMessages };
         this.store.locale.value = locale;
