@@ -40,3 +40,35 @@ test('100-page PDF initialization renders only the visible window and prefetches
 
   engine.destroy();
 });
+
+test('PDF lazy loading keeps large fixture initialization bounded', async (t) => {
+  const originalLoad = PdfRenderer.prototype.loadDocument;
+  const originalRender = PdfRenderer.prototype.renderPageToDataUrl;
+  const originalViewport = PdfRenderer.prototype.calculateViewportDimensions;
+  const renderCalls: number[] = [];
+
+  PdfRenderer.prototype.loadDocument = async (url) => Number(url.match(/(10|500)/)?.[1] ?? 10);
+  PdfRenderer.prototype.renderPageToDataUrl = async (pageNumber) => {
+    renderCalls.push(pageNumber);
+    return 'data:image/mock;base64,page-' + pageNumber;
+  };
+  PdfRenderer.prototype.calculateViewportDimensions = async () => ({ width: 420, height: 594 });
+
+  t.after(() => {
+    PdfRenderer.prototype.loadDocument = originalLoad;
+    PdfRenderer.prototype.renderPageToDataUrl = originalRender;
+    PdfRenderer.prototype.calculateViewportDimensions = originalViewport;
+  });
+
+  for (const pageCount of [10, 500]) {
+    renderCalls.length = 0;
+    const engine = new FlipbookEngine('#app');
+    await engine.init('/files/' + pageCount + '-page.pdf');
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    assert.equal(engine.getTotalPages(), pageCount);
+    assert.equal(document.querySelectorAll('#app .bz-page').length, pageCount);
+    assert.deepEqual([...new Set(renderCalls)].sort((a, b) => a - b), [1, 2]);
+    engine.destroy();
+  }
+});
