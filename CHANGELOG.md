@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.3.0
+## 0.4.0
 
 - externalized PDF.js as an npm dependency with consumer-provided worker configuration
 - fixed PDF-only initialization when `pages` is omitted
