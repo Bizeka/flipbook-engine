@@ -150,6 +150,17 @@ npm publish --provenance --access public
 ```
 
 Confirm the package version with `npm pkg get version` before publishing. The publish command is intentionally separate from `release:verify` so credentials and the final npm upload remain under the maintainer's direct control.
+### Windows PowerShell
+
+If PowerShell blocks `npm.ps1` because script execution is disabled, use the Windows command shim explicitly:
+
+```powershell
+npm.cmd ci
+npm.cmd run release:verify
+npm.cmd login
+npm.cmd whoami
+npm.cmd publish --access public
+```
 ## Public API Reference
 
 The `FlipbookEngine` class exposes the following public methods:
@@ -263,5 +274,6 @@ FlipbookEngine is distributed under a dual-license model:
 - **Commercial**: For use in closed-source projects, proprietary SaaS platforms, or agency client deliveries (see [COMMERCIAL_LICENSE.md](./COMMERCIAL_LICENSE.md)).
 
 For commercial licenses and inquiries, contact: **murat.dogan@hotmail.com.tr**
+
 
 
