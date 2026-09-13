@@ -60,6 +60,7 @@ export function Viewer(props: ViewerProps) {
                                 >
                                     <div class="bz-page-content" style="position:relative; width:100%; height:100%; overflow:hidden;">
                                         <img
+                                            data-pdf-page={page.assetId.startsWith('pdf-page-') ? page.pageNumber : undefined}
                                             src={page.low || page.normal}
                                             data-src={page.normal}
                                             class={`page-content ${page.cropMode !== 'full' ? 'page-content--split page-content--' + page.cropMode : ''}`}
@@ -82,6 +83,7 @@ export function Viewer(props: ViewerProps) {
                         if (!page) return null;
                         return (
                             <img
+                                data-pdf-page={page.assetId.startsWith('pdf-page-') ? page.pageNumber : undefined}
                                 class={`bk-single-img page-content ${page.cropMode !== 'full' ? 'page-content--split page-content--' + page.cropMode : ''}`}
                                 src={props.store.zoomState.value.isActive ? page.normal : (page.low || page.normal)}
                                 alt={`Page ${props.store.currentPage.value + 1}`}
@@ -94,6 +96,7 @@ export function Viewer(props: ViewerProps) {
         </div>
     );
 }
+
 
 
 

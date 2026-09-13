@@ -8,7 +8,7 @@ import { PdfRenderer } from '../src/core/PdfRenderer.ts';
 
 test('preserves a PDF-only viewer when wrappers report no pages', async (t) => {
   const originalLoadDocument = PdfRenderer.prototype.loadDocument;
-  const originalRenderAllPages = PdfRenderer.prototype.renderAllPages;
+  const originalRenderPageToDataUrl = PdfRenderer.prototype.renderPageToDataUrl;
   const originalCalculateViewportDimensions = PdfRenderer.prototype.calculateViewportDimensions;
   const loadedUrls: string[] = [];
 
@@ -16,15 +16,12 @@ test('preserves a PDF-only viewer when wrappers report no pages', async (t) => {
     loadedUrls.push(pdfUrl);
     return 2;
   };
-  PdfRenderer.prototype.renderAllPages = async () => [
-    { index: 0, assetId: 'pdf-page-1', pageNumber: 1, cropMode: 'full', normal: 'page-1', low: 'page-1', thumb: 'page-1' },
-    { index: 1, assetId: 'pdf-page-2', pageNumber: 2, cropMode: 'full', normal: 'page-2', low: 'page-2', thumb: 'page-2' }
-  ];
+  PdfRenderer.prototype.renderPageToDataUrl = async (pageNumber) => 'page-' + pageNumber;
   PdfRenderer.prototype.calculateViewportDimensions = async () => ({ width: 420, height: 594 });
 
   t.after(() => {
     PdfRenderer.prototype.loadDocument = originalLoadDocument;
-    PdfRenderer.prototype.renderAllPages = originalRenderAllPages;
+    PdfRenderer.prototype.renderPageToDataUrl = originalRenderPageToDataUrl;
     PdfRenderer.prototype.calculateViewportDimensions = originalCalculateViewportDimensions;
   });
 
@@ -42,3 +39,4 @@ test('preserves a PDF-only viewer when wrappers report no pages', async (t) => {
   assert.equal(appContainer.querySelectorAll('.bz-page').length, 2);
   engine.destroy();
 });
+

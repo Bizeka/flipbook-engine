@@ -52,6 +52,7 @@ export interface FlipbookEngineOptions {
     pdfRenderQuality?: number;
     pdfRenderFormat?: string;
     pdfRenderConcurrency?: number;
+    pdfRenderCacheSize?: number;
     pdfWorkerSrc?: string;
 }
 
@@ -98,6 +99,9 @@ export class FlipbookEngine {
     private lastEventState = { currentPage: 0, zoom: 1, zoomActive: false, showThumbs: true, isSingle: false, orientation: '' as '' | 'landscape' | 'portrait' };
     private eventSyncStop: (() => void) | null = null;
     private qualityObserver: IntersectionObserver | null = null;
+    private pdfLazyStop: (() => void) | null = null;
+    private readonly pdfPageRequests = new Map<number, Promise<string>>();
+    private readonly pdfRenderedPages = new Set<number>();
 
     constructor(private selector: string | HTMLElement, options: FlipbookEngineOptions = {}) {
         this.options = {
@@ -111,6 +115,7 @@ export class FlipbookEngine {
             pdfRenderQuality: 0.85,
             pdfRenderFormat: 'image/webp',
             pdfRenderConcurrency: 3,
+            pdfRenderCacheSize: 32,
             ...options
         };
         this.setupEventSync();
@@ -161,6 +166,7 @@ export class FlipbookEngine {
                     quality: this.options.pdfRenderQuality,
                     format: this.options.pdfRenderFormat,
                     concurrency: this.options.pdfRenderConcurrency,
+                    cacheSize: this.options.pdfRenderCacheSize,
                     workerSrc: this.options.pdfWorkerSrc
                 });
 
@@ -168,10 +174,8 @@ export class FlipbookEngine {
                 const totalPages = await this.pdfRenderer.loadDocument(pdfUrl, abortController.signal);
                 pdfStage = 'render';
                 this.emit('progress', { phase: 'loading', completed: 1, total: totalPages });
-                resolvedPages = await this.pdfRenderer.renderAllPages(abortController.signal, ({ completed, total }) => {
-                    this.emit('progress', { phase: 'rendering', completed, total });
-                });
                 viewport = await this.pdfRenderer.calculateViewportDimensions();
+                resolvedPages = Array.from({ length: totalPages }, (_, index) => this.createPdfPlaceholder(index + 1));
             } catch (e: any) {
                 if (!abortController.signal.aborted) {
                     console.error("PDF load failed:", e);
@@ -244,7 +248,7 @@ export class FlipbookEngine {
                 resolve();
             };
             abortController.signal.addEventListener('abort', finish, { once: true });
-            this.initializationTimer = setTimeout(() => {
+            this.initializationTimer = setTimeout(async () => {
                 this.initializationTimer = null;
                 abortController.signal.removeEventListener('abort', finish);
                 if (abortController.signal.aborted || generation !== this.initGeneration || !this.pageFlipAdapter) {
@@ -256,6 +260,19 @@ export class FlipbookEngine {
                 this.interactionManager = new InteractionManager(bookWrapperEl!, this.pageFlipAdapter, this.store);
                 this.interactionManager.init();
                 interactionManagerRef.current = this.interactionManager;
+                this.setupPdfLazyLoading();
+                if (this.pdfRenderer && pdfUrl) {
+                    try {
+                        await this.renderPdfPage(1, abortController.signal);
+                    } catch {
+                        resolve();
+                        return;
+                    }
+                }
+                if (abortController.signal.aborted || generation !== this.initGeneration) {
+                    resolve();
+                    return;
+                }
 
                 this.eventsReady = true;
                 this.captureEventState();
@@ -268,6 +285,66 @@ export class FlipbookEngine {
         }
     }
 
+    private createPdfPlaceholder(pageNumber: number): NormalizedFlipbookPage {
+        const placeholder = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
+        return {
+            index: pageNumber - 1,
+            assetId: 'pdf-page-' + pageNumber,
+            pageNumber,
+            cropMode: 'full',
+            normal: placeholder,
+            low: placeholder,
+            thumb: placeholder
+        };
+    }
+
+    private renderPdfPage(pageNumber: number, signal?: AbortSignal): Promise<string> {
+        const renderer = this.pdfRenderer;
+        if (!renderer) return Promise.resolve('');
+        const existing = this.pdfPageRequests.get(pageNumber);
+        if (existing) return existing;
+        if (this.pdfRenderedPages.has(pageNumber)) return Promise.resolve('');
+
+        const request = renderer.renderPageToDataUrl(pageNumber, signal).then((dataUrl) => {
+            if (!dataUrl) throw new Error('PDF page ' + pageNumber + ' produced no image.');
+            this.pdfRenderedPages.add(pageNumber);
+            this.container?.querySelectorAll<HTMLImageElement>('img[data-pdf-page="' + pageNumber + '"]').forEach((image) => {
+                image.src = dataUrl;
+                delete image.dataset.pdfPage;
+            });
+            this.emit('progress', {
+                phase: 'rendering',
+                completed: this.pdfRenderedPages.size,
+                total: this.store.totalPages.value
+            });
+            return dataUrl;
+        }).catch((error) => {
+            if (error?.name === 'AbortError') throw error;
+            this.emit('error', {
+                code: 'PDF_RENDER_FAILED',
+                message: error instanceof Error ? error.message : 'Unable to render PDF page.',
+                cause: error
+            });
+            throw error;
+        }).finally(() => {
+            if (this.pdfPageRequests.get(pageNumber) === request) this.pdfPageRequests.delete(pageNumber);
+        });
+        this.pdfPageRequests.set(pageNumber, request);
+        return request;
+    }
+
+    private setupPdfLazyLoading() {
+        this.pdfLazyStop?.();
+        this.pdfLazyStop = null;
+        if (!this.pdfRenderer) return;
+        this.pdfLazyStop = effect(() => {
+            const currentPage = this.store.currentPage.value + 1;
+            const totalPages = this.store.totalPages.value;
+            [currentPage, currentPage + 1].filter((page) => page <= totalPages).forEach((page) => {
+                void this.renderPdfPage(page).catch(() => {});
+            });
+        });
+    }
     private loadImageSize(src: string): Promise<{ width: number; height: number } | null> {
         return new Promise(resolve => {
             const image = new Image();
@@ -375,8 +452,13 @@ export class FlipbookEngine {
         this.teardownQualityLoading();
         if (!this.container) return;
 
-        const images = Array.from(this.container.querySelectorAll<HTMLImageElement>('img[data-src]'));
+        const images = Array.from(this.container.querySelectorAll<HTMLImageElement>('img[data-src], img[data-pdf-page]'));
         const upgrade = (image: HTMLImageElement) => {
+            const pdfPage = Number(image.dataset.pdfPage);
+            if (Number.isInteger(pdfPage) && pdfPage > 0) {
+                void this.renderPdfPage(pdfPage).catch(() => {});
+                return;
+            }
             const highQualitySrc = image.dataset.src;
             if (!highQualitySrc) return;
             image.src = highQualitySrc;
@@ -385,7 +467,18 @@ export class FlipbookEngine {
 
         const Observer = this.container.ownerDocument.defaultView?.IntersectionObserver;
         if (!Observer) {
-            images.forEach(upgrade);
+            const pdfPages = new Set<number>();
+            images.forEach((image) => {
+                const pdfPage = Number(image.dataset.pdfPage);
+                if (Number.isInteger(pdfPage) && pdfPage > 0) {
+                    if (pdfPages.size < 2) {
+                        pdfPages.add(pdfPage);
+                        upgrade(image);
+                    }
+                } else {
+                    upgrade(image);
+                }
+            });
             return;
         }
 
@@ -471,6 +564,10 @@ export class FlipbookEngine {
             this.interactionManager.destroy();
         }
         this.teardownQualityLoading();
+        this.pdfLazyStop?.();
+        this.pdfLazyStop = null;
+        this.pdfPageRequests.clear();
+        this.pdfRenderedPages.clear();
         if (this.pdfRenderer) {
             this.pdfRenderer.destroy();
         }
@@ -509,6 +606,13 @@ const globalScope = globalThis as any;
 const flipbookNamespace = globalScope.FlipbookEngine || {};
 flipbookNamespace.FlipbookEngine = FlipbookEngine;
 globalScope.FlipbookEngine = flipbookNamespace;
+
+
+
+
+
+
+
 
 
 

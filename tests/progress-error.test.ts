@@ -13,20 +13,16 @@ const renderedPages = [
 
 test('engine reports PDF loading and rendering progress', async (t) => {
   const originalLoad = PdfRenderer.prototype.loadDocument;
-  const originalRender = PdfRenderer.prototype.renderAllPages;
+  const originalRenderPage = PdfRenderer.prototype.renderPageToDataUrl;
   const originalViewport = PdfRenderer.prototype.calculateViewportDimensions;
   t.after(() => {
     PdfRenderer.prototype.loadDocument = originalLoad;
-    PdfRenderer.prototype.renderAllPages = originalRender;
+    PdfRenderer.prototype.renderPageToDataUrl = originalRenderPage;
     PdfRenderer.prototype.calculateViewportDimensions = originalViewport;
   });
 
   PdfRenderer.prototype.loadDocument = async () => 2;
-  PdfRenderer.prototype.renderAllPages = async (_signal, onProgress) => {
-    onProgress?.({ completed: 1, total: 2 });
-    onProgress?.({ completed: 2, total: 2 });
-    return renderedPages;
-  };
+  PdfRenderer.prototype.renderPageToDataUrl = async (pageNumber) => 'page-' + pageNumber;
   PdfRenderer.prototype.calculateViewportDimensions = async () => ({ width: 420, height: 594 });
 
   const engine = new FlipbookEngine('#app');
@@ -38,7 +34,7 @@ test('engine reports PDF loading and rendering progress', async (t) => {
     { phase: 'loading', completed: 0, total: 0 },
     { phase: 'loading', completed: 1, total: 2 },
     { phase: 'rendering', completed: 1, total: 2 },
-    { phase: 'rendering', completed: 2, total: 2 }
+    { phase: 'rendering', completed: 2, total: 2 },
   ]);
   engine.destroy();
 });

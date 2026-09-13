@@ -53,6 +53,7 @@ export function Thumbnails(props: ThumbnailsProps) {
                     >
                         <div class="thumb-img-wrapper">
                             <img
+                                data-pdf-page={page.assetId.startsWith('pdf-page-') ? page.pageNumber : undefined}
                                 class="thumb-img"
                                 src={page.thumb || page.low || page.normal}
                                 alt={`Page ${index + 1}`}
@@ -67,4 +68,5 @@ export function Thumbnails(props: ThumbnailsProps) {
         </div>
     );
 }
+
 
