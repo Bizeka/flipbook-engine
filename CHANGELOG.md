@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.1
+
+- removed maintainer-only npm publishing instructions from the package README
+- clarified the open-source viewer and commercial backend roadmap
+
+
+
 ## 0.5.0
 
 - added on-demand PDF page rendering with first-page readiness and next-page prefetch
