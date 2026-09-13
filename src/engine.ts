@@ -100,6 +100,7 @@ export class FlipbookEngine {
     
     private pdfRenderer: PdfRenderer | null = null;
     private listeners: Partial<Record<FlipbookEngineEventName, Set<AnyFlipbookEventHandler>>> = {};
+    private initializationTimer: ReturnType<typeof setTimeout> | null = null;
 
     constructor(private selector: string | HTMLElement, options: FlipbookEngineOptions = {}) {
         this.options = { 
@@ -211,10 +212,12 @@ export class FlipbookEngine {
         pageFlipAdapterRef.current = this.pageFlipAdapter;
         
         // Wait a tick for styles to apply before initializing PageFlip
-        setTimeout(() => {
-            this.pageFlipAdapter!.init(viewport.width, viewport.height);
-            
-            this.interactionManager = new InteractionManager(bookWrapperEl!, this.pageFlipAdapter!);
+        this.initializationTimer = setTimeout(() => {
+            this.initializationTimer = null;
+            if (!this.pageFlipAdapter) return;
+
+            this.pageFlipAdapter.init(viewport.width, viewport.height);
+            this.interactionManager = new InteractionManager(bookWrapperEl!, this.pageFlipAdapter);
             this.interactionManager.init();
             interactionManagerRef.current = this.interactionManager;
 
@@ -282,12 +285,26 @@ export class FlipbookEngine {
         }
     }
 
-    public setPages(imageList: Array<PageImages | FlipbookPageAsset>, pdfUrl?: string) {
-        // Just recall init, for simplicity in this facade
-        this.init(pdfUrl || '', imageList);
+    public async setPages(imageList?: Array<PageImages | FlipbookPageAsset>, pdfUrl?: string) {
+        // Framework wrappers call this after their initial render. When no image
+        // pages are supplied, the current PDF-backed viewer must stay mounted;
+        // reinitializing with an empty source clears an otherwise valid PDF view.
+        if (!imageList?.length) {
+            if (pdfUrl) {
+                await this.init(pdfUrl);
+            }
+            return;
+        }
+
+        await this.init(pdfUrl || '', imageList);
     }
 
     public destroy(keepContainer = false) {
+        if (this.initializationTimer) {
+            clearTimeout(this.initializationTimer);
+            this.initializationTimer = null;
+        }
+
         if (this.pageFlipAdapter) {
             this.pageFlipAdapter.destroy();
         }
