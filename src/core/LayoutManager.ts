@@ -27,6 +27,7 @@ export class LayoutManager {
     private orientationMediaQuery: MediaQueryList | null = null;
     private orientationChangeHandler: ((e: MediaQueryListEvent | MediaQueryList) => void) | null = null;
     private unsubs: Array<() => void> = [];
+    private updateTimer: ReturnType<typeof setTimeout> | null = null;
     public onResizeCallback?: () => void;
 
     constructor(pageViewport: { width: number; height: number }, store: FlipbookStore) {
@@ -55,7 +56,7 @@ export class LayoutManager {
                 this.store.orientation.value;
 
                 // Debounce slightly to allow DOM to settle if classes were added
-                setTimeout(() => this.updateBookAspectRatio(), 10);
+                this.scheduleAspectRatioUpdate();
             })
         );
     }
@@ -137,6 +138,10 @@ export class LayoutManager {
     }
 
     public destroy() {
+        if (this.updateTimer) {
+            clearTimeout(this.updateTimer);
+            this.updateTimer = null;
+        }
         this.unsubs.forEach(unsub => unsub());
         this.unsubs = [];
 
@@ -157,6 +162,14 @@ export class LayoutManager {
             this.orientationChangeHandler = null;
             this.orientationMediaQuery = null;
         }
+    }
+
+    private scheduleAspectRatioUpdate() {
+        if (this.updateTimer) clearTimeout(this.updateTimer);
+        this.updateTimer = setTimeout(() => {
+            this.updateTimer = null;
+            this.updateBookAspectRatio();
+        }, 10);
     }
 }
 

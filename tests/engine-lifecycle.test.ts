@@ -52,6 +52,7 @@ test('engine lifecycle - handles page updates and resets state', async () => {
   });
 
   await engine.init('mock.pdf', [
+
     { normal: '1.png', low: '1-low.png', thumb: '1-thumb.png' },
     { normal: '2.png', low: '2-low.png', thumb: '2-thumb.png' }
   ]);
@@ -120,4 +121,27 @@ test('engine api - goToPage moves to specific page', async () => {
   assert.equal(engine.getCurrentPage(), 1);
 
 
+});
+
+test('destroy resets the public session state and is idempotent', async () => {
+  const engine = new FlipbookEngine('#app', { soundUrl: '' });
+  let destroyEvents = 0;
+  engine.on('destroy', () => { destroyEvents++; });
+
+  await engine.init('', [
+    { normal: '1.png', low: '1-low.png', thumb: '1-thumb.png' },
+    { normal: '2.png', low: '2-low.png', thumb: '2-thumb.png' }
+  ]);
+  engine.goToPage(1);
+  engine.setZoom(2);
+
+  engine.destroy();
+  assert.equal(destroyEvents, 1);
+  assert.equal(engine.getTotalPages(), 0);
+  assert.equal(engine.getCurrentPage(), 0);
+  assert.equal(engine.getZoom(), 1);
+  assert.equal(document.querySelector('#app')?.childNodes.length, 0);
+
+  engine.destroy();
+  assert.equal(destroyEvents, 1);
 });

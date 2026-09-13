@@ -100,6 +100,7 @@ export class FlipbookEngine {
     private eventSyncStop: (() => void) | null = null;
     private qualityObserver: IntersectionObserver | null = null;
     private pdfLazyStop: (() => void) | null = null;
+    private hasActiveSession = false;
     private readonly pdfPageRequests = new Map<number, Promise<string>>();
     private readonly pdfRenderedPages = new Set<number>();
 
@@ -130,8 +131,8 @@ export class FlipbookEngine {
 
         if (!this.container) return;
 
-        this.destroy(true);
         this.eventsReady = false;
+        this.destroy(true);
         const generation = this.initGeneration;
         const abortController = new AbortController();
         this.initAbortController = abortController;
@@ -276,6 +277,7 @@ export class FlipbookEngine {
 
                 this.eventsReady = true;
                 this.captureEventState();
+                this.hasActiveSession = true;
                 this.emit('init', { totalPages: resolvedPages.length });
                 resolve();
             }, 10);
@@ -300,12 +302,14 @@ export class FlipbookEngine {
 
     private renderPdfPage(pageNumber: number, signal?: AbortSignal): Promise<string> {
         const renderer = this.pdfRenderer;
+        const generation = this.initGeneration;
         if (!renderer) return Promise.resolve('');
         const existing = this.pdfPageRequests.get(pageNumber);
         if (existing) return existing;
         if (this.pdfRenderedPages.has(pageNumber)) return Promise.resolve('');
 
         const request = renderer.renderPageToDataUrl(pageNumber, signal).then((dataUrl) => {
+            if (generation !== this.initGeneration || signal?.aborted) throw this.createAbortError();
             if (!dataUrl) throw new Error('PDF page ' + pageNumber + ' produced no image.');
             this.pdfRenderedPages.add(pageNumber);
             this.container?.querySelectorAll<HTMLImageElement>('img[data-pdf-page="' + pageNumber + '"]').forEach((image) => {
@@ -319,6 +323,7 @@ export class FlipbookEngine {
             });
             return dataUrl;
         }).catch((error) => {
+            if (generation !== this.initGeneration && error?.name !== 'AbortError') throw this.createAbortError();
             if (error?.name === 'AbortError') throw error;
             this.emit('error', {
                 code: 'PDF_RENDER_FAILED',
@@ -546,6 +551,7 @@ export class FlipbookEngine {
         };
     }
     public destroy(keepContainer = false) {
+        const hadSession = this.hasActiveSession || !!this.initAbortController || !!this.pageFlipAdapter || !!this.layoutManager || !!this.interactionManager || !!this.pdfRenderer;
         this.initGeneration++;
         this.initAbortController?.abort();
         this.initAbortController = null;
@@ -576,12 +582,21 @@ export class FlipbookEngine {
         this.layoutManager = null;
         this.interactionManager = null;
         this.pdfRenderer = null;
+        this.eventsReady = false;
+        this.hasActiveSession = false;
+        this.store.reset();
 
         if (!keepContainer && this.container) {
             this.container.innerHTML = '';
         }
 
-        this.emit('destroy', undefined);
+        if (hadSession) this.emit('destroy', undefined);
+    }
+
+    private createAbortError() {
+        const error = new Error('Flipbook initialization was aborted.');
+        error.name = 'AbortError';
+        return error;
     }
 
     public on<T extends FlipbookEngineEventName>(eventName: T, handler: FlipbookEventHandler<T>) {

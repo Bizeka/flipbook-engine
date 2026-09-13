@@ -23,6 +23,7 @@ export interface FlipbookStore {
     soundEnabled: Signal<boolean>; locale: Signal<string>; messages: Signal<Partial<Record<string, PartialFlipbookMessages>>>; zoomState: Signal<ZoomState>; pages: Signal<NormalizedFlipbookPage[]>;
     isDoublePageLayout: ReadonlySignal<boolean>; isFrontCover: ReadonlySignal<boolean>; isBackCover: ReadonlySignal<boolean>;
     init(options: FlipbookEngineOptions, total: number, mappedPages: NormalizedFlipbookPage[], hasPdfUrl: boolean): void;
+    reset(): void;
 }
 
 const initialZoomState = (): ZoomState => ({ isActive: false, translateX: 0, translateY: 0, isDragging: false, scale: 1 });
@@ -58,7 +59,29 @@ export function createFlipbookStore(): FlipbookStore {
         if (options.autoPlayInterval !== undefined) autoPlayInterval.value = options.autoPlayInterval;
         currentPage.value = 0;
     };
-    return { currentPage, totalPages, isSingleMode, showThumbs, showArrows, orientation, flipState, themeMode, allowDownload, hasDownloadUrl, primaryColor, whiteLabel, isZoomed, isAutoPlaying, autoPlayInterval, soundEnabled, locale, messages, zoomState, pages, isDoublePageLayout, isFrontCover, isBackCover, init };
+    const reset = () => {
+        currentPage.value = 0;
+        totalPages.value = 0;
+        isSingleMode.value = false;
+        showThumbs.value = true;
+        showArrows.value = true;
+        orientation.value = 'landscape';
+        flipState.value = 'read';
+        themeMode.value = 'auto';
+        allowDownload.value = true;
+        hasDownloadUrl.value = false;
+        primaryColor.value = '#7367f0';
+        whiteLabel.value = false;
+        isZoomed.value = false;
+        isAutoPlaying.value = false;
+        autoPlayInterval.value = 3000;
+        soundEnabled.value = true;
+        locale.value = 'en';
+        messages.value = {};
+        zoomState.value = initialZoomState();
+        pages.value = [];
+    };
+    return { currentPage, totalPages, isSingleMode, showThumbs, showArrows, orientation, flipState, themeMode, allowDownload, hasDownloadUrl, primaryColor, whiteLabel, isZoomed, isAutoPlaying, autoPlayInterval, soundEnabled, locale, messages, zoomState, pages, isDoublePageLayout, isFrontCover, isBackCover, init, reset };
 }
 
 // Compatibility exports for consumers of the former internal singleton module.

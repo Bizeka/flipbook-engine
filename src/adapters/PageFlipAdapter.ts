@@ -39,6 +39,7 @@ export class PageFlipAdapter {
     private audioUnlockHandler: (() => void) | null = null;
     private isLibraryFlipping = false;
     private autoPlayTimer: any = null;
+    private layoutUpdateTimer: ReturnType<typeof setTimeout> | null = null;
 
     constructor(bookContainer: HTMLElement, options: FlipbookEngineOptions, store: FlipbookStore) {
         this.bookContainer = bookContainer;
@@ -153,7 +154,9 @@ export class PageFlipAdapter {
                 if (!this.pageFlip) return;
 
                 // We use setTimeout to wait for LayoutManager to update the container dimensions first
-                setTimeout(() => {
+                if (this.layoutUpdateTimer) clearTimeout(this.layoutUpdateTimer);
+                this.layoutUpdateTimer = setTimeout(() => {
+                    this.layoutUpdateTimer = null;
                     if (this.pageFlip) {
                         this.pageFlip.update();
                     }
@@ -227,6 +230,10 @@ export class PageFlipAdapter {
     public update() {
         if (this.pageFlip) {
             this.pageFlip.update();
+        }
+        if (this.layoutUpdateTimer) {
+            clearTimeout(this.layoutUpdateTimer);
+            this.layoutUpdateTimer = null;
         }
     }
 
