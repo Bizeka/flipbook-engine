@@ -9,7 +9,8 @@
     "test": "tsx --loader ./tests/css-loader.js --test tests/*.test.ts",
     "typecheck": "tsc --noEmit",
     "clean": "rimraf dist",
-    "pack:check": "npm pack --dry-run"
+    "pack:check": "npm pack --dry-run",
+    "audit:deps": "npm audit --omit=dev --audit-level=high"
   },
   "keywords": [
     "flipbook",
