@@ -95,6 +95,7 @@ export class FlipbookEngine {
     private eventsReady = false;
     private lastEventState = { currentPage: 0, zoom: 1, zoomActive: false, showThumbs: true, isSingle: false, orientation: '' as '' | 'landscape' | 'portrait' };
     private eventSyncStop: (() => void) | null = null;
+    private qualityObserver: IntersectionObserver | null = null;
 
     constructor(private selector: string | HTMLElement, options: FlipbookEngineOptions = {}) {
         this.options = {
@@ -206,6 +207,7 @@ export class FlipbookEngine {
         });
 
         this.container.appendChild(appNode as unknown as Node);
+        this.setupQualityLoading();
 
         // 4. Initialize Core Managers
         this.layoutManager = new LayoutManager(viewport, this.store);
@@ -351,6 +353,39 @@ export class FlipbookEngine {
         await this.init(pdfUrl || '', imageList);
     }
 
+    private setupQualityLoading() {
+        this.teardownQualityLoading();
+        if (!this.container) return;
+
+        const images = Array.from(this.container.querySelectorAll<HTMLImageElement>('img[data-src]'));
+        const upgrade = (image: HTMLImageElement) => {
+            const highQualitySrc = image.dataset.src;
+            if (!highQualitySrc) return;
+            image.src = highQualitySrc;
+            delete image.dataset.src;
+        };
+
+        const Observer = this.container.ownerDocument.defaultView?.IntersectionObserver;
+        if (!Observer) {
+            images.forEach(upgrade);
+            return;
+        }
+
+        this.qualityObserver = new Observer((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    upgrade(entry.target as HTMLImageElement);
+                    this.qualityObserver?.unobserve(entry.target);
+                }
+            });
+        }, { root: this.container, rootMargin: '240px' });
+        images.forEach((image) => this.qualityObserver?.observe(image));
+    }
+
+    private teardownQualityLoading() {
+        this.qualityObserver?.disconnect();
+        this.qualityObserver = null;
+    }
     private setupEventSync() {
         this.eventSyncStop = effect(() => {
             const state = {
@@ -417,6 +452,7 @@ export class FlipbookEngine {
         if (this.interactionManager) {
             this.interactionManager.destroy();
         }
+        this.teardownQualityLoading();
         if (this.pdfRenderer) {
             this.pdfRenderer.destroy();
         }
