@@ -39,3 +39,10 @@ test('PDF page rendering aborts before starting work', async () => {
   assert.equal(renderCalls, 0);
   renderer.destroy();
 });
+test('PDF page rendering propagates renderer failures', async () => {
+  const renderer = new PdfRenderer();
+  (renderer as any).pdfDoc = { getPage: async () => { throw new Error('render failed'); } };
+
+  await assert.rejects(renderer.renderPageToDataUrl(1), /render failed/);
+  renderer.destroy();
+});

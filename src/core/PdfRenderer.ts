@@ -88,12 +88,11 @@ export class PdfRenderer {
                 this.cache.set(pageIndex, dataUrl);
                 return dataUrl;
             }
+            throw new Error('Unable to create a PDF canvas rendering context.');
         } catch (error) {
             if (signal?.aborted) throw this.createAbortError();
-            console.error(`PDF page ${pageIndex} render error:`, error);
+            throw error;
         }
-
-        return '';
     }
 
     /** Calculates the best viewport dimensions based on the first page. */
