@@ -19,6 +19,7 @@ process.on('uncaughtException', (err) => {
 globalThis.document = dom.window.document;
 globalThis.Node = dom.window.Node;
 globalThis.HTMLElement = dom.window.HTMLElement;
+globalThis.Element = dom.window.Element;
 globalThis.HTMLImageElement = dom.window.HTMLImageElement;
 globalThis.HTMLInputElement = dom.window.HTMLInputElement;
 globalThis.Image = dom.window.Image;
