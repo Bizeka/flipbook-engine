@@ -137,6 +137,19 @@ const pages = [
 
 Upgrading from 0.3.x to 0.4.0 keeps the public engine methods intact. The release isolates state per engine instance, makes wrapper updates lifecycle-safe, and scopes viewer markup to its container. If host CSS or automation selected the former fixed viewer IDs, migrate those selectors to the instance classes documented in the theming guide. PDF-backed consumers should configure `pdfWorkerSrc`; image-only viewers do not expose a download control.
 
+
+## Local npm Release
+
+Run the complete release verification locally before publishing:
+
+```bash
+npm ci
+npm run release:verify
+npm login
+npm publish --provenance --access public
+```
+
+Confirm the package version with `npm pkg get version` before publishing. The publish command is intentionally separate from `release:verify` so credentials and the final npm upload remain under the maintainer's direct control.
 ## Public API Reference
 
 The `FlipbookEngine` class exposes the following public methods:
@@ -250,4 +263,5 @@ FlipbookEngine is distributed under a dual-license model:
 - **Commercial**: For use in closed-source projects, proprietary SaaS platforms, or agency client deliveries (see [COMMERCIAL_LICENSE.md](./COMMERCIAL_LICENSE.md)).
 
 For commercial licenses and inquiries, contact: **murat.dogan@hotmail.com.tr**
+
 
