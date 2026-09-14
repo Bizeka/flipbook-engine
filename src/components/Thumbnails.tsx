@@ -53,8 +53,8 @@ export function Thumbnails(props: ThumbnailsProps) {
                     >
                         <div class="thumb-img-wrapper">
                             <img
-                                data-pdf-page={page.assetId.startsWith('pdf-page-') ? page.pageNumber : undefined}
-                                class="thumb-img"
+                                data-pdf-page={page.assetId.startsWith('pdf-page-') ? (page.sourcePageNumber ?? page.pageNumber) : undefined}
+                                class={`thumb-img ${page.cropMode !== 'full' ? 'thumb-img--split thumb-img--' + page.cropMode : ''}`}
                                 src={page.thumb || page.low || page.normal}
                                 alt={`Page ${index + 1}`}
                                 loading="lazy"

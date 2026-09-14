@@ -27,6 +27,8 @@ When instantiating `new FlipbookEngine(selector, options)`, you can configure th
 | `watermarkUrl` | `string` | `null` | Custom image logo URL for watermark attribution. |
 | `pdfRenderConcurrency` | `number` | `3` | Maximum number of PDF pages rendered concurrently when on-demand pages are requested. |
 | `pdfRenderCacheSize` | `number` | `32` | Maximum number of rendered PDF page images retained per engine instance (LRU); `0` disables caching. |
+| `pdfPageMode` | `'auto' \| 'single' \| 'split'` | `'auto'` | Automatically split A3 landscape pages, split every landscape page, or keep source pages intact. |
+| `background` | `FlipbookBackgrounds \| null` | `null` | Optional per-theme viewer background styles. |
 
 ---
 
@@ -100,7 +102,11 @@ const unsubscribe = engine.on('pageChange', ({ currentPage, pageNumber, totalPag
 
 When `pdfUrl` is supplied without a `pages` list, the engine creates lightweight page placeholders immediately after the document metadata loads. The first page is rendered before `init()` resolves, and the next page is prefetched. Remaining pages render on demand as they become visible or are selected. Rendering requests are deduplicated per page and cancelled when initialization is superseded or the engine is destroyed.
 
-Use `pdfRenderConcurrency` to bound concurrent PDF.js work and `pdfRenderCacheSize` to configure the per-instance LRU cache. Set the cache size to `0` when rendered page data should not be retained.
+Use `pdfRenderConcurrency` to bound concurrent PDF.js work and `pdfRenderCacheSize` to configure the per-instance LRU cache. Set the cache size to `0` when rendered page data should not be retained. `pdfPageMode: 'auto'` detects ISO A3 landscape pages and exposes their left/right halves as two logical pages; `'single'` disables splitting and `'split'` splits every landscape page.
+
+## PDF page formats
+
+The viewer derives its page ratio from PDF.js metadata or the supplied image asset. Portrait A4 and landscape A4 are both supported. For a landscape A3 page that contains two A4 pages, use the default `pdfPageMode: 'auto'` or explicit `'split'`; each half becomes a navigable logical page.
 
 ## Table of contents
 

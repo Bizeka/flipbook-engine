@@ -43,3 +43,19 @@ const engine = new FlipbookEngine('#viewer', {
 });
 ```
 
+
+## Optional Light/Dark Viewer Backgrounds
+
+A host can provide separate, optional backgrounds for the viewer surface. The default is null, so the built-in theme surfaces remain unchanged. Backgrounds are applied outside the PDF pages and automatically follow the selected light, dark, or auto theme.
+
+```ts
+const engine = new FlipbookEngine('#viewer', {
+  theme: 'auto',
+  background: {
+    light: { color: '#f8fafc', image: '/branding/catalog-light.webp', size: 'cover', position: 'center', repeat: 'no-repeat' },
+    dark: { color: '#0f172a', image: '/branding/catalog-dark.webp', size: 'cover' }
+  }
+});
+```
+
+The viewer reserves a bottom attribution area and uses equal responsive page gutters so the watermark does not overlap PDF content. Thumbnail rail scrolling is horizontal-only; thumbnail dimensions are reduced responsively to avoid vertical overflow.

@@ -1,6 +1,14 @@
 # Changelog
 
-## 0.6.0 (unreleased)
+## Next (unreleased)
+
+- added automatic A3 landscape PDF splitting with configurable auto, single, and split modes
+- added source-page-aware lazy rendering for split PDF pages
+- added optional light/dark viewer backgrounds and responsive presentation gutters
+- reduced thumbnail rail dimensions and prevented vertical overflow
+- added regression coverage for PDF splitting, backgrounds, and presentation layout
+
+## 0.6.0
 
 - added a localized, theme-aware Table of Contents panel with nested host-provided page entries
 - added TOC visibility events, page navigation, normalization, accessibility, and regression tests

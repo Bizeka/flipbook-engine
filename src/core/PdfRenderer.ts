@@ -3,6 +3,21 @@ import type { NormalizedFlipbookPage } from '../model/pages';
 import { PdfRenderCache } from './PdfRenderCache';
 
 export interface PdfRenderProgress { completed: number; total: number; }
+export type PdfPageMode = 'auto' | 'single' | 'split';
+export interface PdfPageLayout { width: number; height: number; split: boolean; }
+
+const A3_LANDSCAPE_WIDTH = 1190.55;
+const A3_LANDSCAPE_HEIGHT = 841.89;
+
+/** Detects ISO A3 landscape pages while allowing PDF metadata rounding and bleed. */
+export function isA3Landscape(width: number, height: number): boolean {
+    const landscapeWidth = Math.max(width, height);
+    const landscapeHeight = Math.min(width, height);
+    const ratio = landscapeWidth / landscapeHeight;
+    const nearA3Size = Math.abs(landscapeWidth - A3_LANDSCAPE_WIDTH) / A3_LANDSCAPE_WIDTH <= 0.08
+        && Math.abs(landscapeHeight - A3_LANDSCAPE_HEIGHT) / A3_LANDSCAPE_HEIGHT <= 0.08;
+    return width >= height && nearA3Size && Math.abs(ratio - (A3_LANDSCAPE_WIDTH / A3_LANDSCAPE_HEIGHT)) <= 0.04;
+}
 
 export interface PdfRenderOptions {
     scale?: number;
@@ -95,12 +110,29 @@ export class PdfRenderer {
         }
     }
 
-    /** Calculates the best viewport dimensions based on the first page. */
-    public async calculateViewportDimensions(baseShortSide: number = 420): Promise<{ width: number, height: number }> {
+    /** Returns source page dimensions and whether the page should be split. */
+    public async getPageLayouts(mode: PdfPageMode = 'auto'): Promise<PdfPageLayout[]> {
+        if (!this.pdfDoc) return [];
+        const layouts: PdfPageLayout[] = [];
+        for (let pageNumber = 1; pageNumber <= this.pdfDoc.numPages; pageNumber++) {
+            const page = await this.pdfDoc.getPage(pageNumber);
+            const vp = page.getViewport({ scale: 1.0 });
+            const split = mode === 'split'
+                ? vp.width >= vp.height
+                : mode === 'auto' && isA3Landscape(vp.width, vp.height);
+            layouts.push({ width: vp.width, height: vp.height, split });
+        }
+        return layouts;
+    }
+
+    /** Calculates the best viewport dimensions based on the first logical page. */
+    public async calculateViewportDimensions(baseShortSide: number = 420, firstPageLayout?: PdfPageLayout): Promise<{ width: number, height: number }> {
         if (!this.pdfDoc) throw new Error('PDF document is not loaded.');
 
         const firstPage = await this.pdfDoc.getPage(1);
-        const vp = firstPage.getViewport({ scale: 1.0 });
+        const vp = firstPageLayout
+            ? { width: firstPageLayout.split ? firstPageLayout.width / 2 : firstPageLayout.width, height: firstPageLayout.height }
+            : firstPage.getViewport({ scale: 1.0 });
         const aspectRatio = vp.width / vp.height;
 
         return aspectRatio >= 1

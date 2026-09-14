@@ -29,10 +29,16 @@
   --flipbook-radius-sm: 0.375rem;
   --flipbook-radius-md: 0.5rem;
   --flipbook-toolbar-height: 60px;
-  --flipbook-thumbs-height: 80px;
+  --flipbook-thumbs-height: 72px;
   --flipbook-navbutton-size: 50px;
-  --flipbook-page-padding: 20px;
+  --flipbook-page-padding: clamp(12px, 2vw, 24px);
+  --flipbook-attribution-space: 34px;
   --flipbook-font-family: var(--bs-body-font-family, system-ui, -apple-system, "Segoe UI", sans-serif);
+  --flipbook-viewer-bg-color: var(--flipbook-bg-light-color, var(--flipbook-bg-main));
+  --flipbook-viewer-bg-image: var(--flipbook-bg-light-image, none);
+  --flipbook-viewer-bg-size: var(--flipbook-bg-light-size, auto);
+  --flipbook-viewer-bg-position: var(--flipbook-bg-light-position, center);
+  --flipbook-viewer-bg-repeat: var(--flipbook-bg-light-repeat, no-repeat);
 }
 
 [data-bs-theme="dark"] {
@@ -56,6 +62,11 @@
 
 .bk-theme-light {
   color-scheme: light;
+  --flipbook-viewer-bg-color: var(--flipbook-bg-light-color, var(--flipbook-bg-main));
+  --flipbook-viewer-bg-image: var(--flipbook-bg-light-image, none);
+  --flipbook-viewer-bg-size: var(--flipbook-bg-light-size, auto);
+  --flipbook-viewer-bg-position: var(--flipbook-bg-light-position, center);
+  --flipbook-viewer-bg-repeat: var(--flipbook-bg-light-repeat, no-repeat);
   --flipbook-bg-main: #f8fafc;
   --flipbook-bg-surface: #ffffff;
   --flipbook-bg-surface-alt: #f1f5f9;
@@ -87,6 +98,11 @@
 
 .bk-theme-dark {
   color-scheme: dark;
+  --flipbook-viewer-bg-color: var(--flipbook-bg-dark-color, var(--flipbook-bg-main));
+  --flipbook-viewer-bg-image: var(--flipbook-bg-dark-image, none);
+  --flipbook-viewer-bg-size: var(--flipbook-bg-dark-size, auto);
+  --flipbook-viewer-bg-position: var(--flipbook-bg-dark-position, center);
+  --flipbook-viewer-bg-repeat: var(--flipbook-bg-dark-repeat, no-repeat);
   --flipbook-bg-main: #0b0f19;
   --flipbook-bg-surface: #111827;
   --flipbook-bg-surface-alt: #1f2937;
@@ -116,6 +132,32 @@
   --flipbook-settings-text: #f9fafb;
 }
 
+.bk-theme-auto {
+  --flipbook-viewer-bg-color: var(--flipbook-bg-light-color, var(--flipbook-bg-main));
+  --flipbook-viewer-bg-image: var(--flipbook-bg-light-image, none);
+  --flipbook-viewer-bg-size: var(--flipbook-bg-light-size, auto);
+  --flipbook-viewer-bg-position: var(--flipbook-bg-light-position, center);
+  --flipbook-viewer-bg-repeat: var(--flipbook-bg-light-repeat, no-repeat);
+}
+
+@media (prefers-color-scheme: dark) {
+  .bk-theme-auto {
+    --flipbook-viewer-bg-color: var(--flipbook-bg-dark-color, var(--flipbook-bg-main));
+    --flipbook-viewer-bg-image: var(--flipbook-bg-dark-image, none);
+    --flipbook-viewer-bg-size: var(--flipbook-bg-dark-size, auto);
+    --flipbook-viewer-bg-position: var(--flipbook-bg-dark-position, center);
+    --flipbook-viewer-bg-repeat: var(--flipbook-bg-dark-repeat, no-repeat);
+  }
+}
+
+[data-bs-theme="dark"] .bk-theme-auto {
+  --flipbook-viewer-bg-color: var(--flipbook-bg-dark-color, var(--flipbook-bg-main));
+  --flipbook-viewer-bg-image: var(--flipbook-bg-dark-image, none);
+  --flipbook-viewer-bg-size: var(--flipbook-bg-dark-size, auto);
+  --flipbook-viewer-bg-position: var(--flipbook-bg-dark-position, center);
+  --flipbook-viewer-bg-repeat: var(--flipbook-bg-dark-repeat, no-repeat);
+}
+
 .bk-container,
 .bk-container * {
   box-sizing: border-box;
@@ -134,7 +176,11 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: var(--flipbook-bg-main);
+  background-color: var(--flipbook-viewer-bg-color);
+  background-image: var(--flipbook-viewer-bg-image);
+  background-size: var(--flipbook-viewer-bg-size);
+  background-position: var(--flipbook-viewer-bg-position);
+  background-repeat: var(--flipbook-viewer-bg-repeat);
   color: var(--flipbook-text-main);
   overflow: hidden;
   font-family: var(--flipbook-font-family);
@@ -149,7 +195,11 @@
   overflow: hidden;
   width: 100%;
   min-height: 0;
-  background: var(--flipbook-bg-main);
+  background-color: var(--flipbook-viewer-bg-color);
+  background-image: var(--flipbook-viewer-bg-image);
+  background-size: var(--flipbook-viewer-bg-size);
+  background-position: var(--flipbook-viewer-bg-position);
+  background-repeat: var(--flipbook-viewer-bg-repeat);
 }
 
 .bk-container.single-mode .bk-main-area {
@@ -159,7 +209,7 @@
 
 .bk-book-wrapper {
   position: absolute;
-  inset: var(--flipbook-page-padding);
+  inset: var(--flipbook-page-padding) var(--flipbook-page-padding) calc(var(--flipbook-page-padding) + var(--flipbook-attribution-space));
   padding: 0;
   display: flex;
   justify-content: center;
@@ -172,7 +222,7 @@
   position: relative;
   min-height: 100%;
   inset: auto;
-  padding: var(--flipbook-page-padding);
+  padding: var(--flipbook-page-padding) var(--flipbook-page-padding) calc(var(--flipbook-page-padding) + var(--flipbook-attribution-space));
 }
 
 .bk-book-wrapper.zoomed {
@@ -410,8 +460,9 @@
   height: var(--flipbook-thumbs-height);
   background: var(--flipbook-thumbrail-bg);
   overflow-x: auto;
-  padding: 8px 15px;
-  gap: 15px;
+  overflow-y: hidden;
+  padding: 4px 12px;
+  gap: 10px;
   z-index: 10;
   display: flex;
   flex-shrink: 0;
@@ -481,8 +532,10 @@
 
 .bk-watermark {
   position: absolute;
-  bottom: 12px;
-  right: 15px;
+  bottom: 6px;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
   font-size: 11px;
   color: var(--flipbook-text-muted);
   background: color-mix(in srgb, var(--flipbook-bg-surface) 60%, transparent);
@@ -496,10 +549,15 @@
   pointer-events: auto;
 }
 
+.bk-watermark {
+  white-space: nowrap;
+  max-width: calc(100% - 2 * var(--flipbook-page-padding));
+}
+
 .bk-watermark:hover {
   background: var(--flipbook-bg-surface);
   color: var(--flipbook-text-main);
-  transform: translateY(-2px);
+  transform: translate(-50%, -2px);
 }
 
 .bk-watermark a {
@@ -536,7 +594,7 @@
   transition: all 0.2s ease;
   min-width: 60px;
   flex-shrink: 0;
-  gap: 5px;
+  gap: 2px;
 }
 
 .thumb-item:hover {
@@ -559,8 +617,8 @@
 }
 
 .thumb-img-wrapper {
-  width: 38px;
-  height: 50px;
+  width: 30px;
+  height: 42px;
   background: var(--flipbook-bg-surface);
   border: 1px solid var(--flipbook-border);
   border-radius: var(--flipbook-radius-sm);
@@ -595,7 +653,8 @@
 .thumb-item span {
   color: var(--flipbook-thumb-text);
   font-size: 10px;
-  margin-top: 4px;
+  line-height: 1;
+  margin-top: 2px;
   font-weight: 700;
 }
 
@@ -680,8 +739,9 @@
 
 .bk-attribution {
   position: absolute;
-  bottom: 15px;
-  left: 15px;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
   background: rgba(15, 23, 42, 0.75); /* Dark background for visibility */
   backdrop-filter: blur(8px);
   color: #ffffff; /* Always light text */
@@ -701,7 +761,7 @@
 
 .bk-attribution:hover {
   opacity: 1;
-  transform: translateY(-2px);
+  transform: translate(-50%, -2px);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
   border-color: var(--flipbook-accent);
   color: #ffffff;
@@ -721,7 +781,8 @@
 @media (max-width: 768px) {
   :root {
     --flipbook-toolbar-height: 50px;
-    --flipbook-thumbs-height: 85px;
+    --flipbook-thumbs-height: 68px;
+    --flipbook-attribution-space: 30px;
     --flipbook-navbutton-size: 35px;
     --flipbook-page-padding: 12px;
   }
@@ -758,12 +819,14 @@
   }
 
   .bk-thumbs {
-    padding: 6px 10px;
+    padding: 4px 10px;
+    gap: 8px;
+    overflow-y: hidden;
   }
 
   .thumb-img-wrapper {
-    height: 45px;
-    width: 34px;
+    height: 38px;
+    width: 27px;
   }
 
   .bk-settings-panel {

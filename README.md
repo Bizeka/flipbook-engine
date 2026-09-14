@@ -1,7 +1,7 @@
 # FlipbookEngine
 
-> **Release notice:** `flipbookengine@0.5.3` is a valid published release. Upgrade to `0.5.4` or later for lifecycle, locale, and PDF render error-handling fixes. The post-tag source regression was corrected before the 0.5.4 release.
-> **Development notice:** `0.6.0` is the next unreleased feature candidate and adds the localized Table of Contents API. `0.5.4` remains the latest published version until the 0.6.0 release.
+> **Release notice:** `flipbookengine@0.6.0` is the latest published release and includes the localized Table of Contents API.
+> **Development notice:** The next unreleased candidate adds automatic PDF A3 splitting, per-theme backgrounds, responsive viewer gutters, and compact thumbnails.
 
 [![NPM Version](https://img.shields.io/npm/v/flipbookengine?style=flat-square&color=blue)](https://www.npmjs.com/package/flipbookengine)
 [![License](https://img.shields.io/npm/l/flipbookengine?style=flat-square)](https://github.com/Bizeka/flipbook-engine/blob/main/LICENSE)
@@ -50,13 +50,18 @@ const engine = new FlipbookEngine('#viewer', {
   theme: 'auto',
   locale: 'en',
   pdfWorkerSrc,
-  pdfRenderCacheSize: 32
+  pdfRenderCacheSize: 32,
+  pdfPageMode: 'auto',
+  background: {
+    light: { color: '#f8fafc', image: '/branding/light.webp', size: 'cover' },
+    dark: { color: '#0f172a', image: '/branding/dark.webp', size: 'cover' }
+  }
 });
 
 await engine.init('/files/catalog.pdf');
 ```
 
-Passing `pages` remains optional. When omitted, FlipbookEngine creates the page structure from `pdfUrl`, renders the first page before `init` resolves, and prefetches the next page. Additional pages render as they become visible or are selected.
+Passing `pages` remains optional. When omitted, FlipbookEngine creates the page structure from `pdfUrl`, renders the first page before `init` resolves, and prefetches the next page. Additional pages render as they become visible or are selected. In `pdfPageMode: 'auto'` (the default), ISO A3 landscape pages are normalized into two logical pages; use `'single'` to keep every PDF page intact or `'split'` to split every landscape PDF page.
 
 `pdfRenderCacheSize` controls the per-instance LRU cache (default `32`, set to `0` to disable it).
 
@@ -65,7 +70,7 @@ Passing `pages` remains optional. When omitted, FlipbookEngine creates the page 
 Use the ESM build with an import map for PDF.js. The worker must be served from a URL your site permits in its Content Security Policy.
 
 ```html
-<link rel="stylesheet" href="https://unpkg.com/flipbookengine@0.5.4/dist/flipbook-engine.css" />
+<link rel="stylesheet" href="https://unpkg.com/flipbookengine@0.6.0/dist/flipbook-engine.css" />
 <div id="viewer" style="width: 100%; height: 600px;"></div>
 
 <script type="importmap">
@@ -76,7 +81,7 @@ Use the ESM build with an import map for PDF.js. The worker must be served from 
 }
 </script>
 <script type="module">
-  import { FlipbookEngine } from 'https://unpkg.com/flipbookengine@0.5.4/dist/flipbook-engine.js';
+  import { FlipbookEngine } from 'https://unpkg.com/flipbookengine@0.6.0/dist/flipbook-engine.js';
 
   const engine = new FlipbookEngine('#viewer', {
     pdfWorkerSrc: 'https://unpkg.com/pdfjs-dist@5.4.530/build/pdf.worker.min.mjs'
@@ -192,6 +197,12 @@ Supported events: `init`, `progress`, `pageChange`, `zoomChange`, `singlePageMod
 | `pdfWorkerSrc` | `string` | - | URL of the PDF.js worker emitted or hosted by the consuming application. |
 | `pdfRenderConcurrency` | `number` | `3` | Maximum number of PDF pages rendered concurrently when on-demand pages are requested. |
 | `pdfRenderCacheSize` | `number` | `32` | Maximum number of rendered PDF page images retained per engine instance (LRU); `0` disables caching. |
+| `pdfPageMode` | `'auto' \| 'single' \| 'split'` | `'auto'` | Controls PDF page splitting: A3 landscape pages are split automatically, all landscape pages can be split explicitly, or splitting can be disabled. |
+| `background` | `FlipbookBackgrounds \| null` | `null` | Optional light/dark viewer backgrounds with color, image, size, position, and repeat settings. |
+
+## PDF page formats
+
+PDF.js page dimensions are detected at runtime, so portrait A4, landscape A4, and other page ratios are supported without a fixed size preset. A3 landscape pages are split into left/right logical pages when `pdfPageMode` is `'auto'` or `'split'`; the halves are presented as an A4-like spread in double-page mode.
 
 ## Styling and Theming
 

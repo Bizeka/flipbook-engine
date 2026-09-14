@@ -24,6 +24,8 @@ export interface NormalizedFlipbookPage {
   index: number;
   assetId: string;
   pageNumber: number;
+  /** Source document page for generated/split pages. */
+  sourcePageNumber?: number;
   cropMode: FlipbookCropMode;
   normal: string;
   low: string;
@@ -74,6 +76,7 @@ export function normalizeFlipbookPages(assets: FlipbookPageAsset[]): NormalizedF
           index: normalized.length,
           assetId,
           pageNumber,
+          sourcePageNumber: pageNumber,
           cropMode: cropModes[spreadIndex] ?? 'full',
           normal: asset.normal,
           low: asset.low,
@@ -90,6 +93,7 @@ export function normalizeFlipbookPages(assets: FlipbookPageAsset[]): NormalizedF
       index: normalized.length,
       assetId,
       pageNumber,
+      sourcePageNumber: pageNumber,
       cropMode: 'full',
       normal: asset.normal,
       low: asset.low,

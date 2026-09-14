@@ -36,4 +36,6 @@ export type {
   PartialFlipbookMessages
 } from './i18n/service';
 
-export type { FlipbookThemeMode } from './theme/theme';
+export type { FlipbookThemeMode, FlipbookBackgroundStyle, FlipbookBackgrounds } from './theme/theme';
+export type { PdfPageMode, PdfPageLayout } from './core/PdfRenderer';
+export { isA3Landscape } from './core/PdfRenderer';

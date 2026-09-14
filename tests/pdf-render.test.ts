@@ -46,3 +46,24 @@ test('PDF page rendering propagates renderer failures', async () => {
   await assert.rejects(renderer.renderPageToDataUrl(1), /render failed/);
   renderer.destroy();
 });
+
+
+test('detects A3 landscape pages for automatic PDF splitting', async () => {
+  const renderer = new PdfRenderer();
+  (renderer as any).pdfDoc = {
+    numPages: 3,
+    getPage: async (pageNumber: number) => ({
+      getViewport: () => pageNumber === 1
+        ? { width: 1190.55, height: 841.89 }
+        : pageNumber === 2
+          ? { width: 841.89, height: 595.28 }
+          : { width: 595.28, height: 841.89 }
+    })
+  };
+
+  assert.deepEqual((await renderer.getPageLayouts('auto')).map((layout) => layout.split), [true, false, false]);
+  assert.deepEqual((await renderer.getPageLayouts('single')).map((layout) => layout.split), [false, false, false]);
+  assert.deepEqual((await renderer.getPageLayouts('split')).map((layout) => layout.split), [true, true, false]);
+  assert.equal((await renderer.calculateViewportDimensions(420, { width: 1190.55, height: 841.89, split: true })).width, 420);
+  renderer.destroy();
+});

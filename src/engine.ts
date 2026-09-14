@@ -20,9 +20,9 @@ import { LayoutManager } from './core/LayoutManager';
 import { InteractionManager } from './core/InteractionManager';
 import { createFlipbookStore, type FlipbookStore } from './state/store';
 import { isFlipbookPageAsset, normalizeFlipbookPages, type FlipbookPageAsset, type NormalizedFlipbookPage } from './model/pages';
-import { applyThemeConfiguration, type FlipbookThemeMode } from './theme/theme';
+import { applyThemeConfiguration, type FlipbookBackgrounds, type FlipbookThemeMode } from './theme/theme';
 import { resolveMessages, type FlipbookLocale, type PartialFlipbookMessages } from './i18n/service';
-import { PdfRenderer } from './core/PdfRenderer';
+import { PdfRenderer, type PdfPageLayout, type PdfPageMode } from './core/PdfRenderer';
 import { normalizeFlipbookToc, type FlipbookTocEntry } from './model/toc';
 import './styles/flipbook-engine.css';
 
@@ -39,6 +39,8 @@ export interface FlipbookEngineOptions {
     maxShadowOpacity?: number;
     backgroundColor?: string;
     backgroundImage?: string;
+    /** Optional per-theme viewer background. */
+    background?: FlipbookBackgrounds | null;
     whiteLabel?: boolean;
     watermarkUrl?: string;
     theme?: FlipbookThemeMode;
@@ -57,6 +59,8 @@ export interface FlipbookEngineOptions {
     pdfRenderConcurrency?: number;
     pdfRenderCacheSize?: number;
     pdfWorkerSrc?: string;
+    /** Controls PDF page splitting: auto detects A3 landscape, single disables it, split splits every landscape page. */
+    pdfPageMode?: PdfPageMode;
 }
 
 export interface PageImages extends FlipbookPageAsset {
@@ -109,6 +113,7 @@ export class FlipbookEngine {
     private hasActiveSession = false;
     private readonly pdfPageRequests = new Map<number, Promise<string>>();
     private readonly pdfRenderedPages = new Set<number>();
+    private pdfSourcePageCount = 0;
 
     constructor(private selector: string | HTMLElement, options: FlipbookEngineOptions = {}) {
         this.options = {
@@ -123,6 +128,7 @@ export class FlipbookEngine {
             pdfRenderFormat: 'image/webp',
             pdfRenderConcurrency: 3,
             pdfRenderCacheSize: 32,
+            pdfPageMode: 'auto',
             ...options
         };
         this.setupEventSync();
@@ -181,8 +187,14 @@ export class FlipbookEngine {
                 const totalPages = await this.pdfRenderer.loadDocument(pdfUrl, abortController.signal);
                 pdfStage = 'render';
                 this.emit('progress', { phase: 'loading', completed: 1, total: totalPages });
-                viewport = await this.pdfRenderer.calculateViewportDimensions();
-                resolvedPages = Array.from({ length: totalPages }, (_, index) => this.createPdfPlaceholder(index + 1));
+                const pageLayouts = await this.pdfRenderer.getPageLayouts(this.options.pdfPageMode);
+                viewport = pageLayouts.length
+                    ? await this.pdfRenderer.calculateViewportDimensions(420, pageLayouts[0])
+                    : await this.pdfRenderer.calculateViewportDimensions();
+                resolvedPages = pageLayouts.length
+                    ? this.createPdfPlaceholders(pageLayouts)
+                    : Array.from({ length: totalPages }, (_, index) => this.createPdfPlaceholder(index + 1));
+                this.pdfSourcePageCount = totalPages;
             } catch (e: any) {
                 if (!abortController.signal.aborted) {
                     console.error("PDF load failed:", e);
@@ -295,15 +307,30 @@ export class FlipbookEngine {
 
     private createPdfPlaceholder(pageNumber: number): NormalizedFlipbookPage {
         const placeholder = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
-        return {
-            index: pageNumber - 1,
-            assetId: 'pdf-page-' + pageNumber,
-            pageNumber,
-            cropMode: 'full',
-            normal: placeholder,
-            low: placeholder,
-            thumb: placeholder
-        };
+        return { index: pageNumber - 1, assetId: 'pdf-page-' + pageNumber + '-full', pageNumber, sourcePageNumber: pageNumber, cropMode: 'full', normal: placeholder, low: placeholder, thumb: placeholder };
+    }
+
+    private createPdfPlaceholders(layouts: PdfPageLayout[]): NormalizedFlipbookPage[] {
+        const placeholder = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
+        const pages: NormalizedFlipbookPage[] = [];
+        layouts.forEach((layout, sourceIndex) => {
+            const sourcePageNumber = sourceIndex + 1;
+            const crops = layout.split ? (['left', 'right'] as const) : (['full'] as const);
+            crops.forEach((cropMode) => {
+                const pageNumber = pages.length + 1;
+                pages.push({
+                    index: pages.length,
+                    assetId: `pdf-page-${sourcePageNumber}-${cropMode}`,
+                    pageNumber,
+                    sourcePageNumber,
+                    cropMode,
+                    normal: placeholder,
+                    low: placeholder,
+                    thumb: placeholder
+                });
+            });
+        });
+        return pages;
     }
 
     private renderPdfPage(pageNumber: number, signal?: AbortSignal): Promise<string> {
@@ -325,7 +352,7 @@ export class FlipbookEngine {
             this.emit('progress', {
                 phase: 'rendering',
                 completed: this.pdfRenderedPages.size,
-                total: this.store.totalPages.value
+                total: this.pdfSourcePageCount || this.store.totalPages.value
             });
             return dataUrl;
         }).catch((error) => {
@@ -349,10 +376,11 @@ export class FlipbookEngine {
         this.pdfLazyStop = null;
         if (!this.pdfRenderer) return;
         this.pdfLazyStop = effect(() => {
-            const currentPage = this.store.currentPage.value + 1;
-            const totalPages = this.store.totalPages.value;
-            [currentPage, currentPage + 1].filter((page) => page <= totalPages).forEach((page) => {
-                void this.renderPdfPage(page).catch(() => {});
+            const current = this.store.pages.value[this.store.currentPage.value];
+            const next = this.store.pages.value[this.store.currentPage.value + 1];
+            const sourcePages = new Set([current?.sourcePageNumber ?? current?.pageNumber, next?.sourcePageNumber ?? next?.pageNumber]);
+            sourcePages.forEach((sourcePage) => {
+                if (sourcePage) void this.renderPdfPage(sourcePage).catch(() => {});
             });
         });
     }
@@ -587,6 +615,7 @@ export class FlipbookEngine {
         this.pdfLazyStop = null;
         this.pdfPageRequests.clear();
         this.pdfRenderedPages.clear();
+        this.pdfSourcePageCount = 0;
         if (this.pdfRenderer) {
             this.pdfRenderer.destroy();
         }

@@ -85,3 +85,23 @@ test('i18n service - merges custom overrides correctly', () => {
   assert.equal(msgs.settings, 'Settings'); // remains default
 });
 
+
+
+test('theme configuration - applies separate light and dark backgrounds', () => {
+  const container = document.createElement('div');
+  applyThemeConfiguration(container, {
+    theme: 'auto',
+    background: {
+      light: { color: '#f8fafc', image: '/images/light.webp', size: 'cover' },
+      dark: { color: '#0f172a', image: '/images/dark.webp', position: 'top center' }
+    }
+  });
+
+  assert.equal(container.classList.contains('bk-theme-auto'), true);
+  assert.equal(container.style.getPropertyValue('--flipbook-bg-light-color'), '#f8fafc');
+  assert.equal(container.style.getPropertyValue('--flipbook-bg-dark-color'), '#0f172a');
+  assert.equal(container.style.getPropertyValue('--flipbook-bg-light-image'), 'url("/images/light.webp")');
+  assert.equal(container.style.getPropertyValue('--flipbook-bg-dark-image'), 'url("/images/dark.webp")');
+  assert.equal(container.style.getPropertyValue('--flipbook-bg-light-size'), 'cover');
+  assert.equal(container.style.getPropertyValue('--flipbook-bg-dark-position'), 'top center');
+});
