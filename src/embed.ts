@@ -10,6 +10,7 @@ import type {
   FlipbookEngineEventName,
   FlipbookEngineOptions
 } from './engine';
+import type { FlipbookSearchOptions, FlipbookSearchResult } from './model/search';
 
 export type FlipbookEmbedCommandName =
   | 'goToPage'
@@ -19,6 +20,9 @@ export type FlipbookEmbedCommandName =
   | 'setSingleMode'
   | 'updateOptions'
   | 'toggleFullscreen'
+  | 'search'
+  | 'clearSearch'
+  | 'getSearchResults'
   | 'getState';
 
 export interface FlipbookEmbedOptions {
@@ -101,7 +105,7 @@ export class FlipbookEmbedBridge {
   constructor(engine: FlipbookEngine, options: FlipbookEmbedOptions = {}) {
     this.engine = engine;
     this.options = options;
-    this.listener = (event) => this.handleMessage(event);
+    this.listener = (event) => { void this.handleMessage(event); };
   }
 
   connect(): this {
@@ -140,7 +144,9 @@ export class FlipbookEmbedBridge {
     error: true,
     deepLinkChange: true,
     bookmarkChange: true,
-    noteChange: true
+    noteChange: true,
+    searchChange: true,
+    hotspotActivate: true
   };
 
   private isAllowedOrigin(origin: string): boolean {
@@ -176,7 +182,7 @@ export class FlipbookEmbedBridge {
     });
   }
 
-  private handleMessage(event: MessageEvent): void {
+  private async handleMessage(event: MessageEvent): Promise<void> {
     const currentWindow = getWindow();
     if (!currentWindow || event.source !== currentWindow.parent || !this.isAllowedOrigin(event.origin)) return;
 
@@ -217,6 +223,16 @@ export class FlipbookEmbedBridge {
           this.engine.toggleFullscreen();
           result = this.getState();
           break;
+        case 'search':
+          result = await this.engine.search(String(payload.query ?? ''), payload.options as FlipbookSearchOptions);
+          break;
+        case 'clearSearch':
+          this.engine.clearSearch();
+          result = this.getState();
+          break;
+        case 'getSearchResults':
+          result = this.engine.getSearchResults();
+          break;
         case 'getState':
           result = this.getState();
           break;
@@ -247,6 +263,9 @@ export interface FlipbookEmbedController {
   setSingleMode(isSingle: boolean): Promise<FlipbookEmbedState>;
   updateOptions(options: Partial<FlipbookEngineOptions>): Promise<FlipbookEmbedState>;
   toggleFullscreen(): Promise<FlipbookEmbedState>;
+  search(query: string, options?: FlipbookSearchOptions): Promise<FlipbookSearchResult[]>;
+  clearSearch(): Promise<FlipbookEmbedState>;
+  getSearchResults(): Promise<FlipbookSearchResult[]>;
   getState(): Promise<FlipbookEmbedState>;
   on<T extends FlipbookEngineEventName>(event: T, handler: (payload: FlipbookEngineEventMap[T]) => void): () => void;
   destroy(): void;
@@ -308,6 +327,9 @@ export function createFlipbookEmbedController(
     setSingleMode: (isSingle) => send('setSingleMode', { isSingle }) as Promise<FlipbookEmbedState>,
     updateOptions: (update) => send('updateOptions', { options: update }) as Promise<FlipbookEmbedState>,
     toggleFullscreen: () => send('toggleFullscreen') as Promise<FlipbookEmbedState>,
+    search: (query, searchOptions) => send('search', { query, options: searchOptions }) as Promise<FlipbookSearchResult[]>,
+    clearSearch: () => send('clearSearch') as Promise<FlipbookEmbedState>,
+    getSearchResults: () => send('getSearchResults') as Promise<FlipbookSearchResult[]>,
     getState: () => send('getState') as Promise<FlipbookEmbedState>,
     on: (event, handler) => {
       const set = handlers[event] ?? new Set<AnyEventHandler>();

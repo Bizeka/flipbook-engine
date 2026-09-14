@@ -32,6 +32,11 @@ export interface FlipbookMessages {
   play: string;
   pause: string;
   tableOfContents: string;
+  search: string;
+  searchPlaceholder: string;
+  clearSearch: string;
+  closeSearch: string;
+  noSearchResults: string;
 }
 
 export const builtInMessages = {

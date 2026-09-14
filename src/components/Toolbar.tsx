@@ -20,6 +20,7 @@ interface ToolbarProps {
     store: FlipbookStore;
     onToggleThumbs: () => void;
     onToggleToc: () => void;
+    onToggleSearch: () => void;
     onToggleSingleMode: () => void;
     onZoomIn: () => void;
     onZoomOut: () => void;
@@ -58,6 +59,16 @@ export function Toolbar(props: ToolbarProps) {
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
                     </button>
                 ) : null)}
+
+                <button type="button"
+                    class={computed(() => props.store.showSearch.value ? 'bk-btn active' : 'bk-btn')}
+                    onClick={props.onToggleSearch}
+                    aria-label={computed(() => messages.value.search || 'Search')}
+                    aria-pressed={computed(() => props.store.showSearch.value ? 'true' : 'false')}
+                    title={computed(() => messages.value.search || 'Search')}
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="16" y1="16" x2="21" y2="21"></line></svg>
+                </button>
 
                 <button type="button"
                     class={computed(() => `bk-btn bz-hide-mobile ${props.store.isSingleMode.value ? 'active' : ''}`)}

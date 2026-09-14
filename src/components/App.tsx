@@ -21,6 +21,9 @@ import { TableOfContents } from './TableOfContents';
 import { NotesPanel } from './NotesPanel';
 import { Viewer } from './Viewer';
 import { NavigationArrows } from './NavigationArrows';
+import { SearchPanel } from './SearchPanel';
+import type { FlipbookSearchOptions } from '../model/search';
+import type { FlipbookHotspot } from '../model/hotspots';
 import type { FlipbookStore } from '../state/store';
 import type { PageFlipAdapter } from '../adapters/PageFlipAdapter';
 import type { InteractionManager } from '../core/InteractionManager';
@@ -39,6 +42,12 @@ interface AppProps {
     onSaveNote: (note: string) => void;
     onClearNote: () => void;
     onCloseNotes: () => void;
+    onSearch: (query: string, options?: FlipbookSearchOptions) => void;
+    onClearSearch: () => void;
+    onCloseSearch: () => void;
+    onSelectSearchResult: (pageIndex: number) => void;
+    onHotspotActivate: (hotspot: FlipbookHotspot) => void;
+    onHotspotClose: () => void;
     onToggleFullscreen: () => void;
     store: FlipbookStore;
 }
@@ -102,6 +111,8 @@ export function App(props: AppProps) {
                     bookWrapperRef={props.bookWrapperRef}
                     bookSizerRef={props.bookSizerRef}
                     bookContainerRef={props.bookContainerRef}
+                    onHotspotActivate={props.onHotspotActivate}
+                    onHotspotClose={props.onHotspotClose}
                 />
 
                 <NavigationArrows store={props.store}
@@ -115,12 +126,14 @@ export function App(props: AppProps) {
                     </div>
                 ) : null}
                 <TableOfContents store={props.store} onEntryClick={handleTocEntryClick} />
+                <SearchPanel store={props.store} onSearch={props.onSearch} onClear={props.onClearSearch} onClose={props.onCloseSearch} onSelect={props.onSelectSearchResult} />
                 <NotesPanel store={props.store} onSave={props.onSaveNote} onClear={props.onClearNote} onClose={props.onCloseNotes} />
             </div>
 
             <Toolbar store={props.store}
                 onToggleThumbs={handleToggleThumbs}
                 onToggleToc={handleToggleToc}
+                onToggleSearch={() => props.store.showSearch.value = !props.store.showSearch.value}
                 onToggleSingleMode={handleToggleSingleMode}
                 onZoomIn={handleZoomIn}
                 onZoomOut={handleZoomOut}

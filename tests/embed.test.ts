@@ -98,3 +98,22 @@ test('embed controller forwards iframe events to subscribers', () => {
   controller.destroy();
   iframe.remove();
 });
+
+test('embed controller exposes the asynchronous search command', async () => {
+  const iframe = document.createElement('iframe');
+  document.body.appendChild(iframe);
+  const sent: any[] = [];
+  (iframe.contentWindow as any).postMessage = (message: unknown, origin: string) => sent.push({ message, origin });
+  const controller = createFlipbookEmbedController(iframe);
+  const resultPromise = controller.search('catalog', { maxResults: 5 });
+  assert.equal(sent[0].message.command, 'search');
+  assert.deepEqual(sent[0].message.payload, { query: 'catalog', options: { maxResults: 5 } });
+  window.dispatchEvent(new window.MessageEvent('message', {
+    source: iframe.contentWindow,
+    origin: 'http://localhost',
+    data: { type: 'flipbook:response', requestId: sent[0].message.requestId, ok: true, result: [{ pageIndex: 0, pageNumber: 1, matches: 1, snippet: 'catalog' }] }
+  }));
+  assert.equal((await resultPromise)[0].pageNumber, 1);
+  controller.destroy();
+  iframe.remove();
+});

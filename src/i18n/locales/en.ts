@@ -28,5 +28,10 @@ export const enMessages = {
   deleteNote: 'Delete',
   play: 'Play',
   pause: 'Pause',
-  tableOfContents: 'Table of Contents'
+  tableOfContents: 'Table of Contents',
+  search: 'Search',
+  searchPlaceholder: 'Search PDF text',
+  clearSearch: 'Clear',
+  closeSearch: 'Close search',
+  noSearchResults: 'No results'
 } as const;

@@ -1,3 +1,8 @@
+## [Unreleased] - v0.6.5
+
+- Added client-side PDF text search with localized panel, page result highlighting, and embed commands.
+- Added normalized page hotspots with accessible popups and activation events.
+
 # Changelog
 
 ## Next (unreleased)

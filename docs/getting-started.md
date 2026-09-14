@@ -100,3 +100,29 @@ engine.on('deepLinkChange', ({ pageNumber, url }) => {
   console.log(`Sharing page ${pageNumber}: ${url}`);
 });
 ```
+
+
+## Client-side PDF search
+
+When initialized with a PDF URL, `search(query)` extracts text through PDF.js without rendering every page. It returns page-level matches and snippets, updates the search toolbar panel, and outlines matching pages.
+
+```ts
+const results = await engine.search('catalog', { caseSensitive: false, maxResults: 50 });
+engine.goToPage(results[0]?.pageIndex ?? 0);
+engine.clearSearch();
+```
+
+Search is unavailable for image-only page lists because those assets do not contain extractable PDF text. The iframe controller exposes the same operation with `search`, `clearSearch`, and `getSearchResults`.
+
+## Interactive hotspots
+
+Hosts can provide normalized (0..1) page coordinates for lightweight links and pop-ups:
+
+```ts
+const engine = new FlipbookEngine('#viewer', {
+  hotspots: [{ id: 'product-42', pageIndex: 3, x: 0.60, y: 0.25, width: 0.25, height: 0.18, label: 'Product details', content: 'Open the product details page.', href: '/products/42' }]
+});
+engine.on('hotspotActivate', ({ hotspot }) => console.log(hotspot.id));
+```
+
+Hotspot content is plain text; applications should sanitize server-provided values before passing them to the viewer. Use `activateHotspot(id)` and `closeHotspot()` for programmatic control.

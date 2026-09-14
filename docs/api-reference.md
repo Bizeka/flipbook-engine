@@ -33,6 +33,7 @@ When instantiating `new FlipbookEngine(selector, options)`, you can configure th
 | `onShare` | `(url: string) => void` | `null` | Optional callback invoked after the localized toolbar Share control shares or copies the generated page URL. |
 | `bookmarks` | `number[]` | `[]` | Initial zero-based page indexes marked as bookmarks; persistence remains with the host application. |
 | `notes` | `Record<number, string>` | `{}` | Initial page notes keyed by zero-based page index; the localized toolbar editor is host-storage agnostic. |
+| `hotspots` | `FlipbookHotspot[]` | `[]` | Normalized page overlays with accessible labels, plain-text popup content, and optional links. |
 
 ---
 
@@ -174,3 +175,13 @@ const engine = new FlipbookEngine('#viewer', {
   showToc: true
 });
 ```
+
+### Search
+
+- **`search(query, options?)`**: Extracts and searches PDF text client-side. Returns `{ pageIndex, pageNumber, matches, snippet, sourcePageNumber }[]`, stores results for the built-in search panel, and highlights matching pages.
+- **`clearSearch()`** / **`getSearchResults()`**: Clears or reads the current search state.
+
+### Hotspots
+
+- **`getHotspots(pageIndex = getCurrentPage())`**: Returns host-provided overlays for a logical page.
+- **`activateHotspot(id)`** / **`closeHotspot()`**: Opens or closes a hotspot popup. Activation emits `hotspotActivate`.

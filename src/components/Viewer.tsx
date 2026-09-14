@@ -16,12 +16,16 @@
 
 import { computed } from '@preact/signals-core';
 import type { FlipbookStore } from '../state/store';
+import { HotspotLayer } from './HotspotLayer';
+import type { FlipbookHotspot } from '../model/hotspots';
 
 interface ViewerProps {
     store: FlipbookStore;
     bookWrapperRef: (el: HTMLElement) => void;
     bookSizerRef: (el: HTMLElement) => void;
     bookContainerRef: (el: HTMLElement) => void;
+    onHotspotActivate: (hotspot: FlipbookHotspot) => void;
+    onHotspotClose: () => void;
 }
 
 export function Viewer(props: ViewerProps) {
@@ -54,7 +58,7 @@ export function Viewer(props: ViewerProps) {
                             return (
                                 <div
                                     // @ts-ignore
-                                    class={`bz-page ${index === 0 ? 'bz-page--cover' : ''} ${index === props.store.pages.value.length - 1 ? 'bz-page--back' : ''}`}
+                                    class={computed(() => `bz-page ${index === 0 ? 'bz-page--cover' : ''} ${index === props.store.pages.value.length - 1 ? 'bz-page--back' : ''} ${props.store.searchResults.value.some((result) => result.pageIndex === index) ? 'bk-page--search-match' : ''}`)}
                                     data-density={isHard ? "hard" : "soft"}
                                     data-idx={index}
                                 >
@@ -67,6 +71,7 @@ export function Viewer(props: ViewerProps) {
                                             alt={`Page ${index + 1}`}
                                             loading="lazy"
                                         />
+                                        <HotspotLayer store={props.store} pageIndex={index} onActivate={props.onHotspotActivate} onClose={props.onHotspotClose} />
                                         <div class="page-shadow"></div>
                                     </div>
                                 </div>
@@ -84,7 +89,7 @@ export function Viewer(props: ViewerProps) {
                         return (
                             <img
                                 data-pdf-page={page.assetId.startsWith('pdf-page-') ? (page.sourcePageNumber ?? page.pageNumber) : undefined}
-                                class={`bk-single-img page-content ${page.cropMode !== 'full' ? 'page-content--split page-content--' + page.cropMode : ''}`}
+                                class={computed(() => `bk-single-img page-content ${page.cropMode !== 'full' ? 'page-content--split page-content--' + page.cropMode : ''} ${props.store.searchResults.value.some((result) => result.pageIndex === props.store.currentPage.value) ? 'bk-page--search-match' : ''}`)}
                                 src={props.store.zoomState.value.isActive ? page.normal : (page.low || page.normal)}
                                 alt={`Page ${props.store.currentPage.value + 1}`}
                                 style="opacity: 1; transition: opacity 0.3s; box-shadow: var(--flipbook-shadow);"

@@ -1,5 +1,6 @@
 import * as pdfjsLib from 'pdfjs-dist';
 import type { NormalizedFlipbookPage } from '../model/pages';
+import type { FlipbookSearchOptions } from '../model/search';
 import { PdfRenderCache } from './PdfRenderCache';
 
 export interface PdfRenderProgress { completed: number; total: number; }
@@ -33,6 +34,7 @@ export class PdfRenderer {
     private loadingTask: any = null;
     private options: Required<PdfRenderOptions>;
     private readonly cache: PdfRenderCache;
+    private readonly textCache = new Map<number, string>();
 
     constructor(options: PdfRenderOptions = {}) {
         const cacheSize = Number.isFinite(options.cacheSize)
@@ -108,6 +110,49 @@ export class PdfRenderer {
             if (signal?.aborted) throw this.createAbortError();
             throw error;
         }
+    }
+
+    /** Extracts text from a 1-based PDF source page using PDF.js text content. */
+    public async extractPageText(pageNumber: number): Promise<string> {
+        if (!this.pdfDoc) throw new Error('PDF document is not loaded.');
+        if (!Number.isInteger(pageNumber) || pageNumber < 1 || pageNumber > this.pdfDoc.numPages) {
+            throw new Error('PDF page number is out of range.');
+        }
+        const cached = this.textCache.get(pageNumber);
+        if (cached !== undefined) return cached;
+        const page = await this.pdfDoc.getPage(pageNumber);
+        const content = await page.getTextContent();
+        const text = (content?.items ?? [])
+            .map((item: any) => typeof item?.str === 'string' ? item.str : '')
+            .filter(Boolean)
+            .join(' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+        this.textCache.set(pageNumber, text);
+        return text;
+    }
+
+    /** Searches all PDF source pages without rendering them. */
+    public async searchText(query: string, options: FlipbookSearchOptions = {}): Promise<Array<{ sourcePageNumber: number; matches: number; snippet: string }>> {
+        const normalizedQuery = String(query ?? '').trim();
+        if (!this.pdfDoc || !normalizedQuery) return [];
+        const caseSensitive = options.caseSensitive === true;
+        const needle = caseSensitive ? normalizedQuery : normalizedQuery.toLocaleLowerCase();
+        const maxResults = Number.isFinite(options.maxResults) ? Math.max(1, Math.trunc(options.maxResults as number)) : 100;
+        const results: Array<{ sourcePageNumber: number; matches: number; snippet: string }> = [];
+        for (let pageNumber = 1; pageNumber <= this.pdfDoc.numPages && results.length < maxResults; pageNumber++) {
+            const text = await this.extractPageText(pageNumber);
+            const haystack = caseSensitive ? text : text.toLocaleLowerCase();
+            let matches = 0;
+            let offset = haystack.indexOf(needle);
+            while (offset >= 0) { matches++; offset = haystack.indexOf(needle, offset + Math.max(1, needle.length)); }
+            if (!matches) continue;
+            const first = haystack.indexOf(needle);
+            const start = Math.max(0, first - 70);
+            const end = Math.min(text.length, first + normalizedQuery.length + 100);
+            results.push({ sourcePageNumber: pageNumber, matches, snippet: text.slice(start, end).trim() });
+        }
+        return results;
     }
 
     /** Returns source page dimensions and whether the page should be split. */

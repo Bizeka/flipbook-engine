@@ -24,6 +24,8 @@ FlipbookEngine is a modern, lightweight, and embeddable HTML flipbook viewer for
 - **Localized Sharing**: The toolbar includes a Share control that opens the native share sheet or copies the current page URL; enable `deepLink: true` for shareable page navigation.
 - **Host-Managed Bookmarks**: The toolbar can toggle the current page bookmark; hosts can initialize and persist zero-based bookmark indexes through the public API and `bookmarkChange` event.
 - **Host-Managed Notes**: The localized notes toolbar opens an inline editor; hosts can initialize, update, and persist page notes through the public API and `noteChange` event without coupling the viewer to a storage backend.
+- **Client-Side PDF Search**: Extracts and searches PDF text on demand with localized snippets and matching-page highlighting.
+- **Interactive Hotspots**: Adds normalized page overlays with accessible plain-text popups and optional links.
 
 ## Installation
 
@@ -219,7 +221,7 @@ const unsubscribe = engine.on('pageChange', ({ currentPage, totalPages, isSingle
 unsubscribe();
 ```
 
-Supported events: `init`, `progress`, `pageChange`, `zoomChange`, `singlePageModeChange`, `thumbsToggle`, `tocToggle`, `orientationChange`, `deepLinkChange`, `bookmarkChange`, `noteChange`, `error`, `destroy`.
+Supported events: `init`, `progress`, `pageChange`, `zoomChange`, `singlePageModeChange`, `thumbsToggle`, `tocToggle`, `orientationChange`, `deepLinkChange`, `bookmarkChange`, `noteChange`, `searchChange`, `hotspotActivate`, `error`, `destroy`.
 
 | Option | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
@@ -240,6 +242,7 @@ Supported events: `init`, `progress`, `pageChange`, `zoomChange`, `singlePageMod
 | `deepLink` | `boolean` | `false` | Keeps the active page synchronized with a `?page=` URL parameter. The localized toolbar Share control uses this URL format. |
 | `bookmarks` | `number[]` | `[]` | Initial zero-based bookmarked page indexes; the host owns persistence. |
 | `notes` | `Record<number, string>` | `{}` | Initial page notes keyed by zero-based page index; the notes toolbar edits them while the host owns persistence. |
+| `hotspots` | `FlipbookHotspot[]` | `[]` | Normalized (0..1) page overlays with labels, plain-text popup content, and optional links. |
 | `onShare` | `(url: string) => void` | `null` | Optional callback invoked after the toolbar shares or copies the generated page URL. |
 
 
@@ -336,3 +339,29 @@ For commercial licenses and inquiries, contact: **murat.dogan@hotmail.com.tr**
 
 
 
+
+
+### Client-side PDF search
+
+When initialized with a PDF URL, `search(query)` extracts text through PDF.js without rendering every page. It returns page-level matches and snippets, updates the search toolbar panel, and outlines matching pages.
+
+```ts
+const results = await engine.search('catalog', { caseSensitive: false, maxResults: 50 });
+engine.goToPage(results[0]?.pageIndex ?? 0);
+engine.clearSearch();
+```
+
+Search is unavailable for image-only page lists because those assets do not contain extractable PDF text. The iframe controller exposes the same operation with `search`, `clearSearch`, and `getSearchResults`.
+
+### Interactive hotspots
+
+Hosts can provide normalized (0..1) page coordinates for lightweight links and pop-ups:
+
+```ts
+const engine = new FlipbookEngine('#viewer', {
+  hotspots: [{ id: 'product-42', pageIndex: 3, x: 0.60, y: 0.25, width: 0.25, height: 0.18, label: 'Product details', content: 'Open the product details page.', href: '/products/42' }]
+});
+engine.on('hotspotActivate', ({ hotspot }) => console.log(hotspot.id));
+```
+
+Hotspot content is plain text; applications should sanitize server-provided values before passing them to the viewer. Use `activateHotspot(id)` and `closeHotspot()` for programmatic control.

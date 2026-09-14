@@ -24,6 +24,8 @@ import { applyThemeConfiguration, type FlipbookBackgrounds, type FlipbookThemeMo
 import { resolveMessages, type FlipbookLocale, type PartialFlipbookMessages } from './i18n/service';
 import { PdfRenderer, type PdfPageLayout, type PdfPageMode } from './core/PdfRenderer';
 import { normalizeFlipbookToc, type FlipbookTocEntry } from './model/toc';
+import type { FlipbookSearchOptions, FlipbookSearchResult } from './model/search';
+import type { FlipbookHotspot } from './model/hotspots';
 import './styles/flipbook-engine.css';
 import { FlipbookEmbedBridge, type FlipbookEmbedOptions } from './embed';
 
@@ -70,6 +72,8 @@ export interface FlipbookEngineOptions {
     bookmarks?: number[];
     /** Initial host-managed notes keyed by zero-based page index. */
     notes?: Record<number, string>;
+    /** Optional interactive overlays anchored to logical pages using 0..1 coordinates. */
+    hotspots?: FlipbookHotspot[];
 }
 
 export interface PageImages extends FlipbookPageAsset {
@@ -93,6 +97,8 @@ export interface FlipbookEngineEventMap {
     deepLinkChange: { pageIndex: number; pageNumber: number; url: string };
     bookmarkChange: { pageIndex: number; pageNumber: number; bookmarked: boolean };
     noteChange: { pageIndex: number; pageNumber: number; note: string | null };
+    searchChange: { query: string; results: FlipbookSearchResult[] };
+    hotspotActivate: { hotspot: FlipbookHotspot; pageIndex: number };
 }
 
 export type FlipbookEngineEventName = keyof FlipbookEngineEventMap;
@@ -272,7 +278,13 @@ export class FlipbookEngine {
             onClearNote: () => this.clearNote(this.getCurrentPage()),
             onCloseNotes: () => {
                 this.store.showNotes.value = false;
-            }
+            },
+            onSearch: (query, searchOptions) => { void this.search(query, searchOptions); },
+            onClearSearch: () => this.clearSearch(),
+            onCloseSearch: () => { this.store.showSearch.value = false; },
+            onSelectSearchResult: (pageIndex) => { this.goToPage(pageIndex); this.store.showSearch.value = false; },
+            onHotspotActivate: (hotspot) => this.activateHotspot(hotspot.id),
+            onHotspotClose: () => this.closeHotspot()
         });
 
         this.container.appendChild(appNode as unknown as Node);
@@ -501,6 +513,52 @@ export class FlipbookEngine {
         this.setNote(pageIndex, '');
     }
 
+    /** Searches the loaded PDF text without rendering pages and updates result highlights. */
+    public async search(query: string, options: FlipbookSearchOptions = {}): Promise<FlipbookSearchResult[]> {
+        const normalizedQuery = String(query ?? '').trim();
+        if (!normalizedQuery || !this.pdfRenderer) {
+            this.store.searchQuery.value = normalizedQuery;
+            this.store.searchResults.value = [];
+            this.emit('searchChange', { query: normalizedQuery, results: [] });
+            return [];
+        }
+        const sourceResults = await this.pdfRenderer.searchText(normalizedQuery, options);
+        const results: FlipbookSearchResult[] = [];
+        sourceResults.forEach((source) => {
+            this.store.pages.value.forEach((page) => {
+                if ((page.sourcePageNumber ?? page.pageNumber) !== source.sourcePageNumber) return;
+                results.push({ pageIndex: page.index, pageNumber: page.pageNumber, sourcePageNumber: source.sourcePageNumber, matches: source.matches, snippet: source.snippet });
+            });
+        });
+        const maxResults = Number.isFinite(options.maxResults) ? Math.max(1, Math.trunc(options.maxResults as number)) : 100;
+        this.store.searchQuery.value = normalizedQuery;
+        this.store.searchResults.value = results.slice(0, maxResults);
+        this.emit('searchChange', { query: normalizedQuery, results: this.store.searchResults.value });
+        return this.store.searchResults.value;
+    }
+
+    /** Clears the current client-side search. */
+    public clearSearch(): void {
+        this.store.searchQuery.value = '';
+        this.store.searchResults.value = [];
+        this.emit('searchChange', { query: '', results: [] });
+    }
+
+    public getSearchResults(): FlipbookSearchResult[] { return this.store.searchResults.value.slice(); }
+
+    public getHotspots(pageIndex = this.getCurrentPage()): FlipbookHotspot[] {
+        return this.store.hotspots.value.filter((hotspot) => hotspot.pageIndex === pageIndex);
+    }
+
+    public activateHotspot(hotspotId: string): void {
+        const hotspot = this.store.hotspots.value.find((item) => item.id === hotspotId);
+        if (!hotspot) return;
+        this.store.activeHotspotId.value = hotspot.id;
+        this.emit('hotspotActivate', { hotspot, pageIndex: hotspot.pageIndex });
+    }
+
+    public closeHotspot(): void { this.store.activeHotspotId.value = null; }
+
     public getZoom(): number {
         return this.store.zoomState.value.scale;
     }
@@ -578,6 +636,7 @@ export class FlipbookEngine {
         if (options.autoPlayInterval !== undefined) this.store.autoPlayInterval.value = options.autoPlayInterval;
         if (options.bookmarks !== undefined) this.store.bookmarkedPages.value = new Set(options.bookmarks.map((page) => Math.trunc(page)).filter((page) => Number.isInteger(page) && page >= 0 && page < this.store.totalPages.value));
         if (options.notes !== undefined) this.store.pageNotes.value = new Map(Object.entries(options.notes).map(([page, note]) => [Math.trunc(Number(page)), String(note).trim()] as const).filter(([page, note]) => Number.isInteger(page) && page >= 0 && page < this.store.totalPages.value && note.length > 0));
+        if (options.hotspots !== undefined) this.store.hotspots.value = options.hotspots;
 
         if (this.container) {
             applyThemeConfiguration(this.container, this.options);

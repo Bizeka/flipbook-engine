@@ -28,5 +28,10 @@ export const trMessages = {
   deleteNote: 'Sil',
   play: 'Otomatik Oynat',
   pause: 'Duraklat',
-  tableOfContents: 'İçindekiler'
+  tableOfContents: 'İçindekiler',
+  search: 'Ara',
+  searchPlaceholder: 'PDF metninde ara',
+  clearSearch: 'Temizle',
+  closeSearch: 'Aramayı kapat',
+  noSearchResults: 'Sonuç bulunamadı'
 } as const;
