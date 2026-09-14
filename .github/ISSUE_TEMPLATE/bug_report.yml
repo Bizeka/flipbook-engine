@@ -30,7 +30,7 @@ body:
     attributes:
       label: FlipbookEngine Version
       description: Which version of FlipbookEngine are you using?
-      placeholder: e.g., 0.2.4
+      placeholder: e.g., 0.5.4
     validations:
       required: true
   - type: dropdown
