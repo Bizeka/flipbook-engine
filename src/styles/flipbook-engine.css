@@ -935,7 +935,7 @@
 
 /* Compact thumbnail cards with centered page labels. */
 .bk-thumbs {
-  gap: 4px;
+  gap: 7px;
 }
 .thumb-item {
   min-width: 38px;
@@ -970,14 +970,14 @@
 }
 .thumb-item.active .thumb-img-wrapper {
   border-width: 1px;
-  box-shadow: 0 0 0 1px var(--flipbook-accent), 0 0 8px color-mix(in srgb, var(--flipbook-accent) 75%, transparent);
+  box-shadow: 0 0 7px color-mix(in srgb, var(--flipbook-accent) 78%, transparent);
 }
 .thumb-item.active .thumb-page-number {
   background: var(--flipbook-accent);
 }
 @media (max-width: 768px) {
   .bk-thumbs {
-    gap: 4px;
+    gap: 6px;
   }
   .thumb-item {
     min-width: 32px;

@@ -113,6 +113,7 @@ export class FlipbookEngine {
     private hasActiveSession = false;
     private readonly pdfPageRequests = new Map<number, Promise<string>>();
     private readonly pdfRenderedPages = new Set<number>();
+    private readonly pdfRenderedSources = new Map<number, string>();
     private pdfSourcePageCount = 0;
 
     constructor(private selector: string | HTMLElement, options: FlipbookEngineOptions = {}) {
@@ -339,16 +340,18 @@ export class FlipbookEngine {
         if (!renderer) return Promise.resolve('');
         const existing = this.pdfPageRequests.get(pageNumber);
         if (existing) return existing;
-        if (this.pdfRenderedPages.has(pageNumber)) return Promise.resolve('');
+        if (this.pdfRenderedPages.has(pageNumber)) {
+            const dataUrl = this.pdfRenderedSources.get(pageNumber);
+            if (dataUrl) this.hydratePdfImages(pageNumber, dataUrl);
+            return Promise.resolve(dataUrl || '');
+        }
 
         const request = renderer.renderPageToDataUrl(pageNumber, signal).then((dataUrl) => {
             if (generation !== this.initGeneration || signal?.aborted) throw this.createAbortError();
             if (!dataUrl) throw new Error('PDF page ' + pageNumber + ' produced no image.');
             this.pdfRenderedPages.add(pageNumber);
-            this.container?.querySelectorAll<HTMLImageElement>('img[data-pdf-page="' + pageNumber + '"]').forEach((image) => {
-                image.src = dataUrl;
-                delete image.dataset.pdfPage;
-            });
+            this.pdfRenderedSources.set(pageNumber, dataUrl);
+            this.hydratePdfImages(pageNumber, dataUrl);
             this.emit('progress', {
                 phase: 'rendering',
                 completed: this.pdfRenderedPages.size,
@@ -371,6 +374,13 @@ export class FlipbookEngine {
         return request;
     }
 
+    private hydratePdfImages(pageNumber: number, dataUrl: string) {
+        this.container?.querySelectorAll<HTMLImageElement>('img').forEach((image) => {
+            if (image.dataset.pdfPage !== String(pageNumber)) return;
+            image.src = dataUrl;
+            delete image.dataset.pdfPage;
+        });
+    }
     private setupPdfLazyLoading() {
         this.pdfLazyStop?.();
         this.pdfLazyStop = null;
@@ -450,6 +460,13 @@ export class FlipbookEngine {
 
     public setSingleMode(isSingle: boolean) {
         this.store.isSingleMode.value = isSingle;
+        if (isSingle && this.pdfRenderer) {
+            setTimeout(() => {
+                const page = this.store.pages.value[this.store.currentPage.value];
+                const sourcePage = page?.sourcePageNumber ?? page?.pageNumber;
+                if (sourcePage) void this.renderPdfPage(sourcePage).catch(() => {});
+            }, 0);
+        }
     }
 
     public updateOptions(options: Partial<FlipbookEngineOptions>) {
@@ -615,6 +632,7 @@ export class FlipbookEngine {
         this.pdfLazyStop = null;
         this.pdfPageRequests.clear();
         this.pdfRenderedPages.clear();
+        this.pdfRenderedSources.clear();
         this.pdfSourcePageCount = 0;
         if (this.pdfRenderer) {
             this.pdfRenderer.destroy();

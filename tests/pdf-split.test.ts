@@ -48,5 +48,6 @@ test('PDF split mode creates two logical pages for an A3 landscape source page',
   engine.goToPage(1);
   await new Promise((resolve) => setTimeout(resolve, 0));
   assert.equal(engine.getCurrentPage(), 1);
+  assert.equal(document.querySelector('.bk-single-img')?.getAttribute('src'), 'data:image/mock;base64,page-1');
   engine.destroy();
 });
