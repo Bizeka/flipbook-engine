@@ -346,6 +346,19 @@ engine.installPlugin(notesPlugin);
 ```
 
 The official notes, bookmarks, TOC, search, annotations, hotspots, share, and deep-link adapters expose namespaced APIs. Their UI is still controlled by the host/all-in-one viewer options; custom plugins may additionally register toolbar buttons and panels through the plugin contract. Analytics is not included as an official open-source adapter.
+
+### 0.8.0 to 1.0.0 compatibility boundary
+
+Version 1.0.0 is the first stable compatibility boundary. The 0.8.0 line was alpha/beta and does not provide a rollback or compatibility guarantee.
+
+- The documented all-in-one import and engine options remain available.
+- Imports from undocumented internal `src/*` or generated `dist/*` files are not supported; move to `flipbookengine/core`, `flipbookengine/plugins`, or the documented feature subpaths.
+- Optional adapters are explicit: pass them through `plugins`, call `installPlugin()` to enable, and `uninstallPlugin()` to disable and clean up their APIs, UI contributions, and event listeners.
+- TOC runtime/embed APIs and expanded hotspot media/gallery/commerce fields are new 1.0 APIs; existing host-managed data remains the source of truth.
+- Image/WebP text search remains unsupported; PDF mode is required unless the host supplies server-generated text metadata.
+
+See the complete [1.0.0 migration guide](./docs/migration-1.0.0.md) before upgrading from 0.8.0.
+
 ### Commercial edition (closed-source backend)
 
 The commercial roadmap is separate from the AGPL package and is intended for a separate backend project. It will provide licensed server-side capabilities, including:
