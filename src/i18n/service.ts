@@ -21,6 +21,8 @@ export interface FlipbookMessages {
   settings: string;
   downloadCatalog: string;
   share: string;
+  bookmark: string;
+  removeBookmark: string;
   play: string;
   pause: string;
   tableOfContents: string;

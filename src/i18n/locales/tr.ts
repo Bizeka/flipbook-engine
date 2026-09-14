@@ -18,6 +18,8 @@ export const trMessages = {
   settings: 'Ayarlar',
   downloadCatalog: 'Kataloğu İndir',
   share: 'Paylaş',
+  bookmark: 'Sayfayı yer imlerine ekle',
+  removeBookmark: 'Yer imini kaldır',
   play: 'Otomatik Oynat',
   pause: 'Duraklat',
   tableOfContents: 'İçindekiler'

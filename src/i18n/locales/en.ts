@@ -18,6 +18,8 @@ export const enMessages = {
   settings: 'Settings',
   downloadCatalog: 'Download Catalog',
   share: 'Share',
+  bookmark: 'Bookmark page',
+  removeBookmark: 'Remove bookmark',
   play: 'Play',
   pause: 'Pause',
   tableOfContents: 'Table of Contents'

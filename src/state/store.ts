@@ -18,7 +18,7 @@ export interface ZoomState { isActive: boolean; translateX: number; translateY: 
 export interface FlipbookStore {
     currentPage: Signal<number>; totalPages: Signal<number>; isSingleMode: Signal<boolean>;
     showThumbs: Signal<boolean>; showToc: Signal<boolean>; showArrows: Signal<boolean>; orientation: Signal<Orientation>;
-    flipState: Signal<FlipState>; themeMode: Signal<FlipbookThemeMode>; allowDownload: Signal<boolean>;
+    flipState: Signal<FlipState>; themeMode: Signal<FlipbookThemeMode>; allowDownload: Signal<boolean>; bookmarkedPages: Signal<ReadonlySet<number>>;
     hasDownloadUrl: Signal<boolean>; primaryColor: Signal<string>; whiteLabel: Signal<boolean>;
     isZoomed: Signal<boolean>; isAutoPlaying: Signal<boolean>; autoPlayInterval: Signal<number>;
     soundEnabled: Signal<boolean>; locale: Signal<string>; messages: Signal<Partial<Record<string, PartialFlipbookMessages>>>; zoomState: Signal<ZoomState>; pages: Signal<NormalizedFlipbookPage[]>; toc: Signal<FlipbookTocEntry[]>;
@@ -36,6 +36,7 @@ export function createFlipbookStore(): FlipbookStore {
     const flipState = signal<FlipState>('read'), themeMode = signal<FlipbookThemeMode>('auto');
     const allowDownload = signal(true), hasDownloadUrl = signal(false), primaryColor = signal('#7367f0');
     const whiteLabel = signal(false), isZoomed = signal(false), isAutoPlaying = signal(false);
+    const bookmarkedPages = signal<ReadonlySet<number>>(new Set());
     const autoPlayInterval = signal(3000), soundEnabled = signal(true);
     const locale = signal('en');
     const messages = signal<Partial<Record<string, PartialFlipbookMessages>>>({});
@@ -60,6 +61,7 @@ export function createFlipbookStore(): FlipbookStore {
         if (options.singleMode !== undefined) isSingleMode.value = options.singleMode;
         if (options.autoPlay !== undefined) isAutoPlaying.value = options.autoPlay;
         if (options.autoPlayInterval !== undefined) autoPlayInterval.value = options.autoPlayInterval;
+        bookmarkedPages.value = new Set((options.bookmarks ?? []).map((page) => Math.trunc(page)).filter((page) => Number.isInteger(page) && page >= 0 && page < total));
         currentPage.value = 0;
     };
     const reset = () => {
@@ -84,15 +86,16 @@ export function createFlipbookStore(): FlipbookStore {
         zoomState.value = initialZoomState();
         pages.value = [];
         toc.value = [];
+        bookmarkedPages.value = new Set();
     };
-    return { currentPage, totalPages, isSingleMode, showThumbs, showToc, showArrows, orientation, flipState, themeMode, allowDownload, hasDownloadUrl, primaryColor, whiteLabel, isZoomed, isAutoPlaying, autoPlayInterval, soundEnabled, locale, messages, zoomState, pages, toc, isDoublePageLayout, isFrontCover, isBackCover, init, reset };
+    return { currentPage, totalPages, isSingleMode, showThumbs, showToc, showArrows, orientation, flipState, themeMode, allowDownload, bookmarkedPages, hasDownloadUrl, primaryColor, whiteLabel, isZoomed, isAutoPlaying, autoPlayInterval, soundEnabled, locale, messages, zoomState, pages, toc, isDoublePageLayout, isFrontCover, isBackCover, init, reset };
 }
 
 // Compatibility exports for consumers of the former internal singleton module.
 const legacyStore = createFlipbookStore();
 export const currentPage = legacyStore.currentPage, totalPages = legacyStore.totalPages, isSingleMode = legacyStore.isSingleMode;
 export const showThumbs = legacyStore.showThumbs, showToc = legacyStore.showToc, showArrows = legacyStore.showArrows, orientation = legacyStore.orientation;
-export const flipState = legacyStore.flipState, themeMode = legacyStore.themeMode, allowDownload = legacyStore.allowDownload;
+export const flipState = legacyStore.flipState, themeMode = legacyStore.themeMode, allowDownload = legacyStore.allowDownload, bookmarkedPages = legacyStore.bookmarkedPages;
 export const hasDownloadUrl = legacyStore.hasDownloadUrl, primaryColor = legacyStore.primaryColor, whiteLabel = legacyStore.whiteLabel;
 export const isZoomed = legacyStore.isZoomed, isAutoPlaying = legacyStore.isAutoPlaying, autoPlayInterval = legacyStore.autoPlayInterval;
 export const soundEnabled = legacyStore.soundEnabled, locale = legacyStore.locale, messages = legacyStore.messages, zoomState = legacyStore.zoomState, pages = legacyStore.pages, toc = legacyStore.toc;

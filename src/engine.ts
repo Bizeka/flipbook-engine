@@ -66,6 +66,8 @@ export interface FlipbookEngineOptions {
     pdfPageMode?: PdfPageMode;
     /** Enables URL-based page deep links and browser history synchronization. */
     deepLink?: boolean;
+    /** Zero-based page indexes initially marked as bookmarks. */
+    bookmarks?: number[];
 }
 
 export interface PageImages extends FlipbookPageAsset {
@@ -87,6 +89,7 @@ export interface FlipbookEngineEventMap {
     progress: { phase: 'loading' | 'rendering'; completed: number; total: number };
     error: { code: 'PDF_LOAD_FAILED' | 'PDF_RENDER_FAILED'; message: string; cause?: unknown };
     deepLinkChange: { pageIndex: number; pageNumber: number; url: string };
+    bookmarkChange: { pageIndex: number; pageNumber: number; bookmarked: boolean };
 }
 
 export type FlipbookEngineEventName = keyof FlipbookEngineEventMap;
@@ -257,7 +260,8 @@ export class FlipbookEngine {
                 void this.sharePage().then((url) => this.options.onShare?.(url)).catch((error) => {
                     console.warn('Share err:', error);
                 });
-            }
+            },
+            onToggleBookmark: () => this.toggleBookmark()
         });
 
         this.container.appendChild(appNode as unknown as Node);
@@ -431,6 +435,33 @@ export class FlipbookEngine {
         return this.store.currentPage.value;
     }
 
+    /** Returns the zero-based page indexes currently marked as bookmarks. */
+    public getBookmarkedPages(): number[] {
+        return Array.from(this.store.bookmarkedPages.value).sort((a, b) => a - b);
+    }
+
+    /** Returns whether a zero-based page index is bookmarked. */
+    public isBookmarked(pageIndex = this.getCurrentPage()): boolean {
+        return this.store.bookmarkedPages.value.has(Math.trunc(pageIndex));
+    }
+
+    /** Sets the bookmark state for a zero-based page index and emits bookmarkChange when it changes. */
+    public setBookmark(pageIndex: number, bookmarked = true): void {
+        if (this.store.totalPages.value === 0 || !Number.isFinite(pageIndex)) return;
+        const boundedIndex = Math.max(0, Math.min(this.store.totalPages.value - 1, Math.trunc(pageIndex)));
+        const current = this.store.bookmarkedPages.value;
+        if (current.has(boundedIndex) === bookmarked) return;
+        const next = new Set(current);
+        if (bookmarked) next.add(boundedIndex); else next.delete(boundedIndex);
+        this.store.bookmarkedPages.value = next;
+        this.emit('bookmarkChange', { pageIndex: boundedIndex, pageNumber: boundedIndex + 1, bookmarked });
+    }
+
+    /** Toggles the bookmark state for a zero-based page index. */
+    public toggleBookmark(pageIndex = this.getCurrentPage()): void {
+        this.setBookmark(pageIndex, !this.isBookmarked(pageIndex));
+    }
+
     public getZoom(): number {
         return this.store.zoomState.value.scale;
     }
@@ -506,6 +537,7 @@ export class FlipbookEngine {
         if (options.isSingleMode !== undefined) this.store.isSingleMode.value = options.isSingleMode;
         if (options.autoPlay !== undefined) this.store.isAutoPlaying.value = options.autoPlay;
         if (options.autoPlayInterval !== undefined) this.store.autoPlayInterval.value = options.autoPlayInterval;
+        if (options.bookmarks !== undefined) this.store.bookmarkedPages.value = new Set(options.bookmarks.map((page) => Math.trunc(page)).filter((page) => Number.isInteger(page) && page >= 0 && page < this.store.totalPages.value));
 
         if (this.container) {
             applyThemeConfiguration(this.container, this.options);

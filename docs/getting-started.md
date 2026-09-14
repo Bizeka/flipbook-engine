@@ -89,6 +89,10 @@ await engine.init('/files/catalog.pdf');
 const pageUrl = engine.getPageUrl(4);
 await engine.sharePage(4);
 // The viewer toolbar also exposes a localized Share button.
+// Bookmark state is host-managed and can be persisted from bookmarkChange.
+engine.on('bookmarkChange', ({ pageNumber, bookmarked }) => {
+  console.log(`Page ${pageNumber} bookmarked: ${bookmarked}`);
+});
 engine.on('deepLinkChange', ({ pageNumber, url }) => {
   console.log(`Sharing page ${pageNumber}: ${url}`);
 });

@@ -9,6 +9,7 @@
 - added regression coverage for initial URL pages, URL updates, and popstate navigation
 - added a localized toolbar Share button with native-share/clipboard fallback and an optional `onShare` host callback
 - added regression coverage for toolbar share invocation, generated page URLs, callback delivery, and Turkish localization
+- added host-managed bookmark state with localized toolbar control, public methods, and `bookmarkChange` events
 
 ## 0.6.5
 

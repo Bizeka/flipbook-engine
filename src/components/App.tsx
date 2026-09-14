@@ -33,6 +33,7 @@ interface AppProps {
     className?: string;
     onDownload: () => void;
     onShare: () => void;
+    onToggleBookmark: () => void;
     onToggleFullscreen: () => void;
     store: FlipbookStore;
 }
@@ -115,6 +116,7 @@ export function App(props: AppProps) {
                 onZoomOut={handleZoomOut}
                 onDownload={props.onDownload}
                 onShare={props.onShare}
+                onToggleBookmark={props.onToggleBookmark}
                 onNextPage={handleNextPage}
                 onPrevPage={handlePrevPage}
                 onSoundToggle={() => props.store.soundEnabled.value = !props.store.soundEnabled.value}

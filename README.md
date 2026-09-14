@@ -22,6 +22,7 @@ FlipbookEngine is a modern, lightweight, and embeddable HTML flipbook viewer for
 - **Framework Wrappers**: Direct React and Vue wrapper exports for seamless modern integration.
 - **Progressive PDF Rendering**: PDF pages render on demand with bounded concurrency and an instance-local LRU cache, keeping large documents responsive.
 - **Localized Sharing**: The toolbar includes a Share control that opens the native share sheet or copies the current page URL; enable `deepLink: true` for shareable page navigation.
+- **Host-Managed Bookmarks**: The toolbar can toggle the current page bookmark; hosts can initialize and persist zero-based bookmark indexes through the public API and `bookmarkChange` event.
 
 ## Installation
 
@@ -197,6 +198,9 @@ The `FlipbookEngine` class exposes the following public methods:
 - **`setLocale(locale: string, messages?: PartialFlipbookMessages | Record<string, PartialFlipbookMessages>)`**: Updates the locale programmatically and optionally overrides messages for that locale.
 - **`getPageUrl(pageIndex = getCurrentPage())`**: Returns a shareable URL for a 0-based page index.
 - **`sharePage(pageIndex = getCurrentPage())`**: Opens the native share dialog or copies the page URL to the clipboard. The toolbar exposes this behavior through a localized Share button.
+- **`getBookmarkedPages()`**: Returns the sorted zero-based bookmark indexes.
+- **`isBookmarked(pageIndex = getCurrentPage())`**: Checks whether a page is bookmarked.
+- **`setBookmark(pageIndex, bookmarked)`** / **`toggleBookmark(pageIndex)`**: Updates bookmark state and emits `bookmarkChange`; hosts can persist the event payload.
 - **`destroy(keepContainer = false)`**: Tears down the instance and listeners; when `true`, keeps the container markup for an immediate reinitialization.
 
 ### Subscribing to Events
@@ -212,7 +216,7 @@ const unsubscribe = engine.on('pageChange', ({ currentPage, totalPages, isSingle
 unsubscribe();
 ```
 
-Supported events: `init`, `progress`, `pageChange`, `zoomChange`, `singlePageModeChange`, `thumbsToggle`, `tocToggle`, `orientationChange`, `deepLinkChange`, `error`, `destroy`.
+Supported events: `init`, `progress`, `pageChange`, `zoomChange`, `singlePageModeChange`, `thumbsToggle`, `tocToggle`, `orientationChange`, `deepLinkChange`, `bookmarkChange`, `error`, `destroy`.
 
 | Option | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
@@ -231,7 +235,9 @@ Supported events: `init`, `progress`, `pageChange`, `zoomChange`, `singlePageMod
 | `pdfPageMode` | `'auto' \| 'single' \| 'split'` | `'auto'` | Controls PDF page splitting: A3 landscape pages are split automatically, all landscape pages can be split explicitly, or splitting can be disabled. |
 | `background` | `FlipbookBackgrounds \| null` | `null` | Optional light/dark viewer backgrounds with color, image, size, position, and repeat settings. |
 | `deepLink` | `boolean` | `false` | Keeps the active page synchronized with a `?page=` URL parameter. The localized toolbar Share control uses this URL format. |
+| `bookmarks` | `number[]` | `[]` | Initial zero-based bookmarked page indexes; the host owns persistence. |
 | `onShare` | `(url: string) => void` | `null` | Optional callback invoked after the toolbar shares or copies the generated page URL. |
+
 
 ## PDF page formats
 
