@@ -22,11 +22,11 @@ export interface FlipbookStore {
     currentPage: Signal<number>; totalPages: Signal<number>; isSingleMode: Signal<boolean>;
     showThumbs: Signal<boolean>; showToc: Signal<boolean>; showNotes: Signal<boolean>; showSearch: Signal<boolean>; showArrows: Signal<boolean>; orientation: Signal<Orientation>;
     flipState: Signal<FlipState>; themeMode: Signal<FlipbookThemeMode>; allowDownload: Signal<boolean>; bookmarkedPages: Signal<ReadonlySet<number>>; pageNotes: Signal<ReadonlyMap<number, string>>;
-    hasDownloadUrl: Signal<boolean>; primaryColor: Signal<string>; whiteLabel: Signal<boolean>;
+    hasDownloadUrl: Signal<boolean>; isPdfMode: Signal<boolean>; primaryColor: Signal<string>; whiteLabel: Signal<boolean>;
     isZoomed: Signal<boolean>; isAutoPlaying: Signal<boolean>; autoPlayInterval: Signal<number>;
     soundEnabled: Signal<boolean>; searchQuery: Signal<string>; searchResults: Signal<FlipbookSearchResult[]>; hotspots: Signal<FlipbookHotspot[]>; activeHotspotId: Signal<string | null>; annotations: Signal<FlipbookAnnotation[]>; activeAnnotationId: Signal<string | null>; locale: Signal<string>; messages: Signal<Partial<Record<string, PartialFlipbookMessages>>>; zoomState: Signal<ZoomState>; pages: Signal<NormalizedFlipbookPage[]>; toc: Signal<FlipbookTocEntry[]>;
     isDoublePageLayout: ReadonlySignal<boolean>; isFrontCover: ReadonlySignal<boolean>; isBackCover: ReadonlySignal<boolean>;
-    init(options: FlipbookEngineOptions, total: number, mappedPages: NormalizedFlipbookPage[], hasPdfUrl: boolean): void;
+    init(options: FlipbookEngineOptions, total: number, mappedPages: NormalizedFlipbookPage[], hasPdfUrl: boolean, isPdfMode?: boolean): void;
     reset(): void;
 }
 
@@ -37,7 +37,7 @@ export function createFlipbookStore(): FlipbookStore {
     const currentPage = signal(0), totalPages = signal(0), isSingleMode = signal(false);
     const showThumbs = signal(false), showToc = signal(false), showNotes = signal(false), showSearch = signal(false), showArrows = signal(true), orientation = signal<Orientation>('landscape');
     const flipState = signal<FlipState>('read'), themeMode = signal<FlipbookThemeMode>('auto');
-    const allowDownload = signal(true), hasDownloadUrl = signal(false), primaryColor = signal('#7367f0');
+    const allowDownload = signal(true), hasDownloadUrl = signal(false), isPdfMode = signal(false), primaryColor = signal('#7367f0');
     const whiteLabel = signal(false), isZoomed = signal(false), isAutoPlaying = signal(false);
     const bookmarkedPages = signal<ReadonlySet<number>>(new Set());
     const pageNotes = signal<ReadonlyMap<number, string>>(new Map());
@@ -51,8 +51,8 @@ export function createFlipbookStore(): FlipbookStore {
     const isDoublePageLayout = computed(() => !isSingleMode.value && orientation.value === 'landscape');
     const isFrontCover = computed(() => isDoublePageLayout.value && currentPage.value === 0);
     const isBackCover = computed(() => isDoublePageLayout.value && currentPage.value >= totalPages.value - 1);
-    const init = (options: FlipbookEngineOptions, total: number, mappedPages: NormalizedFlipbookPage[], hasPdfUrl: boolean) => {
-        totalPages.value = total; pages.value = mappedPages; hasDownloadUrl.value = hasPdfUrl;
+    const init = (options: FlipbookEngineOptions, total: number, mappedPages: NormalizedFlipbookPage[], hasPdfUrl: boolean, pdfMode = hasPdfUrl) => {
+        totalPages.value = total; pages.value = mappedPages; hasDownloadUrl.value = hasPdfUrl; isPdfMode.value = pdfMode;
         if (options.theme !== undefined) themeMode.value = options.theme;
         if (options.primaryColor !== undefined) primaryColor.value = options.primaryColor;
         if (options.showThumbs !== undefined) showThumbs.value = options.showThumbs;
@@ -94,6 +94,7 @@ export function createFlipbookStore(): FlipbookStore {
         themeMode.value = 'auto';
         allowDownload.value = true;
         hasDownloadUrl.value = false;
+        isPdfMode.value = false;
         primaryColor.value = '#7367f0';
         whiteLabel.value = false;
         isZoomed.value = false;
@@ -114,7 +115,7 @@ export function createFlipbookStore(): FlipbookStore {
         annotations.value = [];
         activeAnnotationId.value = null;
     };
-    return { currentPage, totalPages, isSingleMode, showThumbs, showToc, showNotes, showSearch, showArrows, orientation, flipState, themeMode, allowDownload, bookmarkedPages, pageNotes, hasDownloadUrl, primaryColor, whiteLabel, isZoomed, isAutoPlaying, autoPlayInterval, soundEnabled, searchQuery, searchResults, hotspots, activeHotspotId, annotations, activeAnnotationId, locale, messages, zoomState, pages, toc, isDoublePageLayout, isFrontCover, isBackCover, init, reset };
+    return { currentPage, totalPages, isSingleMode, showThumbs, showToc, showNotes, showSearch, showArrows, orientation, flipState, themeMode, allowDownload, bookmarkedPages, pageNotes, hasDownloadUrl, isPdfMode, primaryColor, whiteLabel, isZoomed, isAutoPlaying, autoPlayInterval, soundEnabled, searchQuery, searchResults, hotspots, activeHotspotId, annotations, activeAnnotationId, locale, messages, zoomState, pages, toc, isDoublePageLayout, isFrontCover, isBackCover, init, reset };
 }
 
 // Compatibility exports for consumers of the former internal singleton module.
@@ -122,7 +123,7 @@ const legacyStore = createFlipbookStore();
 export const currentPage = legacyStore.currentPage, totalPages = legacyStore.totalPages, isSingleMode = legacyStore.isSingleMode;
 export const showThumbs = legacyStore.showThumbs, showToc = legacyStore.showToc, showNotes = legacyStore.showNotes, showSearch = legacyStore.showSearch, showArrows = legacyStore.showArrows, orientation = legacyStore.orientation;
 export const flipState = legacyStore.flipState, themeMode = legacyStore.themeMode, allowDownload = legacyStore.allowDownload, bookmarkedPages = legacyStore.bookmarkedPages, pageNotes = legacyStore.pageNotes;
-export const hasDownloadUrl = legacyStore.hasDownloadUrl, primaryColor = legacyStore.primaryColor, whiteLabel = legacyStore.whiteLabel;
+export const hasDownloadUrl = legacyStore.hasDownloadUrl, isPdfMode = legacyStore.isPdfMode, primaryColor = legacyStore.primaryColor, whiteLabel = legacyStore.whiteLabel;
 export const isZoomed = legacyStore.isZoomed, isAutoPlaying = legacyStore.isAutoPlaying, autoPlayInterval = legacyStore.autoPlayInterval;
 export const soundEnabled = legacyStore.soundEnabled, searchQuery = legacyStore.searchQuery, searchResults = legacyStore.searchResults, hotspots = legacyStore.hotspots, activeHotspotId = legacyStore.activeHotspotId, annotations = legacyStore.annotations, activeAnnotationId = legacyStore.activeAnnotationId, locale = legacyStore.locale, messages = legacyStore.messages, zoomState = legacyStore.zoomState, pages = legacyStore.pages, toc = legacyStore.toc;
 export const isDoublePageLayout = legacyStore.isDoublePageLayout, isFrontCover = legacyStore.isFrontCover, isBackCover = legacyStore.isBackCover;

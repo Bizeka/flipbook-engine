@@ -108,7 +108,7 @@ test('search results render as buttons rather than stringified DOM objects', asy
 
 test('image-only mode disables PDF text search with a localized explanation', async () => {
   const engine = new FlipbookEngine('#app', { soundUrl: '' });
-  await engine.init('', pages);
+  await engine.init('catalog-download.pdf', pages);
   const searchButton = document.querySelector('button.bk-btn:disabled') as HTMLButtonElement;
   assert.ok(searchButton);
   assert.equal(searchButton.disabled, true);

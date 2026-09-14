@@ -63,10 +63,10 @@ export function Toolbar(props: ToolbarProps) {
                 <button type="button"
                     class={computed(() => props.store.showSearch.value ? 'bk-btn active' : 'bk-btn')}
                     onClick={props.onToggleSearch}
-                    disabled={computed(() => !props.store.hasDownloadUrl.value)}
-                    aria-label={computed(() => props.store.hasDownloadUrl.value ? (messages.value.search || 'Search') : (messages.value.searchUnavailable || 'Text search is available only in Direct PDF mode.'))}
+                    disabled={computed(() => !props.store.isPdfMode.value)}
+                    aria-label={computed(() => props.store.isPdfMode.value ? (messages.value.search || 'Search') : (messages.value.searchUnavailable || 'Text search is available only in Direct PDF mode.'))}
                     aria-pressed={computed(() => props.store.showSearch.value ? 'true' : 'false')}
-                    title={computed(() => props.store.hasDownloadUrl.value ? (messages.value.search || 'Search') : (messages.value.searchUnavailable || 'Text search is available only in Direct PDF mode.'))}
+                    title={computed(() => props.store.isPdfMode.value ? (messages.value.search || 'Search') : (messages.value.searchUnavailable || 'Text search is available only in Direct PDF mode.'))}
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="16" y1="16" x2="21" y2="21"></line></svg>
                 </button>

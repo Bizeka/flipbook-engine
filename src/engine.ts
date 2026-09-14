@@ -238,7 +238,7 @@ export class FlipbookEngine {
         if (!resolvedPages.length) return;
 
         // 1. Initialize State
-        this.store.init(this.options, resolvedPages.length, resolvedPages, !!pdfUrl);
+        this.store.init(this.options, resolvedPages.length, resolvedPages, !!pdfUrl, !imageList?.length && !!pdfUrl);
         this.applyInitialDeepLink();
 
         // 2. Setup DOM container
@@ -522,7 +522,7 @@ export class FlipbookEngine {
     /** Searches the loaded PDF text without rendering pages and updates result highlights. */
     public async search(query: string, options: FlipbookSearchOptions = {}): Promise<FlipbookSearchResult[]> {
         const normalizedQuery = String(query ?? '').trim();
-        if (!normalizedQuery || !this.pdfRenderer) {
+        if (!normalizedQuery || !this.pdfRenderer || !this.store.isPdfMode.value) {
             this.store.searchQuery.value = normalizedQuery;
             this.store.searchResults.value = [];
             this.emit('searchChange', { query: normalizedQuery, results: [] });
