@@ -29,6 +29,7 @@ import type { FlipbookHotspot } from './model/hotspots';
 import type { FlipbookAnnotation } from './model/annotations';
 import './styles/flipbook-engine.css';
 import { FlipbookEmbedBridge, type FlipbookEmbedOptions } from './embed';
+import { FlipbookPluginRegistry, type FlipbookPlugin } from './plugins';
 
 export interface FlipbookEngineOptions {
     allowDownload?: boolean;
@@ -77,6 +78,8 @@ export interface FlipbookEngineOptions {
     hotspots?: FlipbookHotspot[];
     /** Optional host-provided note markers anchored to logical pages. */
     annotations?: FlipbookAnnotation[];
+    /** Plugins installed before the first viewer render. */
+    plugins?: FlipbookPlugin[];
 }
 
 export interface PageImages extends FlipbookPageAsset {
@@ -138,6 +141,7 @@ export class FlipbookEngine {
     private readonly pdfRenderedSources = new Map<number, string>();
     private pdfSourcePageCount = 0;
     private deepLinkListener: (() => void) | null = null;
+    private readonly pluginRegistry = new FlipbookPluginRegistry();
 
     constructor(private selector: string | HTMLElement, options: FlipbookEngineOptions = {}) {
         this.options = {
@@ -157,6 +161,7 @@ export class FlipbookEngine {
             ...options
         };
         this.setupEventSync();
+        (options.plugins ?? []).forEach((plugin) => this.installPlugin(plugin));
     }
 
     public async init(pdfUrl: string, imageList?: Array<PageImages | FlipbookPageAsset>) {
@@ -263,6 +268,7 @@ export class FlipbookEngine {
             bookContainerRef: (el) => bookContainerEl = el,
             className: this.options.className,
             store: this.store,
+            pluginRegistry: this.pluginRegistry,
             onToggleFullscreen: () => this.toggleFullscreen(),
             onDownload: () => {
                 if (!pdfUrl) return;
@@ -462,6 +468,47 @@ export class FlipbookEngine {
 
     public getCurrentPage(): number {
         return this.store.currentPage.value;
+    }
+
+    /** Returns the normalized host-provided table of contents. */
+    public getToc(): FlipbookTocEntry[] {
+        const clone = (entry: FlipbookTocEntry): FlipbookTocEntry => ({
+            ...entry,
+            ...(entry.children ? { children: entry.children.map(clone) } : {})
+        });
+        return this.store.toc.value.map(clone);
+    }
+
+    /** Replaces the table of contents and optionally opens its panel. */
+    public setToc(entries: FlipbookTocEntry[], show = this.store.showToc.value): void {
+        this.store.toc.value = normalizeFlipbookToc(entries, this.store.totalPages.value);
+        this.store.showToc.value = Boolean(show) && this.store.toc.value.length > 0;
+    }
+
+    /** Installs a plugin. Plugins installed after init are available to the next render. */
+    public installPlugin(plugin: FlipbookPlugin): this {
+        this.pluginRegistry.install(this, plugin);
+        return this;
+    }
+
+    /** Removes an installed plugin and all of its registered contributions. */
+    public uninstallPlugin(name: string): boolean {
+        return this.pluginRegistry.uninstall(name);
+    }
+
+    /** Returns the names of installed plugins. */
+    public getPluginNames(): string[] {
+        return this.pluginRegistry.getPluginNames();
+    }
+
+    /** Calls a namespaced API registered by a plugin. */
+    public callPluginApi<T = unknown>(pluginName: string, apiName: string, ...args: any[]): Promise<T> {
+        return this.pluginRegistry.callApi<T>(pluginName, apiName, ...args);
+    }
+
+    /** Internal UI registry used by the built-in DOM renderer. */
+    public getPluginRegistry() {
+        return this.pluginRegistry;
     }
 
     /** Returns the zero-based page indexes currently marked as bookmarks. */
@@ -925,6 +972,7 @@ export class FlipbookEngine {
         }
 
         if (hadSession) this.emit('destroy', undefined);
+        if (!keepContainer) this.pluginRegistry.clear();
     }
 
     private createAbortError() {

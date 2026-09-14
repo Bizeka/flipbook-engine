@@ -176,7 +176,7 @@ const controller = createFlipbookEmbedController(
 await controller.goToPage(2);
 ```
 
-Always configure explicit origins for cross-origin embeds. The bridge supports page navigation, zoom, single mode, option updates, fullscreen, state queries, and event forwarding.
+Always configure explicit origins for cross-origin embeds. The bridge supports page navigation, zoom, single mode, option updates, fullscreen, TOC read/update, search, state queries, and event forwarding.
 
 ## Migration Notes
 
@@ -315,6 +315,8 @@ The npm package remains an embeddable, framework-agnostic PDF viewer. The open-s
 - **Deep Linking & Social Share:** URLs that address specific pages or spreads.
 
 The open-source viewer continues to use PDF.js as an external npm dependency and does not require a backend renderer.
+
+The v1.0.0 release also defines the framework-agnostic plugin contract. The rendering core stays small while TOC, notes, bookmarks, annotations, search, hotspots, and sharing can be installed as optional plugins. Analytics is not shipped as an official open-source plugin; hosts can consume the documented events or use a private commercial adapter. See [Plugin architecture](./docs/plugin-architecture.md).
 
 ### Commercial edition (closed-source backend)
 

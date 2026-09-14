@@ -12,6 +12,16 @@ export default defineConfig({
     lib: {
       entry: {
         index: resolve(__dirname, 'src/index.ts'),
+        core: resolve(__dirname, 'src/core-entry.ts'),
+        plugins: resolve(__dirname, 'src/plugins/index.ts'),
+        'plugins-notes': resolve(__dirname, 'src/plugins/notes.ts'),
+        'plugins-bookmarks': resolve(__dirname, 'src/plugins/bookmarks.ts'),
+        'plugins-toc': resolve(__dirname, 'src/plugins/toc.ts'),
+        'plugins-search': resolve(__dirname, 'src/plugins/search.ts'),
+        'plugins-annotations': resolve(__dirname, 'src/plugins/annotations.ts'),
+        'plugins-hotspots': resolve(__dirname, 'src/plugins/hotspots.ts'),
+        'plugins-share': resolve(__dirname, 'src/plugins/share.ts'),
+        'plugins-deep-link': resolve(__dirname, 'src/plugins/deep-link.ts'),
         react: resolve(__dirname, 'src/react/index.tsx'),
         vue: resolve(__dirname, 'src/vue/index.ts')
       },

@@ -73,6 +73,56 @@
       "types": "./dist/vue/index.d.ts",
       "import": "./dist/flipbook-engine.vue.js",
       "default": "./dist/flipbook-engine.vue.js"
+    },
+    "./core": {
+      "types": "./dist/core-entry.d.ts",
+      "import": "./dist/flipbook-engine.core.js",
+      "default": "./dist/flipbook-engine.core.js"
+    },
+    "./plugins": {
+      "types": "./dist/plugins/index.d.ts",
+      "import": "./dist/flipbook-engine.plugins.js",
+      "default": "./dist/flipbook-engine.plugins.js"
+    },
+    "./plugins/notes": {
+      "types": "./dist/plugins-notes.d.ts",
+      "import": "./dist/flipbook-engine.plugins-notes.js",
+      "default": "./dist/flipbook-engine.plugins-notes.js"
+    },
+    "./plugins/bookmarks": {
+      "types": "./dist/plugins-bookmarks.d.ts",
+      "import": "./dist/flipbook-engine.plugins-bookmarks.js",
+      "default": "./dist/flipbook-engine.plugins-bookmarks.js"
+    },
+    "./plugins/toc": {
+      "types": "./dist/plugins-toc.d.ts",
+      "import": "./dist/flipbook-engine.plugins-toc.js",
+      "default": "./dist/flipbook-engine.plugins-toc.js"
+    },
+    "./plugins/search": {
+      "types": "./dist/plugins-search.d.ts",
+      "import": "./dist/flipbook-engine.plugins-search.js",
+      "default": "./dist/flipbook-engine.plugins-search.js"
+    },
+    "./plugins/annotations": {
+      "types": "./dist/plugins-annotations.d.ts",
+      "import": "./dist/flipbook-engine.plugins-annotations.js",
+      "default": "./dist/flipbook-engine.plugins-annotations.js"
+    },
+    "./plugins/hotspots": {
+      "types": "./dist/plugins-hotspots.d.ts",
+      "import": "./dist/flipbook-engine.plugins-hotspots.js",
+      "default": "./dist/flipbook-engine.plugins-hotspots.js"
+    },
+    "./plugins/share": {
+      "types": "./dist/plugins-share.d.ts",
+      "import": "./dist/flipbook-engine.plugins-share.js",
+      "default": "./dist/flipbook-engine.plugins-share.js"
+    },
+    "./plugins/deep-link": {
+      "types": "./dist/plugins-deep-link.d.ts",
+      "import": "./dist/flipbook-engine.plugins-deep-link.js",
+      "default": "./dist/flipbook-engine.plugins-deep-link.js"
     }
   },
   "peerDependencies": {

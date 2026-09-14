@@ -22,12 +22,14 @@ import { NotesPanel } from './NotesPanel';
 import { Viewer } from './Viewer';
 import { NavigationArrows } from './NavigationArrows';
 import { SearchPanel } from './SearchPanel';
+import { PluginPanels } from './PluginPanels';
 import type { FlipbookSearchOptions } from '../model/search';
 import type { FlipbookHotspot } from '../model/hotspots';
 import type { FlipbookAnnotation } from '../model/annotations';
 import type { FlipbookStore } from '../state/store';
 import type { PageFlipAdapter } from '../adapters/PageFlipAdapter';
 import type { InteractionManager } from '../core/InteractionManager';
+import type { FlipbookPluginRegistry } from '../plugins';
 
 interface AppProps {
     pageFlipAdapterRef: { current: PageFlipAdapter | null };
@@ -53,6 +55,7 @@ interface AppProps {
     onAnnotationClose: () => void;
     onToggleFullscreen: () => void;
     store: FlipbookStore;
+    pluginRegistry?: FlipbookPluginRegistry;
 }
 
 export function App(props: AppProps) {
@@ -133,6 +136,7 @@ export function App(props: AppProps) {
                 <TableOfContents store={props.store} onEntryClick={handleTocEntryClick} />
                 <SearchPanel store={props.store} onSearch={props.onSearch} onClear={props.onClearSearch} onClose={props.onCloseSearch} onSelect={props.onSelectSearchResult} />
                 <NotesPanel store={props.store} onSave={props.onSaveNote} onClear={props.onClearNote} onClose={props.onCloseNotes} />
+                {props.pluginRegistry ? <PluginPanels registry={props.pluginRegistry} /> : null}
             </div>
 
             <Toolbar store={props.store}
@@ -151,6 +155,7 @@ export function App(props: AppProps) {
                 onSoundToggle={() => props.store.soundEnabled.value = !props.store.soundEnabled.value}
                 onToggleAutoPlay={handleToggleAutoPlay}
                 onToggleFullscreen={handleToggleFullscreen}
+                pluginRegistry={props.pluginRegistry}
             />
 
             <Thumbnails store={props.store}

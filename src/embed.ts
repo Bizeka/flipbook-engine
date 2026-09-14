@@ -11,6 +11,7 @@ import type {
   FlipbookEngineOptions
 } from './engine';
 import type { FlipbookSearchOptions, FlipbookSearchResult } from './model/search';
+import type { FlipbookTocEntry } from './model/toc';
 
 export type FlipbookEmbedCommandName =
   | 'goToPage'
@@ -23,6 +24,8 @@ export type FlipbookEmbedCommandName =
   | 'search'
   | 'clearSearch'
   | 'getSearchResults'
+  | 'getToc'
+  | 'setToc'
   | 'getState';
 
 export interface FlipbookEmbedOptions {
@@ -234,6 +237,14 @@ export class FlipbookEmbedBridge {
         case 'getSearchResults':
           result = this.engine.getSearchResults();
           break;
+        case 'getToc':
+          result = this.engine.getToc();
+          break;
+        case 'setToc':
+          if (!Array.isArray(payload.entries)) throw new Error('entries must be an array.');
+          this.engine.setToc(payload.entries as FlipbookTocEntry[], typeof payload.show === 'boolean' ? payload.show : undefined);
+          result = this.getState();
+          break;
         case 'getState':
           result = this.getState();
           break;
@@ -267,6 +278,8 @@ export interface FlipbookEmbedController {
   search(query: string, options?: FlipbookSearchOptions): Promise<FlipbookSearchResult[]>;
   clearSearch(): Promise<FlipbookEmbedState>;
   getSearchResults(): Promise<FlipbookSearchResult[]>;
+  getToc(): Promise<FlipbookTocEntry[]>;
+  setToc(entries: FlipbookTocEntry[], show?: boolean): Promise<FlipbookEmbedState>;
   getState(): Promise<FlipbookEmbedState>;
   on<T extends FlipbookEngineEventName>(event: T, handler: (payload: FlipbookEngineEventMap[T]) => void): () => void;
   destroy(): void;
@@ -331,6 +344,8 @@ export function createFlipbookEmbedController(
     search: (query, searchOptions) => send('search', { query, options: searchOptions }) as Promise<FlipbookSearchResult[]>,
     clearSearch: () => send('clearSearch') as Promise<FlipbookEmbedState>,
     getSearchResults: () => send('getSearchResults') as Promise<FlipbookSearchResult[]>,
+    getToc: () => send('getToc') as Promise<FlipbookTocEntry[]>,
+    setToc: (entries, show) => send('setToc', { entries, show }) as Promise<FlipbookEmbedState>,
     getState: () => send('getState') as Promise<FlipbookEmbedState>,
     on: (event, handler) => {
       const set = handlers[event] ?? new Set<AnyEventHandler>();

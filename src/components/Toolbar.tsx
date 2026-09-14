@@ -15,6 +15,7 @@
 
 import { computed } from '@preact/signals-core';
 import type { FlipbookStore } from '../state/store';
+import type { FlipbookPluginRegistry } from '../plugins';
 import { resolveMessages } from '../i18n/service';
 interface ToolbarProps {
     store: FlipbookStore;
@@ -33,6 +34,29 @@ interface ToolbarProps {
     onPrevPage: () => void;
     onToggleAutoPlay: () => void;
     onToggleFullscreen: () => void;
+    pluginRegistry?: FlipbookPluginRegistry;
+}
+
+function renderPluginToolbarButtons(props: { registry?: FlipbookPluginRegistry; placement: 'start' | 'end' }): any[] {
+    if (!props.registry) return [];
+    props.registry.version.value;
+    const buttons = props.registry.getToolbarButtons().filter((button) => (button.placement || 'end') === props.placement);
+    return buttons.map((button) => {
+        const disabled = typeof button.disabled === 'function' ? button.disabled() : button.disabled;
+        return (
+            <button
+                type="button"
+                class="bk-btn bk-btn--plugin"
+                onClick={button.onClick}
+                disabled={disabled}
+                aria-label={button.title || button.label}
+                title={button.title || button.label}
+            >
+                {button.icon ? <span class="bk-plugin-button-icon" aria-hidden="true">{button.icon}</span> : null}
+                <span class="bk-plugin-button-label">{button.label}</span>
+            </button>
+        );
+    });
 }
 
 export function Toolbar(props: ToolbarProps) {
@@ -41,6 +65,7 @@ export function Toolbar(props: ToolbarProps) {
     return (
         <div class="bk-toolbar" role="toolbar" aria-label="Flipbook controls">
             <div class="bk-btn-group">
+                {renderPluginToolbarButtons({ registry: props.pluginRegistry, placement: 'start' })}
                 <button type="button"
                     class={computed(() => `bk-btn ${props.store.showThumbs.value ? 'active' : ''}`)}
                     onClick={props.onToggleThumbs}
@@ -165,6 +190,7 @@ export function Toolbar(props: ToolbarProps) {
 
                     <svg style={{ display: computed(() => !props.store.soundEnabled.value ? 'block' : 'none') as any }} xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
                 </button>
+                {renderPluginToolbarButtons({ registry: props.pluginRegistry, placement: 'end' })}
             </div>
         </div>
     );

@@ -117,7 +117,7 @@ await catalog.setZoom(1.5);
 catalog.on('pageChange', (state) => console.log(state.pageNumber));
 ```
 
-Commands are restricted to navigation, zoom, single-mode, option updates, fullscreen, and state queries. Configure an explicit `allowedOrigins` value in the iframe and `targetOrigin` value in the parent for cross-origin deployments. The bridge rejects messages from other windows or origins.
+Commands are restricted to navigation, zoom, single-mode, option updates, fullscreen, TOC read/update, search, and state queries. Configure an explicit `allowedOrigins` value in the iframe and `targetOrigin` value in the parent for cross-origin deployments. The bridge rejects messages from other windows or origins.
 
 ## Event Subscriptions
 
@@ -165,6 +165,8 @@ The viewer derives its page ratio from PDF.js metadata or the supplied image ass
 
 TOC entries are supplied by the host application so the viewer stays backend-agnostic. `pageIndex` is zero-based and is clamped to the loaded page range. Nested `children` entries are supported.
 
+Use `engine.getToc()` to read the normalized tree or `engine.setToc(entries, show?)` to replace it at runtime. The open-source viewer consumes this manifest; it does not extract PDF outline destinations or generate OCR metadata.
+
 ```ts
 const engine = new FlipbookEngine('#viewer', {
   toc: [
@@ -197,3 +199,7 @@ const engine = new FlipbookEngine('#viewer', {
   annotations: [{ id: 'note-1', pageIndex: 4, x: .42, y: .36, text: 'Fiyat kontrol edilecek' }]
 });
 ```
+
+## Plugins
+
+See [Plugin architecture](./plugin-architecture.md) for the v1 plugin contract and lifecycle.

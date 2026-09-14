@@ -75,7 +75,7 @@ const controller = createFlipbookEmbedController(
 await controller.goToPage(2);
 ```
 
-Always configure explicit origins for cross-origin embeds. The bridge supports page navigation, zoom, single mode, option updates, fullscreen, state queries, and event forwarding.
+Always configure explicit origins for cross-origin embeds. The bridge supports page navigation, zoom, single mode, option updates, fullscreen, TOC read/update, search, state queries, and event forwarding.
 
 
 ## Deep links and sharing

@@ -117,3 +117,34 @@ test('embed controller exposes the asynchronous search command', async () => {
   controller.destroy();
   iframe.remove();
 });
+
+
+test('embed controller exposes TOC read and update commands', async () => {
+  const iframe = document.createElement('iframe');
+  document.body.appendChild(iframe);
+  const sent: any[] = [];
+  (iframe.contentWindow as any).postMessage = (message: unknown, origin: string) => sent.push({ message, origin });
+  const controller = createFlipbookEmbedController(iframe);
+
+  const tocPromise = controller.getToc();
+  assert.equal(sent[0].message.command, 'getToc');
+  window.dispatchEvent(new window.MessageEvent('message', {
+    source: iframe.contentWindow,
+    origin: 'http://localhost',
+    data: { type: 'flipbook:response', requestId: sent[0].message.requestId, ok: true, result: [{ title: 'Products', pageIndex: 2 }] }
+  }));
+  assert.deepEqual(await tocPromise, [{ title: 'Products', pageIndex: 2 }]);
+
+  const entries = [{ title: 'Updated', pageIndex: 4 }];
+  const updatePromise = controller.setToc(entries, true);
+  assert.equal(sent[1].message.command, 'setToc');
+  assert.deepEqual(sent[1].message.payload, { entries, show: true });
+  window.dispatchEvent(new window.MessageEvent('message', {
+    source: iframe.contentWindow,
+    origin: 'http://localhost',
+    data: { type: 'flipbook:response', requestId: sent[1].message.requestId, ok: true, result: { currentPage: 0, totalPages: 5, zoom: 1 } }
+  }));
+  assert.equal((await updatePromise).totalPages, 5);
+  controller.destroy();
+  iframe.remove();
+});
