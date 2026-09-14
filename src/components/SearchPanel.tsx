@@ -39,14 +39,16 @@ export function SearchPanel(props: SearchPanelProps) {
         {computed(() => {
           const results = props.store.searchResults.value;
           if (!props.store.searchQuery.value) return null;
-          if (!results.length) return <div class="bk-search-empty">{computed(() => messages.value.noSearchResults || 'No results')}</div>;
-          return results.map((result) => (
-            <button type="button" class="bk-search-result" onClick={() => props.onSelect(result.pageIndex)}>
-              <span class="bk-search-result-page">{result.pageNumber}</span>
-              <span class="bk-search-result-text">{result.snippet}</span>
-              <span class="bk-search-result-count">{result.matches}</span>
-            </button>
-          ));
+          if (!results.length) return <div class="bk-search-empty">{messages.value.noSearchResults || 'No results'}</div>;
+          return <div class="bk-search-result-list">
+            {results.map((result) => (
+              <button type="button" class="bk-search-result" onClick={() => props.onSelect(result.pageIndex)}>
+                <span class="bk-search-result-page">{result.pageNumber}</span>
+                <span class="bk-search-result-text">{result.snippet}</span>
+                <span class="bk-search-result-count">{result.matches}</span>
+              </button>
+            ))}
+          </div>;
         })}
       </div>
     </section>

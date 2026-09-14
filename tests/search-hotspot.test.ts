@@ -73,3 +73,33 @@ test('page annotations render as coordinate markers and emit activation', async 
   engine.closeAnnotation();
   engine.destroy();
 });
+
+test('search results render as buttons rather than stringified DOM objects', async (t) => {
+  const originalLoad = PdfRenderer.prototype.loadDocument;
+  const originalRender = PdfRenderer.prototype.renderPageToDataUrl;
+  const originalLayouts = PdfRenderer.prototype.getPageLayouts;
+  const originalViewport = PdfRenderer.prototype.calculateViewportDimensions;
+  const originalSearch = PdfRenderer.prototype.searchText;
+  PdfRenderer.prototype.loadDocument = async () => 1;
+  PdfRenderer.prototype.renderPageToDataUrl = async () => 'data:image/mock,page';
+  PdfRenderer.prototype.getPageLayouts = async () => [{ width: 595, height: 842, split: false }];
+  PdfRenderer.prototype.calculateViewportDimensions = async () => ({ width: 420, height: 594 });
+  PdfRenderer.prototype.searchText = async () => [{ sourcePageNumber: 1, matches: 1, snippet: 'Product catalog' }];
+  t.after(() => {
+    PdfRenderer.prototype.loadDocument = originalLoad;
+    PdfRenderer.prototype.renderPageToDataUrl = originalRender;
+    PdfRenderer.prototype.getPageLayouts = originalLayouts;
+    PdfRenderer.prototype.calculateViewportDimensions = originalViewport;
+    PdfRenderer.prototype.searchText = originalSearch;
+  });
+  const engine = new FlipbookEngine('#app', { soundUrl: '' });
+  await engine.init('/search-ui.pdf');
+  (document.querySelector('button[title="Search"]') as HTMLButtonElement).click();
+  const input = document.querySelector('.bk-search-input') as HTMLInputElement;
+  input.value = 'product';
+  (document.querySelector('.bk-search-submit') as HTMLButtonElement).click();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.equal(document.querySelectorAll('.bk-search-result').length, 1);
+  assert.equal(document.querySelector('.bk-search-results')?.textContent?.includes('[object HTMLButtonElement]'), false);
+  engine.destroy();
+});
