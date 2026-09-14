@@ -64,10 +64,42 @@ Updates options dynamically at runtime.
 ### `setLocale(locale: string, messages?: PartialFlipbookMessages | Record<string, PartialFlipbookMessages>)`
 Changes the UI language programmatically.
 
+### `connectEmbed(options?: FlipbookEmbedOptions)`
+Connects an origin-validated postMessage bridge for iframe integrations. Call this from the document loaded inside the iframe.
+
 ### `destroy(keepContainer = false)`
 Tears down the instance, unsubscribes all event handlers, and optionally clears the container element HTML.
 
 ---
+
+## Iframe embedding
+
+Embed integrations use a small, origin-validated `postMessage` bridge. The viewer page (inside the iframe) connects the bridge:
+
+```ts
+const engine = new FlipbookEngine('#viewer', { showThumbs: false });
+const embedBridge = engine.connectEmbed({
+  allowedOrigins: ['https://catalog.example.com']
+});
+await engine.init('/files/catalog.pdf');
+```
+
+The parent page can control the iframe with the exported controller:
+
+```ts
+import { createFlipbookEmbedController } from 'flipbookengine';
+
+const iframe = document.querySelector('#catalog-frame') as HTMLIFrameElement;
+const catalog = createFlipbookEmbedController(iframe, {
+  targetOrigin: 'https://viewer.example.com'
+});
+
+await catalog.goToPage(3);
+await catalog.setZoom(1.5);
+catalog.on('pageChange', (state) => console.log(state.pageNumber));
+```
+
+Commands are restricted to navigation, zoom, single-mode, option updates, fullscreen, and state queries. Configure an explicit `allowedOrigins` value in the iframe and `targetOrigin` value in the parent for cross-origin deployments. The bridge rejects messages from other windows or origins.
 
 ## Event Subscriptions
 

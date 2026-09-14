@@ -145,6 +145,34 @@ const pages = [
 </script>
 ```
 
+
+
+## Iframe embedding
+
+For a viewer hosted in an iframe, connect the bridge from the iframe document and allow only the parent origin:
+
+```javascript
+const engine = new FlipbookEngine('#viewer', { showThumbs: false });
+engine.connectEmbed({
+  allowedOrigins: ['https://catalog.example.com']
+});
+await engine.init('/files/catalog.pdf');
+```
+
+From the parent page, use the controller exported by the package:
+
+```javascript
+import { createFlipbookEmbedController } from 'flipbookengine';
+
+const controller = createFlipbookEmbedController(
+  document.querySelector('#catalog-frame'),
+  { targetOrigin: 'https://viewer.example.com' }
+);
+await controller.goToPage(2);
+```
+
+Always configure explicit origins for cross-origin embeds. The bridge supports page navigation, zoom, single mode, option updates, fullscreen, state queries, and event forwarding.
+
 ## Migration Notes
 
 Upgrading from 0.3.x to 0.4.0 keeps the public engine methods intact. The release isolates state per engine instance, makes wrapper updates lifecycle-safe, and scopes viewer markup to its container. If host CSS or automation selected the former fixed viewer IDs, migrate those selectors to the instance classes documented in the theming guide. PDF-backed consumers should configure `pdfWorkerSrc`; image-only viewers do not expose a download control.

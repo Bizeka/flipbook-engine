@@ -39,3 +39,6 @@ export type {
 export type { FlipbookThemeMode, FlipbookBackgroundStyle, FlipbookBackgrounds } from './theme/theme';
 export type { PdfPageMode, PdfPageLayout } from './core/PdfRenderer';
 export { isA3Landscape } from './core/PdfRenderer';
+
+export { FlipbookEmbedBridge, createFlipbookEmbedController } from './embed';
+export type { FlipbookEmbedOptions, FlipbookEmbedCommandName, FlipbookEmbedCommand, FlipbookEmbedEvent, FlipbookEmbedResponse, FlipbookEmbedState, FlipbookEmbedController } from './embed';

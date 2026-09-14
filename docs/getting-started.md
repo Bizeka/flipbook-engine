@@ -49,3 +49,30 @@ await engine.init('/files/catalog.pdf', [
 ## Mixed Page Spreads
 
 FlipbookEngine supports loading single pages, spreads (double-pages), and covers mixed together. The engine will automatically normalize spreads (cutting them into left and right halves on portrait viewports) for responsive mobile viewing.
+
+
+## Iframe embedding
+
+For a viewer hosted in an iframe, connect the bridge from the iframe document and allow only the parent origin:
+
+```javascript
+const engine = new FlipbookEngine('#viewer', { showThumbs: false });
+engine.connectEmbed({
+  allowedOrigins: ['https://catalog.example.com']
+});
+await engine.init('/files/catalog.pdf');
+```
+
+From the parent page, use the controller exported by the package:
+
+```javascript
+import { createFlipbookEmbedController } from 'flipbookengine';
+
+const controller = createFlipbookEmbedController(
+  document.querySelector('#catalog-frame'),
+  { targetOrigin: 'https://viewer.example.com' }
+);
+await controller.goToPage(2);
+```
+
+Always configure explicit origins for cross-origin embeds. The bridge supports page navigation, zoom, single mode, option updates, fullscreen, state queries, and event forwarding.

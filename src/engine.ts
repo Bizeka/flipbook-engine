@@ -25,6 +25,7 @@ import { resolveMessages, type FlipbookLocale, type PartialFlipbookMessages } fr
 import { PdfRenderer, type PdfPageLayout, type PdfPageMode } from './core/PdfRenderer';
 import { normalizeFlipbookToc, type FlipbookTocEntry } from './model/toc';
 import './styles/flipbook-engine.css';
+import { FlipbookEmbedBridge, type FlipbookEmbedOptions } from './embed';
 
 export interface FlipbookEngineOptions {
     allowDownload?: boolean;
@@ -490,6 +491,11 @@ export class FlipbookEngine {
         if (this.container) {
             applyThemeConfiguration(this.container, this.options);
         }
+    }
+
+    /** Connects an optional postMessage bridge for iframe/embed integrations. */
+    public connectEmbed(options: FlipbookEmbedOptions = {}): FlipbookEmbedBridge {
+        return new FlipbookEmbedBridge(this, options).connect();
     }
 
     public async setPages(imageList?: Array<PageImages | FlipbookPageAsset>, pdfUrl?: string) {
