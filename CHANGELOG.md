@@ -11,6 +11,7 @@
 - added regression coverage for toolbar share invocation, generated page URLs, callback delivery, and Turkish localization
 - added host-managed bookmark state with localized toolbar control, public methods, and `bookmarkChange` events
 - added host-managed page notes with initialization options, public methods, `noteChange` events, and iframe event forwarding
+- added localized notes toolbar/editor for live note entry; persistence remains with the host
 
 ## 0.6.5
 

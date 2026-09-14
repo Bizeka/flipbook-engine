@@ -23,7 +23,7 @@ FlipbookEngine is a modern, lightweight, and embeddable HTML flipbook viewer for
 - **Progressive PDF Rendering**: PDF pages render on demand with bounded concurrency and an instance-local LRU cache, keeping large documents responsive.
 - **Localized Sharing**: The toolbar includes a Share control that opens the native share sheet or copies the current page URL; enable `deepLink: true` for shareable page navigation.
 - **Host-Managed Bookmarks**: The toolbar can toggle the current page bookmark; hosts can initialize and persist zero-based bookmark indexes through the public API and `bookmarkChange` event.
-- **Host-Managed Notes**: Hosts can initialize, update, and persist page notes through the public API and `noteChange` event without coupling the viewer to a storage backend.
+- **Host-Managed Notes**: The localized notes toolbar opens an inline editor; hosts can initialize, update, and persist page notes through the public API and `noteChange` event without coupling the viewer to a storage backend.
 
 ## Installation
 
@@ -203,7 +203,7 @@ The `FlipbookEngine` class exposes the following public methods:
 - **`isBookmarked(pageIndex = getCurrentPage())`**: Checks whether a page is bookmarked.
 - **`setBookmark(pageIndex, bookmarked)`** / **`toggleBookmark(pageIndex)`**: Updates bookmark state and emits `bookmarkChange`; hosts can persist the event payload.
 - **`getNotes()`** / **`getNote(pageIndex)`**: Reads host-managed page notes.
-- **`setNote(pageIndex, note)`** / **`clearNote(pageIndex)`**: Updates notes and emits `noteChange`; empty notes are removed.
+- **`setNote(pageIndex, note)`** / **`clearNote(pageIndex)`**: Updates notes and emits `noteChange`; empty notes are removed. The toolbar editor is intentionally host-storage agnostic, so a backend can persist each event later.
 - **`destroy(keepContainer = false)`**: Tears down the instance and listeners; when `true`, keeps the container markup for an immediate reinitialization.
 
 ### Subscribing to Events
@@ -239,7 +239,7 @@ Supported events: `init`, `progress`, `pageChange`, `zoomChange`, `singlePageMod
 | `background` | `FlipbookBackgrounds \| null` | `null` | Optional light/dark viewer backgrounds with color, image, size, position, and repeat settings. |
 | `deepLink` | `boolean` | `false` | Keeps the active page synchronized with a `?page=` URL parameter. The localized toolbar Share control uses this URL format. |
 | `bookmarks` | `number[]` | `[]` | Initial zero-based bookmarked page indexes; the host owns persistence. |
-| `notes` | `Record<number, string>` | `{}` | Initial host-managed notes keyed by zero-based page index; persistence remains with the host. |
+| `notes` | `Record<number, string>` | `{}` | Initial page notes keyed by zero-based page index; the notes toolbar edits them while the host owns persistence. |
 | `onShare` | `(url: string) => void` | `null` | Optional callback invoked after the toolbar shares or copies the generated page URL. |
 
 

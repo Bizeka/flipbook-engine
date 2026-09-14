@@ -992,3 +992,85 @@
     line-height: 18px;
   }
 }
+
+/* Host-managed page note editor. The data remains in FlipbookEngine state
+   and can be persisted by listening to the noteChange event. */
+.bk-notes-panel {
+  position: absolute;
+  right: 12px;
+  bottom: calc(var(--flipbook-toolbar-height) + 12px);
+  z-index: 35;
+  width: min(340px, calc(100% - 24px));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--flipbook-border);
+  border-radius: var(--flipbook-radius-md);
+  background: color-mix(in srgb, var(--flipbook-bg-surface) 94%, transparent);
+  color: var(--flipbook-text-main);
+  box-shadow: 0 8px 24px var(--flipbook-shadow);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.bk-notes-heading {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--flipbook-text-main);
+}
+
+.bk-notes-input {
+  width: 100%;
+  min-height: 96px;
+  resize: vertical;
+  box-sizing: border-box;
+  border: 1px solid var(--flipbook-border);
+  border-radius: var(--flipbook-radius-sm);
+  padding: 8px 10px;
+  background: var(--flipbook-bg-surface-alt);
+  color: var(--flipbook-text-main);
+  font: inherit;
+  line-height: 1.4;
+}
+
+.bk-notes-input:focus-visible {
+  outline: 2px solid var(--flipbook-accent);
+  outline-offset: 1px;
+}
+
+.bk-notes-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.bk-notes-actions button {
+  border: 1px solid var(--flipbook-border);
+  border-radius: var(--flipbook-radius-sm);
+  padding: 6px 10px;
+  background: transparent;
+  color: var(--flipbook-text-main);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8rem;
+}
+
+.bk-notes-actions button:hover {
+  border-color: var(--flipbook-accent);
+  color: var(--flipbook-accent);
+}
+
+.bk-notes-save {
+  border-color: var(--flipbook-accent) !important;
+  background: var(--flipbook-accent) !important;
+  color: var(--flipbook-accent-text) !important;
+}
+
+@media (max-width: 768px) {
+  .bk-notes-panel {
+    right: 8px;
+    bottom: calc(var(--flipbook-toolbar-height) + 8px);
+    width: min(320px, calc(100% - 16px));
+  }
+}

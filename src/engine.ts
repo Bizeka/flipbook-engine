@@ -264,7 +264,12 @@ export class FlipbookEngine {
                     console.warn('Share err:', error);
                 });
             },
-            onToggleBookmark: () => this.toggleBookmark()
+            onToggleBookmark: () => this.toggleBookmark(),
+            onToggleNotes: () => {
+                this.store.showNotes.value = !this.store.showNotes.value;
+            },
+            onSaveNote: (note: string) => this.setNote(this.getCurrentPage(), note),
+            onClearNote: () => this.clearNote(this.getCurrentPage())
         });
 
         this.container.appendChild(appNode as unknown as Node);

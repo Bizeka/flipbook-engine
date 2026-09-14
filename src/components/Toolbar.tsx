@@ -26,6 +26,7 @@ interface ToolbarProps {
     onDownload?: () => void;
     onShare: () => void;
     onToggleBookmark: () => void;
+    onToggleNotes: () => void;
     onSoundToggle: () => void;
     onNextPage: () => void;
     onPrevPage: () => void;
@@ -117,8 +118,18 @@ export function Toolbar(props: ToolbarProps) {
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
                 </button>
 
-                <button type="button" class="bk-btn bk-btn--bookmark" onClick={props.onToggleBookmark} aria-label={computed(() => props.store.bookmarkedPages.value.has(props.store.currentPage.value) ? (messages.value.removeBookmark || 'Remove bookmark') : (messages.value.bookmark || 'Bookmark page'))} title={computed(() => props.store.bookmarkedPages.value.has(props.store.currentPage.value) ? (messages.value.removeBookmark || 'Remove bookmark') : (messages.value.bookmark || 'Bookmark page'))} aria-pressed={computed(() => props.store.bookmarkedPages.value.has(props.store.currentPage.value) ? 'true' : 'false')}>
+                <button type="button" class={computed(() => `bk-btn bk-btn--bookmark ${props.store.bookmarkedPages.value.has(props.store.currentPage.value) ? 'active' : ''}`)} onClick={props.onToggleBookmark} aria-label={computed(() => props.store.bookmarkedPages.value.has(props.store.currentPage.value) ? (messages.value.removeBookmark || 'Remove bookmark') : (messages.value.bookmark || 'Bookmark page'))} title={computed(() => props.store.bookmarkedPages.value.has(props.store.currentPage.value) ? (messages.value.removeBookmark || 'Remove bookmark') : (messages.value.bookmark || 'Bookmark page'))} aria-pressed={computed(() => props.store.bookmarkedPages.value.has(props.store.currentPage.value) ? 'true' : 'false')}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v18l-7-4-7 4V4z"></path></svg>
+                </button>
+
+                <button type="button"
+                    class={computed(() => `bk-btn bk-btn--notes ${props.store.showNotes.value ? 'active' : ''}`)}
+                    onClick={props.onToggleNotes}
+                    aria-label={computed(() => messages.value.notes || 'Page note')}
+                    title={computed(() => messages.value.notes || 'Page note')}
+                    aria-pressed={computed(() => props.store.showNotes.value ? 'true' : 'false')}
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="14" y2="17"></line></svg>
                 </button>
 
                 {computed(() => {

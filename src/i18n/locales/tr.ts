@@ -20,6 +20,9 @@ export const trMessages = {
   share: 'Paylaş',
   bookmark: 'Sayfayı yer imlerine ekle',
   removeBookmark: 'Yer imini kaldır',
+  notes: 'Sayfa notu',
+  saveNote: 'Notu kaydet',
+  clearNote: 'Notu temizle',
   play: 'Otomatik Oynat',
   pause: 'Duraklat',
   tableOfContents: 'İçindekiler'

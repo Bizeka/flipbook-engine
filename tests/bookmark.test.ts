@@ -30,11 +30,13 @@ test('bookmark state is initialized, toggled from the toolbar, and emitted for h
   assert.deepEqual(changes[0], { pageIndex: 1, pageNumber: 2, bookmarked: true });
   assert.equal(button.getAttribute('aria-label'), 'Yer imini kaldır');
   assert.equal(button.getAttribute('aria-pressed'), 'true');
+  assert.match(button.className, /\bactive\b/);
 
   button.click();
   await new Promise((resolve) => setTimeout(resolve, 0));
   assert.equal(engine.isBookmarked(1), false);
   assert.deepEqual(changes[1], { pageIndex: 1, pageNumber: 2, bookmarked: false });
+  assert.doesNotMatch(button.className, /\bactive\b/);
   engine.updateOptions({ bookmarks: [1] });
   assert.deepEqual(engine.getBookmarkedPages(), [1]);
   engine.destroy();

@@ -18,6 +18,7 @@ import { computed } from '@preact/signals-core';
 import { Toolbar } from './Toolbar';
 import { Thumbnails } from './Thumbnails';
 import { TableOfContents } from './TableOfContents';
+import { NotesPanel } from './NotesPanel';
 import { Viewer } from './Viewer';
 import { NavigationArrows } from './NavigationArrows';
 import type { FlipbookStore } from '../state/store';
@@ -34,6 +35,9 @@ interface AppProps {
     onDownload: () => void;
     onShare: () => void;
     onToggleBookmark: () => void;
+    onToggleNotes: () => void;
+    onSaveNote: (note: string) => void;
+    onClearNote: () => void;
     onToggleFullscreen: () => void;
     store: FlipbookStore;
 }
@@ -45,6 +49,10 @@ export function App(props: AppProps) {
 
     const handleToggleToc = () => {
         props.store.showToc.value = !props.store.showToc.value;
+    };
+
+    const handleToggleNotes = () => {
+        props.onToggleNotes();
     };
 
     const handleToggleSingleMode = () => {
@@ -106,6 +114,7 @@ export function App(props: AppProps) {
                     </div>
                 ) : null}
                 <TableOfContents store={props.store} onEntryClick={handleTocEntryClick} />
+                <NotesPanel store={props.store} onSave={props.onSaveNote} onClear={props.onClearNote} />
             </div>
 
             <Toolbar store={props.store}
@@ -117,6 +126,7 @@ export function App(props: AppProps) {
                 onDownload={props.onDownload}
                 onShare={props.onShare}
                 onToggleBookmark={props.onToggleBookmark}
+                onToggleNotes={handleToggleNotes}
                 onNextPage={handleNextPage}
                 onPrevPage={handlePrevPage}
                 onSoundToggle={() => props.store.soundEnabled.value = !props.store.soundEnabled.value}

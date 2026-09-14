@@ -32,7 +32,7 @@ When instantiating `new FlipbookEngine(selector, options)`, you can configure th
 | `deepLink` | `boolean` | `false` | Synchronizes the active page with a `?page=` URL parameter and browser history. |
 | `onShare` | `(url: string) => void` | `null` | Optional callback invoked after the localized toolbar Share control shares or copies the generated page URL. |
 | `bookmarks` | `number[]` | `[]` | Initial zero-based page indexes marked as bookmarks; persistence remains with the host application. |
-| `notes` | `Record<number, string>` | `{}` | Initial host-managed notes keyed by zero-based page index; persistence remains with the host application. |
+| `notes` | `Record<number, string>` | `{}` | Initial page notes keyed by zero-based page index; the localized toolbar editor is host-storage agnostic. |
 
 ---
 
@@ -78,7 +78,7 @@ Uses the native share dialog when available, otherwise copies the page URL to th
 
 `getBookmarkedPages()`, `isBookmarked()`, `setBookmark(pageIndex, bookmarked)`, and `toggleBookmark(pageIndex)` manage zero-based bookmark state. The `bookmarkChange` event payload is `{ pageIndex, pageNumber, bookmarked }`; hosts should persist this payload in their own storage.
 
-`getNotes()`, `getNote(pageIndex)`, `setNote(pageIndex, note)`, and `clearNote(pageIndex)` manage host-owned notes. Empty notes are removed; `noteChange` emits `{ pageIndex, pageNumber, note }` with `null` when a note is cleared.
+`getNotes()`, `getNote(pageIndex)`, `setNote(pageIndex, note)`, and `clearNote(pageIndex)` manage host-owned notes. The toolbar's localized **Page note** button opens an inline editor; empty notes are removed; `noteChange` emits `{ pageIndex, pageNumber, note }` with `null` when a note is cleared. Hosts can persist that payload in a database or other storage.
 
 ### `connectEmbed(options?: FlipbookEmbedOptions)`
 Connects an origin-validated postMessage bridge for iframe integrations. Call this from the document loaded inside the iframe.

@@ -20,6 +20,9 @@ export const enMessages = {
   share: 'Share',
   bookmark: 'Bookmark page',
   removeBookmark: 'Remove bookmark',
+  notes: 'Page note',
+  saveNote: 'Save note',
+  clearNote: 'Clear note',
   play: 'Play',
   pause: 'Pause',
   tableOfContents: 'Table of Contents'

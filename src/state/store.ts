@@ -17,7 +17,7 @@ export interface ZoomState { isActive: boolean; translateX: number; translateY: 
 
 export interface FlipbookStore {
     currentPage: Signal<number>; totalPages: Signal<number>; isSingleMode: Signal<boolean>;
-    showThumbs: Signal<boolean>; showToc: Signal<boolean>; showArrows: Signal<boolean>; orientation: Signal<Orientation>;
+    showThumbs: Signal<boolean>; showToc: Signal<boolean>; showNotes: Signal<boolean>; showArrows: Signal<boolean>; orientation: Signal<Orientation>;
     flipState: Signal<FlipState>; themeMode: Signal<FlipbookThemeMode>; allowDownload: Signal<boolean>; bookmarkedPages: Signal<ReadonlySet<number>>; pageNotes: Signal<ReadonlyMap<number, string>>;
     hasDownloadUrl: Signal<boolean>; primaryColor: Signal<string>; whiteLabel: Signal<boolean>;
     isZoomed: Signal<boolean>; isAutoPlaying: Signal<boolean>; autoPlayInterval: Signal<number>;
@@ -32,7 +32,7 @@ const initialZoomState = (): ZoomState => ({ isActive: false, translateX: 0, tra
 /** Creates an isolated reactive state container for one FlipbookEngine instance. */
 export function createFlipbookStore(): FlipbookStore {
     const currentPage = signal(0), totalPages = signal(0), isSingleMode = signal(false);
-    const showThumbs = signal(false), showToc = signal(false), showArrows = signal(true), orientation = signal<Orientation>('landscape');
+    const showThumbs = signal(false), showToc = signal(false), showNotes = signal(false), showArrows = signal(true), orientation = signal<Orientation>('landscape');
     const flipState = signal<FlipState>('read'), themeMode = signal<FlipbookThemeMode>('auto');
     const allowDownload = signal(true), hasDownloadUrl = signal(false), primaryColor = signal('#7367f0');
     const whiteLabel = signal(false), isZoomed = signal(false), isAutoPlaying = signal(false);
@@ -51,6 +51,7 @@ export function createFlipbookStore(): FlipbookStore {
         if (options.primaryColor !== undefined) primaryColor.value = options.primaryColor;
         if (options.showThumbs !== undefined) showThumbs.value = options.showThumbs;
         if (options.showToc !== undefined) showToc.value = options.showToc;
+        showNotes.value = false;
         toc.value = normalizeFlipbookToc(options.toc ?? [], total);
         if (options.showArrows !== undefined) showArrows.value = options.showArrows;
         if (options.allowDownload !== undefined) allowDownload.value = options.allowDownload;
@@ -71,6 +72,8 @@ export function createFlipbookStore(): FlipbookStore {
         totalPages.value = 0;
         isSingleMode.value = false;
         showThumbs.value = false;
+        showToc.value = false;
+        showNotes.value = false;
         showArrows.value = true;
         orientation.value = 'landscape';
         flipState.value = 'read';
@@ -91,13 +94,13 @@ export function createFlipbookStore(): FlipbookStore {
         bookmarkedPages.value = new Set();
         pageNotes.value = new Map();
     };
-    return { currentPage, totalPages, isSingleMode, showThumbs, showToc, showArrows, orientation, flipState, themeMode, allowDownload, bookmarkedPages, pageNotes, hasDownloadUrl, primaryColor, whiteLabel, isZoomed, isAutoPlaying, autoPlayInterval, soundEnabled, locale, messages, zoomState, pages, toc, isDoublePageLayout, isFrontCover, isBackCover, init, reset };
+    return { currentPage, totalPages, isSingleMode, showThumbs, showToc, showNotes, showArrows, orientation, flipState, themeMode, allowDownload, bookmarkedPages, pageNotes, hasDownloadUrl, primaryColor, whiteLabel, isZoomed, isAutoPlaying, autoPlayInterval, soundEnabled, locale, messages, zoomState, pages, toc, isDoublePageLayout, isFrontCover, isBackCover, init, reset };
 }
 
 // Compatibility exports for consumers of the former internal singleton module.
 const legacyStore = createFlipbookStore();
 export const currentPage = legacyStore.currentPage, totalPages = legacyStore.totalPages, isSingleMode = legacyStore.isSingleMode;
-export const showThumbs = legacyStore.showThumbs, showToc = legacyStore.showToc, showArrows = legacyStore.showArrows, orientation = legacyStore.orientation;
+export const showThumbs = legacyStore.showThumbs, showToc = legacyStore.showToc, showNotes = legacyStore.showNotes, showArrows = legacyStore.showArrows, orientation = legacyStore.orientation;
 export const flipState = legacyStore.flipState, themeMode = legacyStore.themeMode, allowDownload = legacyStore.allowDownload, bookmarkedPages = legacyStore.bookmarkedPages, pageNotes = legacyStore.pageNotes;
 export const hasDownloadUrl = legacyStore.hasDownloadUrl, primaryColor = legacyStore.primaryColor, whiteLabel = legacyStore.whiteLabel;
 export const isZoomed = legacyStore.isZoomed, isAutoPlaying = legacyStore.isAutoPlaying, autoPlayInterval = legacyStore.autoPlayInterval;
