@@ -244,7 +244,7 @@ Supported events: `init`, `progress`, `pageChange`, `zoomChange`, `singlePageMod
 | `deepLink` | `boolean` | `false` | Keeps the active page synchronized with a `?page=` URL parameter. The localized toolbar Share control uses this URL format. |
 | `bookmarks` | `number[]` | `[]` | Initial zero-based bookmarked page indexes; the host owns persistence. |
 | `notes` | `Record<number, string>` | `{}` | Initial page notes keyed by zero-based page index; the notes toolbar edits them while the host owns persistence. |
-| `hotspots` | `FlipbookHotspot[]` | `[]` | Normalized (0..1) page overlays with labels, plain-text popup content, and optional links. |
+| `hotspots` | `FlipbookHotspot[]` | `[]` | Normalized (0..1) page overlays with info/media/gallery/commerce popup content and optional links. |
 | `annotations` | `FlipbookAnnotation[]` | `[]` | Host-managed page note markers with normalized coordinates and plain-text popup content. |
 | `onShare` | `(url: string) => void` | `null` | Optional callback invoked after the toolbar shares or copies the generated page URL. |
 
@@ -369,7 +369,7 @@ const engine = new FlipbookEngine('#viewer', {
 engine.on('hotspotActivate', ({ hotspot }) => console.log(hotspot.id));
 ```
 
-Hotspot content is plain text; applications should sanitize server-provided values before passing them to the viewer. Use `activateHotspot(id)` and `closeHotspot()` for programmatic control.
+Hotspots support `kind: 'info' | 'media' | 'gallery' | 'commerce'`. A hotspot can render a single image/video/audio preview through `media`, a selectable image gallery through `gallery`, and a safe external/product destination through `href`. Content remains plain text; applications should sanitize server-provided URLs before passing them to the viewer. Use `activateHotspot(id)` and `closeHotspot()` for programmatic control.
 
 
 ### Page annotations

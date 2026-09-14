@@ -33,7 +33,7 @@ When instantiating `new FlipbookEngine(selector, options)`, you can configure th
 | `onShare` | `(url: string) => void` | `null` | Optional callback invoked after the localized toolbar Share control shares or copies the generated page URL. |
 | `bookmarks` | `number[]` | `[]` | Initial zero-based page indexes marked as bookmarks; persistence remains with the host application. |
 | `notes` | `Record<number, string>` | `{}` | Initial page notes keyed by zero-based page index; the localized toolbar editor is host-storage agnostic. |
-| `hotspots` | `FlipbookHotspot[]` | `[]` | Normalized page overlays with accessible labels, plain-text popup content, and optional links. |
+| `hotspots` | `FlipbookHotspot[]` | `[]` | Normalized page overlays with accessible labels, media/gallery previews, plain-text content, and optional commerce links. |
 | `annotations` | `FlipbookAnnotation[]` | `[]` | Host-managed page note markers with normalized coordinates and plain-text popup content. |
 
 ---
@@ -187,7 +187,7 @@ const engine = new FlipbookEngine('#viewer', {
 ### Hotspots
 
 - **`getHotspots(pageIndex = getCurrentPage())`**: Returns host-provided overlays for a logical page.
-- **`activateHotspot(id)`** / **`closeHotspot()`**: Opens or closes a hotspot popup. Activation emits `hotspotActivate`.
+- **`activateHotspot(id)`** / **`closeHotspot()`**: Opens or closes a hotspot popup. Activation emits `hotspotActivate`. Hotspots may include `kind`, `media` (`image`, `video`, `audio`), `gallery` image items, and an optional `href` for commerce/product links; popup text is always rendered as plain text.
 
 
 ### Page annotations

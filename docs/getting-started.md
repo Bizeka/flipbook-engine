@@ -125,4 +125,4 @@ const engine = new FlipbookEngine('#viewer', {
 engine.on('hotspotActivate', ({ hotspot }) => console.log(hotspot.id));
 ```
 
-Hotspot content is plain text; applications should sanitize server-provided values before passing them to the viewer. Use `activateHotspot(id)` and `closeHotspot()` for programmatic control.
+Hotspots support `kind: 'info' | 'media' | 'gallery' | 'commerce'`. A hotspot can render a single image/video/audio preview through `media`, a selectable image gallery through `gallery`, and a safe external/product destination through `href`. Content remains plain text; applications should sanitize server-provided URLs before passing them to the viewer. Use `activateHotspot(id)` and `closeHotspot()` for programmatic control.

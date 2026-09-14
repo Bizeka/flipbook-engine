@@ -43,7 +43,7 @@ test('engine search maps PDF source matches to logical pages and emits searchCha
 test('hotspots render and activate through the public API', async () => {
   const engine = new FlipbookEngine('#app', {
     soundUrl: '',
-    hotspots: [{ id: 'product', pageIndex: 0, x: .1, y: .2, width: .3, height: .2, label: 'Product', content: 'Details' }]
+    hotspots: [{ id: 'product', pageIndex: 0, x: .1, y: .2, width: .3, height: .2, label: 'Product', kind: 'commerce', content: 'Details', href: '/products/42', media: { type: 'image', src: '/img/product.jpg', alt: 'Product preview' }, gallery: [{ src: '/img/product.jpg', alt: 'Front' }, { src: '/img/product-back.jpg', alt: 'Back', href: '/products/42' }] }]
   });
   await engine.init('', pages);
   const hotspot = document.querySelector('.bk-hotspot') as HTMLButtonElement;
@@ -53,7 +53,29 @@ test('hotspots render and activate through the public API', async () => {
   hotspot.click();
   assert.equal(activated, 'product');
   assert.equal(document.querySelector('.bk-hotspot-popup strong')?.textContent, 'Product');
+  assert.equal(document.querySelector('.bk-hotspot-media-image')?.getAttribute('alt'), 'Product preview');
+  assert.equal(document.querySelectorAll('.bk-hotspot-gallery-thumb').length, 2);
+  assert.equal(document.querySelector('.bk-hotspot-link')?.getAttribute('href'), '/products/42');
   engine.closeHotspot();
+  engine.destroy();
+});
+
+test('hotspot media variants render correctly', async () => {
+  const engine = new FlipbookEngine('#app', {
+    soundUrl: '',
+    hotspots: [
+      { id: 'video', pageIndex: 0, x: .1, y: .1, width: .2, height: .1, label: 'Video', kind: 'media', media: { type: 'video', src: '/media/demo.mp4', poster: '/media/poster.jpg' } },
+      { id: 'audio', pageIndex: 0, x: .4, y: .1, width: .2, height: .1, label: 'Audio', kind: 'media', media: { type: 'audio', src: '/media/demo.mp3' } }
+    ]
+  });
+  await engine.init('', pages);
+  const hotspotButtons = document.querySelectorAll('.bk-hotspot');
+  (hotspotButtons[0] as HTMLButtonElement).click();
+  assert.ok(document.querySelector('video.bk-hotspot-media-video[controls]'));
+  assert.equal(document.querySelector('video source')?.getAttribute('src'), '/media/demo.mp4');
+  (hotspotButtons[1] as HTMLButtonElement).click();
+  assert.ok(document.querySelector('audio.bk-hotspot-media-audio[controls]'));
+  assert.equal(document.querySelector('audio source')?.getAttribute('src'), '/media/demo.mp3');
   engine.destroy();
 });
 

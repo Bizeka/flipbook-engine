@@ -6,6 +6,7 @@
 - added framework-agnostic plugin contract with install/uninstall lifecycle, typed events, toolbar buttons, panels, and namespaced APIs
 - added independent `flipbookengine/core` and `flipbookengine/plugins/*` entry points for notes, bookmarks, TOC, search, annotations, hotspots, share, and deep links
 - added runtime `getToc()/setToc()` APIs and origin-validated iframe TOC read/update commands
+- added interactive hotspot overlays with image/video/audio previews, selectable image galleries, and commerce/product links
 - added plugin and embed regression coverage; full suite passes 83/83 tests
 - documented PDF outline extraction, OCR, analytics, backend rendering, and protected downloads as commercial/backend responsibilities
 - breaking change: 0.x releases were alpha/beta and are not compatibility guarantees; applications should validate imports and options against the 1.0 API before upgrading

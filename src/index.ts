@@ -24,7 +24,7 @@ export type {
 
 export type { FlipbookTocEntry } from './model/toc';
 export type { FlipbookSearchHighlight, FlipbookSearchResult, FlipbookSearchOptions } from './model/search';
-export type { FlipbookHotspot } from './model/hotspots';
+export type { FlipbookHotspot, FlipbookHotspotKind, FlipbookHotspotMedia, FlipbookHotspotMediaType, FlipbookHotspotGalleryItem } from './model/hotspots';
 export type { FlipbookAnnotation } from './model/annotations';
 export { FlipbookPluginRegistry } from './plugins';
 export type { FlipbookPlugin, FlipbookPluginContext, FlipbookPluginApiHandler, FlipbookPluginEventHandler, FlipbookPluginPanel, FlipbookPluginToolbarButton } from './plugins';
