@@ -302,13 +302,13 @@ When choosing a flipbook library, here is how we compare to other solutions:
 A special thanks to the incredible team behind **[Serenity](https://github.com/serenity-is/serenity)**. FlipbookEngine's reactive UI layer is powered by **[domwise](https://github.com/serenity-is/serenity/tree/master/packages/domwise)**. Coupled with `@preact/signals-core`, this keeps the UI update path small without requiring a traditional Virtual DOM runtime.
 
 ---
-## Roadmap
+## Release scope
 
-FlipbookEngine has two complementary targets: an AGPL open-source viewer package and a separate closed-source commercial backend edition.
+FlipbookEngine ships an AGPL open-source viewer package and maintains a separate closed-source commercial backend roadmap.
 
 ### Open-source v1.0.0 (AGPL viewer)
 
-The npm package remains an embeddable, framework-agnostic PDF viewer. The open-source v1.0.0 target focuses on client-side reader capabilities:
+The npm package is an embeddable, framework-agnostic PDF viewer. The following client-side reader capabilities are included in the open-source v1.0.0 release:
 
 - **Table of Contents (Index):** Interactive navigation to chapters or product categories.
 - **Page Notes & Annotations:** Reader notes and bookmarks stored by the host application.
