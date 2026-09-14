@@ -104,3 +104,14 @@ test('search results render as buttons rather than stringified DOM objects', asy
   assert.ok(document.querySelectorAll('.bk-search-text-highlight').length >= 1);
   engine.destroy();
 });
+
+
+test('image-only mode disables PDF text search with a localized explanation', async () => {
+  const engine = new FlipbookEngine('#app', { soundUrl: '' });
+  await engine.init('', pages);
+  const searchButton = document.querySelector('button.bk-btn:disabled') as HTMLButtonElement;
+  assert.ok(searchButton);
+  assert.equal(searchButton.disabled, true);
+  assert.match(searchButton.title, /Direct PDF mode/);
+  engine.destroy();
+});

@@ -34,6 +34,7 @@ export const trMessages = {
   clearSearch: 'Temizle',
   closeSearch: 'Aramayı kapat',
   noSearchResults: 'Sonuç bulunamadı',
+  searchUnavailable: 'Metin arama yalnızca Doğrudan PDF modunda desteklenir.',
   closeHotspot: 'Açılır pencereyi kapat',
   annotation: 'Sayfa açıklaması'
 } as const;

@@ -37,6 +37,7 @@ export interface FlipbookMessages {
   clearSearch: string;
   closeSearch: string;
   noSearchResults: string;
+  searchUnavailable: string;
   closeHotspot: string;
   annotation: string;
 }

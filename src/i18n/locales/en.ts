@@ -34,6 +34,7 @@ export const enMessages = {
   clearSearch: 'Clear',
   closeSearch: 'Close search',
   noSearchResults: 'No results',
+  searchUnavailable: 'Text search is available only in Direct PDF mode.',
   closeHotspot: 'Close popup',
   annotation: 'Page annotation'
 } as const;
