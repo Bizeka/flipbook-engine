@@ -7,9 +7,10 @@
 - added independent `flipbookengine/core` and `flipbookengine/plugins/*` entry points for notes, bookmarks, TOC, search, annotations, hotspots, share, and deep links
 - added runtime `getToc()/setToc()` APIs and origin-validated iframe TOC read/update commands
 - added interactive hotspot overlays with image/video/audio previews, selectable image galleries, and commerce/product links
-- added plugin and embed regression coverage; full suite passes 83/83 tests
+- added plugin and embed regression coverage; full suite passes 84/84 tests
 - documented PDF outline extraction, OCR, analytics, backend rendering, and protected downloads as commercial/backend responsibilities
 - breaking change: 0.x releases were alpha/beta and are not compatibility guarantees; applications should validate imports and options against the 1.0 API before upgrading
+- 0.8.0 to 1.0.0 migration: documented public entrypoint changes, explicit plugin activation/deactivation, nested TOC/embed APIs, expanded hotspot payloads, and the unchanged image-mode search limitation
 - added an origin-validated iframe embed bridge with parent-side command and event helpers
 - added opt-in deep links, localized share controls, host-managed bookmarks and notes, and their regression coverage
 - added localized notes toolbar/editor; persistence remains with the host application
@@ -93,4 +94,3 @@
 - prepared package metadata for public distribution
 - preserved legacy `BizekaFlipEngine` compatibility alias
 - added contribution, security, and trademark policy documents
-

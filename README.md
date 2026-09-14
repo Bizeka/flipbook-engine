@@ -320,6 +320,32 @@ The open-source viewer continues to use PDF.js as an external npm dependency and
 
 The v1.0.0 release also defines the framework-agnostic plugin contract. The rendering core stays small while TOC, notes, bookmarks, annotations, search, hotspots, and sharing can be installed as optional plugins. Analytics is not shipped as an official open-source plugin; hosts can consume the documented events or use a private commercial adapter. See [Plugin architecture](./docs/plugin-architecture.md).
 
+
+### Plugin usage and activation
+
+Version 1.0.0 keeps the all-in-one entry point for existing applications and adds optional, tree-shakeable feature adapters. A plugin is active only when it is supplied in the constructor or installed at runtime. Omitting an adapter keeps it inactive.
+
+```ts
+import { FlipbookEngine } from 'flipbookengine/core';
+import { notesPlugin } from 'flipbookengine/plugins/notes';
+import { bookmarksPlugin } from 'flipbookengine/plugins/bookmarks';
+
+const engine = new FlipbookEngine('#viewer', {
+  plugins: [notesPlugin, bookmarksPlugin]
+});
+
+await engine.callPluginApi('notes', 'set', 0, 'Review this page');
+console.log(engine.getPluginNames());
+```
+
+Disable or remove a feature at runtime with `uninstallPlugin(name)`. This removes the plugin APIs, toolbar/panel contributions, event subscriptions, and cleanup callbacks. Re-enable it with `installPlugin(plugin)`:
+
+```ts
+engine.uninstallPlugin('notes');
+engine.installPlugin(notesPlugin);
+```
+
+The official notes, bookmarks, TOC, search, annotations, hotspots, share, and deep-link adapters expose namespaced APIs. Their UI is still controlled by the host/all-in-one viewer options; custom plugins may additionally register toolbar buttons and panels through the plugin contract. Analytics is not included as an official open-source adapter.
 ### Commercial edition (closed-source backend)
 
 The commercial roadmap is separate from the AGPL package and is intended for a separate backend project. It will provide licensed server-side capabilities, including:

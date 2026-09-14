@@ -80,3 +80,24 @@ contract, and the feature subpaths above contain the optional adapters. Analytic
 open-source plugin; applications may consume events directly or use a private
 commercial adapter.
 
+
+## Activating and deactivating plugins
+
+Pass adapters in the constructor to activate them before the first render:
+
+```ts
+import { FlipbookEngine } from 'flipbookengine/core';
+import { hotspotsPlugin } from 'flipbookengine/plugins/hotspots';
+
+const engine = new FlipbookEngine('#viewer', { plugins: [hotspotsPlugin] });
+```
+
+A plugin can also be enabled or disabled after initialization. installPlugin returns the engine instance; uninstallPlugin returns true when a plugin was removed and clears all registered contributions.
+
+```ts
+engine.uninstallPlugin('hotspots');
+engine.installPlugin(hotspotsPlugin);
+await engine.callPluginApi('hotspots', 'activate', 'product-42');
+```
+
+Feature adapters are API-only contributions. The built-in all-in-one viewer continues to render its existing toolbar and panels from the corresponding options; custom plugins can add their own UI contributions with registerToolbarButton and registerPanel.
