@@ -417,6 +417,7 @@ Host uygulamaları, kullanıcı notunu sayfa üzerindeki normalize koordinata ba
 
 ```ts
 const engine = new FlipbookEngine('#viewer', {
-  annotations: [{ id: 'note-1', pageIndex: 4, x: .42, y: .36, text: 'Fiyat kontrol edilecek' }]
+  annotations: [{ id: 'note-1', pageIndex: 4, x: .42, y: .36, text: 'Review pricing' }]
 });
 ```
+

@@ -196,10 +196,11 @@ Host uygulamaları, kullanıcı notunu sayfa üzerindeki normalize koordinata ba
 
 ```ts
 const engine = new FlipbookEngine('#viewer', {
-  annotations: [{ id: 'note-1', pageIndex: 4, x: .42, y: .36, text: 'Fiyat kontrol edilecek' }]
+  annotations: [{ id: 'note-1', pageIndex: 4, x: .42, y: .36, text: 'Review pricing' }]
 });
 ```
 
 ## Plugins
 
 See [Plugin architecture](./plugin-architecture.md) for the v1 plugin contract and lifecycle.
+
