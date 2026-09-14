@@ -530,6 +530,7 @@ export class FlipbookEngine {
             const parsed = new URL(url, typeof document === 'undefined' ? undefined : document.baseURI);
             const hashPage = parsed.hash.match(/(?:^#|&)page=(\d+)/i)?.[1];
             const rawPage = parsed.searchParams.get('page') ?? hashPage;
+            if (rawPage == null) return 0;
             const pageNumber = Number(rawPage);
             if (!Number.isInteger(pageNumber) || pageNumber < 1) return null;
             return Math.min(pageNumber - 1, this.store.totalPages.value - 1);

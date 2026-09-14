@@ -34,7 +34,7 @@ test('deep links update the URL and respond to browser history navigation', asyn
   const previousUrl = window.location.href;
   try {
     window.history.replaceState(null, '', '/catalog');
-    const engine = new FlipbookEngine('#app', { deepLink: true });
+    const engine = new FlipbookEngine('#app', { deepLink: true, flippingTime: 0 });
     await engine.init('', pages);
     const changes: Array<{ pageIndex: number; pageNumber: number; url: string }> = [];
     engine.on('deepLinkChange', (payload) => changes.push(payload));
@@ -48,6 +48,11 @@ test('deep links update the URL and respond to browser history navigation', asyn
     window.dispatchEvent(new window.PopStateEvent('popstate'));
     await Promise.resolve();
     assert.equal(engine.getCurrentPage(), 3);
+
+    window.history.pushState(null, '', '/catalog');
+    window.dispatchEvent(new window.PopStateEvent('popstate'));
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    assert.equal(engine.getCurrentPage(), 0);
     engine.destroy();
   } finally {
     restoreUrl(previousUrl);
