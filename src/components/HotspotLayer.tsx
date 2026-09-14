@@ -29,6 +29,12 @@ function renderMedia(media: FlipbookHotspotMedia, fallbackLabel: string) {
   return <audio class="bk-hotspot-media-audio" controls preload="metadata" aria-label={media.alt || fallbackLabel}><source src={media.src} /></audio>;
 }
 
+function stopPageFlipInteraction(event: Event): void {
+  // Keep popup/media gestures from reaching page-flip listeners. Do not preventDefault:
+  // media controls and native scrolling must remain usable.
+  event.stopPropagation();
+}
+
 function normalizedRectStyle(hotspot: FlipbookHotspot): string {
   const clamp = (value: number) => Math.max(0, Math.min(1, value)) * 100;
   return 'left:' + clamp(hotspot.x) + '%;top:' + clamp(hotspot.y) + '%;width:' + clamp(hotspot.width) + '%;height:' + clamp(hotspot.height) + '%;';
@@ -56,7 +62,7 @@ export function HotspotLayer(props: HotspotLayerProps) {
         const selectedIndex = gallery.length ? Math.min(activeGalleryIndex.value, gallery.length - 1) : 0;
         const selectedGalleryItem = gallery[selectedIndex];
         return (
-          <div class="bk-hotspot-popup" role="dialog" aria-label={active.label}>
+          <div class="bk-hotspot-popup" onPointerDown={stopPageFlipInteraction} onPointerMove={stopPageFlipInteraction} onPointerUp={stopPageFlipInteraction} onPointerCancel={stopPageFlipInteraction} onTouchStart={stopPageFlipInteraction} onTouchMove={stopPageFlipInteraction} onTouchEnd={stopPageFlipInteraction} onMouseDown={stopPageFlipInteraction} role="dialog" aria-label={active.label}>
             <div class="bk-hotspot-popup-heading"><strong>{active.label}</strong><button type="button" class="bk-hotspot-popup-close" onClick={props.onClose} aria-label={computed(() => messages.value.closeHotspot || 'Close popup')}>×</button></div>
             {active.content ? <p>{active.content}</p> : null}
             {active.media ? <div class="bk-hotspot-popup-media">{renderMedia(active.media, active.label)}</div> : null}
@@ -82,7 +88,7 @@ export function HotspotLayer(props: HotspotLayerProps) {
         const active = props.store.annotations.value.find((item) => item.id === props.store.activeAnnotationId.value && item.pageIndex === props.pageIndex);
         if (!active) return null;
         return (
-          <div class="bk-annotation-popup" role="dialog" aria-label={computed(() => messages.value.annotation || 'Page annotation')}>
+          <div class="bk-annotation-popup" onPointerDown={stopPageFlipInteraction} onPointerMove={stopPageFlipInteraction} onPointerUp={stopPageFlipInteraction} onPointerCancel={stopPageFlipInteraction} onTouchStart={stopPageFlipInteraction} onTouchMove={stopPageFlipInteraction} onTouchEnd={stopPageFlipInteraction} onMouseDown={stopPageFlipInteraction} role="dialog" aria-label={computed(() => messages.value.annotation || 'Page annotation')}>
             <div class="bk-hotspot-popup-heading"><strong>{computed(() => messages.value.annotation || 'Page annotation')}</strong><button type="button" class="bk-hotspot-popup-close" onClick={props.onAnnotationClose} aria-label="Close">×</button></div>
             <p>{active.text}</p>
           </div>

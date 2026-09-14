@@ -56,6 +56,11 @@ test('hotspots render and activate through the public API', async () => {
   assert.equal(document.querySelector('.bk-hotspot-media-image')?.getAttribute('alt'), 'Product preview');
   assert.equal(document.querySelectorAll('.bk-hotspot-gallery-thumb').length, 2);
   assert.equal(document.querySelector('.bk-hotspot-link')?.getAttribute('href'), '/products/42');
+  const popup = document.querySelector('.bk-hotspot-popup') as HTMLElement;
+  let bubbledToPage = false;
+  popup.parentElement?.addEventListener('mousedown', () => { bubbledToPage = true; });
+  popup.dispatchEvent(new Event('mousedown', { bubbles: true }));
+  assert.equal(bubbledToPage, false);
   engine.closeHotspot();
   engine.destroy();
 });
