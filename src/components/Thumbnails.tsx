@@ -60,8 +60,8 @@ export function Thumbnails(props: ThumbnailsProps) {
                                 loading="lazy"
                                 onError={(e: any) => { e.currentTarget.style.display = 'none'; }}
                             />
+                            <span class='thumb-page-number'>{index + 1}</span>
                         </div>
-                        <span>{index + 1}</span>
                     </div>
                 );
             })}

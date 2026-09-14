@@ -20,7 +20,9 @@ test('viewer controls expose accessible names and keyboard thumbnail navigation'
 
   const thumb = document.querySelector('.thumb-item') as HTMLElement;
   assert.equal(thumb.getAttribute('role'), 'button');
+  assert.equal(thumb.querySelector('.thumb-page-number')?.textContent, '1');
   assert.equal(thumb.getAttribute('tabindex'), '0');
+  assert.equal(thumb.querySelector('.thumb-page-number')?.textContent, '1');
   const secondThumb = document.querySelectorAll('.thumb-item')[1] as HTMLElement;
   secondThumb.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
   assert.equal(engine.getCurrentPage(), 1);

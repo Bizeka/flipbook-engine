@@ -932,3 +932,58 @@
   color: var(--flipbook-text-muted);
   font-size: 0.8rem;
 }
+
+/* Compact thumbnail cards with centered page labels. */
+.bk-thumbs {
+  gap: 4px;
+}
+.thumb-item {
+  min-width: 38px;
+  gap: 0;
+}
+.thumb-img-wrapper {
+  position: relative;
+  width: 38px;
+  height: 54px;
+}
+.thumb-img--split {
+  width: 200%;
+}
+.thumb-page-number {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  min-width: 18px;
+  padding: 2px 4px;
+  border-radius: 999px;
+  color: #fff;
+  background: rgba(15, 23, 42, 0.68);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  font-size: 10px;
+  line-height: 12px;
+  font-weight: 700;
+  pointer-events: none;
+}
+.thumb-item.active .thumb-img-wrapper {
+  border-width: 1px;
+  box-shadow: 0 0 0 1px var(--flipbook-accent), 0 0 8px color-mix(in srgb, var(--flipbook-accent) 75%, transparent);
+}
+.thumb-item.active .thumb-page-number {
+  background: var(--flipbook-accent);
+}
+@media (max-width: 768px) {
+  .bk-thumbs {
+    gap: 4px;
+  }
+  .thumb-item {
+    min-width: 32px;
+  }
+  .thumb-img-wrapper {
+    width: 32px;
+    height: 45px;
+  }
+}
