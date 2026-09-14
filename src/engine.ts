@@ -26,6 +26,7 @@ import { PdfRenderer, type PdfPageLayout, type PdfPageMode } from './core/PdfRen
 import { normalizeFlipbookToc, type FlipbookTocEntry } from './model/toc';
 import type { FlipbookSearchOptions, FlipbookSearchResult } from './model/search';
 import type { FlipbookHotspot } from './model/hotspots';
+import type { FlipbookAnnotation } from './model/annotations';
 import './styles/flipbook-engine.css';
 import { FlipbookEmbedBridge, type FlipbookEmbedOptions } from './embed';
 
@@ -74,6 +75,8 @@ export interface FlipbookEngineOptions {
     notes?: Record<number, string>;
     /** Optional interactive overlays anchored to logical pages using 0..1 coordinates. */
     hotspots?: FlipbookHotspot[];
+    /** Optional host-provided note markers anchored to logical pages. */
+    annotations?: FlipbookAnnotation[];
 }
 
 export interface PageImages extends FlipbookPageAsset {
@@ -99,6 +102,7 @@ export interface FlipbookEngineEventMap {
     noteChange: { pageIndex: number; pageNumber: number; note: string | null };
     searchChange: { query: string; results: FlipbookSearchResult[] };
     hotspotActivate: { hotspot: FlipbookHotspot; pageIndex: number };
+    annotationActivate: { annotation: FlipbookAnnotation; pageIndex: number };
 }
 
 export type FlipbookEngineEventName = keyof FlipbookEngineEventMap;
@@ -284,7 +288,9 @@ export class FlipbookEngine {
             onCloseSearch: () => { this.store.showSearch.value = false; },
             onSelectSearchResult: (pageIndex) => { this.goToPage(pageIndex); this.store.showSearch.value = false; },
             onHotspotActivate: (hotspot) => this.activateHotspot(hotspot.id),
-            onHotspotClose: () => this.closeHotspot()
+            onHotspotClose: () => this.closeHotspot(),
+            onAnnotationActivate: (annotation) => this.activateAnnotation(annotation.id),
+            onAnnotationClose: () => this.closeAnnotation()
         });
 
         this.container.appendChild(appNode as unknown as Node);
@@ -559,6 +565,19 @@ export class FlipbookEngine {
 
     public closeHotspot(): void { this.store.activeHotspotId.value = null; }
 
+    public getAnnotations(pageIndex = this.getCurrentPage()): FlipbookAnnotation[] {
+        return this.store.annotations.value.filter((annotation) => annotation.pageIndex === pageIndex);
+    }
+
+    public activateAnnotation(annotationId: string): void {
+        const annotation = this.store.annotations.value.find((item) => item.id === annotationId);
+        if (!annotation) return;
+        this.store.activeAnnotationId.value = annotation.id;
+        this.emit('annotationActivate', { annotation, pageIndex: annotation.pageIndex });
+    }
+
+    public closeAnnotation(): void { this.store.activeAnnotationId.value = null; }
+
     public getZoom(): number {
         return this.store.zoomState.value.scale;
     }
@@ -637,6 +656,7 @@ export class FlipbookEngine {
         if (options.bookmarks !== undefined) this.store.bookmarkedPages.value = new Set(options.bookmarks.map((page) => Math.trunc(page)).filter((page) => Number.isInteger(page) && page >= 0 && page < this.store.totalPages.value));
         if (options.notes !== undefined) this.store.pageNotes.value = new Map(Object.entries(options.notes).map(([page, note]) => [Math.trunc(Number(page)), String(note).trim()] as const).filter(([page, note]) => Number.isInteger(page) && page >= 0 && page < this.store.totalPages.value && note.length > 0));
         if (options.hotspots !== undefined) this.store.hotspots.value = options.hotspots;
+        if (options.annotations !== undefined) this.store.annotations.value = options.annotations;
 
         if (this.container) {
             applyThemeConfiguration(this.container, this.options);

@@ -34,6 +34,7 @@ When instantiating `new FlipbookEngine(selector, options)`, you can configure th
 | `bookmarks` | `number[]` | `[]` | Initial zero-based page indexes marked as bookmarks; persistence remains with the host application. |
 | `notes` | `Record<number, string>` | `{}` | Initial page notes keyed by zero-based page index; the localized toolbar editor is host-storage agnostic. |
 | `hotspots` | `FlipbookHotspot[]` | `[]` | Normalized page overlays with accessible labels, plain-text popup content, and optional links. |
+| `annotations` | `FlipbookAnnotation[]` | `[]` | Host-managed page note markers with normalized coordinates and plain-text popup content. |
 
 ---
 
@@ -185,3 +186,14 @@ const engine = new FlipbookEngine('#viewer', {
 
 - **`getHotspots(pageIndex = getCurrentPage())`**: Returns host-provided overlays for a logical page.
 - **`activateHotspot(id)`** / **`closeHotspot()`**: Opens or closes a hotspot popup. Activation emits `hotspotActivate`.
+
+
+### Page annotations
+
+Host uygulamaları, kullanıcı notunu sayfa üzerindeki normalize koordinata bağlamak için `annotations` seçeneğini kullanabilir. Marker tıklaması popup açar ve `annotationActivate` olayı yayınlanır. Bu sözleşme şimdilik host-managed'dir; annotation kayıtlarının backend koordinatlarına taşınması tüketici uygulamanın sorumluluğundadır.
+
+```ts
+const engine = new FlipbookEngine('#viewer', {
+  annotations: [{ id: 'note-1', pageIndex: 4, x: .42, y: .36, text: 'Fiyat kontrol edilecek' }]
+});
+```

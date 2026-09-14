@@ -18,6 +18,7 @@ import { computed } from '@preact/signals-core';
 import type { FlipbookStore } from '../state/store';
 import { HotspotLayer } from './HotspotLayer';
 import type { FlipbookHotspot } from '../model/hotspots';
+import type { FlipbookAnnotation } from '../model/annotations';
 
 interface ViewerProps {
     store: FlipbookStore;
@@ -26,6 +27,8 @@ interface ViewerProps {
     bookContainerRef: (el: HTMLElement) => void;
     onHotspotActivate: (hotspot: FlipbookHotspot) => void;
     onHotspotClose: () => void;
+    onAnnotationActivate: (annotation: FlipbookAnnotation) => void;
+    onAnnotationClose: () => void;
 }
 
 export function Viewer(props: ViewerProps) {
@@ -71,7 +74,7 @@ export function Viewer(props: ViewerProps) {
                                             alt={`Page ${index + 1}`}
                                             loading="lazy"
                                         />
-                                        <HotspotLayer store={props.store} pageIndex={index} onActivate={props.onHotspotActivate} onClose={props.onHotspotClose} />
+                                        <HotspotLayer store={props.store} pageIndex={index} onActivate={props.onHotspotActivate} onClose={props.onHotspotClose} onAnnotationActivate={props.onAnnotationActivate} onAnnotationClose={props.onAnnotationClose} />
                                         <div class="page-shadow"></div>
                                     </div>
                                 </div>

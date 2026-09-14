@@ -56,3 +56,20 @@ test('hotspots render and activate through the public API', async () => {
   engine.closeHotspot();
   engine.destroy();
 });
+
+test('page annotations render as coordinate markers and emit activation', async () => {
+  const engine = new FlipbookEngine('#app', {
+    soundUrl: '',
+    annotations: [{ id: 'note-1', pageIndex: 0, x: .4, y: .3, text: 'Review this area' }]
+  });
+  await engine.init('', pages);
+  const marker = document.querySelector('.bk-annotation-marker') as HTMLButtonElement;
+  assert.ok(marker);
+  let activated = '';
+  engine.on('annotationActivate', (event) => activated = event.annotation.id);
+  marker.click();
+  assert.equal(activated, 'note-1');
+  assert.equal(document.querySelector('.bk-annotation-popup p')?.textContent, 'Review this area');
+  engine.closeAnnotation();
+  engine.destroy();
+});

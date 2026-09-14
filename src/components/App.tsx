@@ -24,6 +24,7 @@ import { NavigationArrows } from './NavigationArrows';
 import { SearchPanel } from './SearchPanel';
 import type { FlipbookSearchOptions } from '../model/search';
 import type { FlipbookHotspot } from '../model/hotspots';
+import type { FlipbookAnnotation } from '../model/annotations';
 import type { FlipbookStore } from '../state/store';
 import type { PageFlipAdapter } from '../adapters/PageFlipAdapter';
 import type { InteractionManager } from '../core/InteractionManager';
@@ -48,6 +49,8 @@ interface AppProps {
     onSelectSearchResult: (pageIndex: number) => void;
     onHotspotActivate: (hotspot: FlipbookHotspot) => void;
     onHotspotClose: () => void;
+    onAnnotationActivate: (annotation: FlipbookAnnotation) => void;
+    onAnnotationClose: () => void;
     onToggleFullscreen: () => void;
     store: FlipbookStore;
 }
@@ -113,6 +116,8 @@ export function App(props: AppProps) {
                     bookContainerRef={props.bookContainerRef}
                     onHotspotActivate={props.onHotspotActivate}
                     onHotspotClose={props.onHotspotClose}
+                    onAnnotationActivate={props.onAnnotationActivate}
+                    onAnnotationClose={props.onAnnotationClose}
                 />
 
                 <NavigationArrows store={props.store}

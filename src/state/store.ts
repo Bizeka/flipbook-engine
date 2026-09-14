@@ -12,6 +12,7 @@ import type { FlipbookEngineOptions } from '../engine';
 import type { PartialFlipbookMessages } from '../i18n/service';
 import type { FlipbookSearchResult } from '../model/search';
 import type { FlipbookHotspot } from '../model/hotspots';
+import type { FlipbookAnnotation } from '../model/annotations';
 
 export type FlipState = 'read' | 'fold_corner' | 'flipping';
 export type Orientation = 'landscape' | 'portrait';
@@ -23,7 +24,7 @@ export interface FlipbookStore {
     flipState: Signal<FlipState>; themeMode: Signal<FlipbookThemeMode>; allowDownload: Signal<boolean>; bookmarkedPages: Signal<ReadonlySet<number>>; pageNotes: Signal<ReadonlyMap<number, string>>;
     hasDownloadUrl: Signal<boolean>; primaryColor: Signal<string>; whiteLabel: Signal<boolean>;
     isZoomed: Signal<boolean>; isAutoPlaying: Signal<boolean>; autoPlayInterval: Signal<number>;
-    soundEnabled: Signal<boolean>; searchQuery: Signal<string>; searchResults: Signal<FlipbookSearchResult[]>; hotspots: Signal<FlipbookHotspot[]>; activeHotspotId: Signal<string | null>; locale: Signal<string>; messages: Signal<Partial<Record<string, PartialFlipbookMessages>>>; zoomState: Signal<ZoomState>; pages: Signal<NormalizedFlipbookPage[]>; toc: Signal<FlipbookTocEntry[]>;
+    soundEnabled: Signal<boolean>; searchQuery: Signal<string>; searchResults: Signal<FlipbookSearchResult[]>; hotspots: Signal<FlipbookHotspot[]>; activeHotspotId: Signal<string | null>; annotations: Signal<FlipbookAnnotation[]>; activeAnnotationId: Signal<string | null>; locale: Signal<string>; messages: Signal<Partial<Record<string, PartialFlipbookMessages>>>; zoomState: Signal<ZoomState>; pages: Signal<NormalizedFlipbookPage[]>; toc: Signal<FlipbookTocEntry[]>;
     isDoublePageLayout: ReadonlySignal<boolean>; isFrontCover: ReadonlySignal<boolean>; isBackCover: ReadonlySignal<boolean>;
     init(options: FlipbookEngineOptions, total: number, mappedPages: NormalizedFlipbookPage[], hasPdfUrl: boolean): void;
     reset(): void;
@@ -43,6 +44,7 @@ export function createFlipbookStore(): FlipbookStore {
     const autoPlayInterval = signal(3000), soundEnabled = signal(true);
     const searchQuery = signal(''), searchResults = signal<FlipbookSearchResult[]>([]);
     const hotspots = signal<FlipbookHotspot[]>([]), activeHotspotId = signal<string | null>(null);
+    const annotations = signal<FlipbookAnnotation[]>([]), activeAnnotationId = signal<string | null>(null);
     const locale = signal('en');
     const messages = signal<Partial<Record<string, PartialFlipbookMessages>>>({});
     const zoomState = signal<ZoomState>(initialZoomState()), pages = signal<NormalizedFlipbookPage[]>([]), toc = signal<FlipbookTocEntry[]>([]);
@@ -61,6 +63,8 @@ export function createFlipbookStore(): FlipbookStore {
         searchResults.value = [];
         hotspots.value = options.hotspots ?? [];
         activeHotspotId.value = null;
+        annotations.value = options.annotations ?? [];
+        activeAnnotationId.value = null;
         toc.value = normalizeFlipbookToc(options.toc ?? [], total);
         if (options.showArrows !== undefined) showArrows.value = options.showArrows;
         if (options.allowDownload !== undefined) allowDownload.value = options.allowDownload;
@@ -107,8 +111,10 @@ export function createFlipbookStore(): FlipbookStore {
         searchResults.value = [];
         hotspots.value = [];
         activeHotspotId.value = null;
+        annotations.value = [];
+        activeAnnotationId.value = null;
     };
-    return { currentPage, totalPages, isSingleMode, showThumbs, showToc, showNotes, showSearch, showArrows, orientation, flipState, themeMode, allowDownload, bookmarkedPages, pageNotes, hasDownloadUrl, primaryColor, whiteLabel, isZoomed, isAutoPlaying, autoPlayInterval, soundEnabled, searchQuery, searchResults, hotspots, activeHotspotId, locale, messages, zoomState, pages, toc, isDoublePageLayout, isFrontCover, isBackCover, init, reset };
+    return { currentPage, totalPages, isSingleMode, showThumbs, showToc, showNotes, showSearch, showArrows, orientation, flipState, themeMode, allowDownload, bookmarkedPages, pageNotes, hasDownloadUrl, primaryColor, whiteLabel, isZoomed, isAutoPlaying, autoPlayInterval, soundEnabled, searchQuery, searchResults, hotspots, activeHotspotId, annotations, activeAnnotationId, locale, messages, zoomState, pages, toc, isDoublePageLayout, isFrontCover, isBackCover, init, reset };
 }
 
 // Compatibility exports for consumers of the former internal singleton module.
@@ -118,7 +124,7 @@ export const showThumbs = legacyStore.showThumbs, showToc = legacyStore.showToc,
 export const flipState = legacyStore.flipState, themeMode = legacyStore.themeMode, allowDownload = legacyStore.allowDownload, bookmarkedPages = legacyStore.bookmarkedPages, pageNotes = legacyStore.pageNotes;
 export const hasDownloadUrl = legacyStore.hasDownloadUrl, primaryColor = legacyStore.primaryColor, whiteLabel = legacyStore.whiteLabel;
 export const isZoomed = legacyStore.isZoomed, isAutoPlaying = legacyStore.isAutoPlaying, autoPlayInterval = legacyStore.autoPlayInterval;
-export const soundEnabled = legacyStore.soundEnabled, searchQuery = legacyStore.searchQuery, searchResults = legacyStore.searchResults, hotspots = legacyStore.hotspots, activeHotspotId = legacyStore.activeHotspotId, locale = legacyStore.locale, messages = legacyStore.messages, zoomState = legacyStore.zoomState, pages = legacyStore.pages, toc = legacyStore.toc;
+export const soundEnabled = legacyStore.soundEnabled, searchQuery = legacyStore.searchQuery, searchResults = legacyStore.searchResults, hotspots = legacyStore.hotspots, activeHotspotId = legacyStore.activeHotspotId, annotations = legacyStore.annotations, activeAnnotationId = legacyStore.activeAnnotationId, locale = legacyStore.locale, messages = legacyStore.messages, zoomState = legacyStore.zoomState, pages = legacyStore.pages, toc = legacyStore.toc;
 export const isDoublePageLayout = legacyStore.isDoublePageLayout, isFrontCover = legacyStore.isFrontCover, isBackCover = legacyStore.isBackCover;
 export function initStore(options: FlipbookEngineOptions, total: number, mappedPages: NormalizedFlipbookPage[], hasPdfUrl: boolean) { legacyStore.init(options, total, mappedPages, hasPdfUrl); }
 

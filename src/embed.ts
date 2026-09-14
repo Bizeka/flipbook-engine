@@ -146,7 +146,8 @@ export class FlipbookEmbedBridge {
     bookmarkChange: true,
     noteChange: true,
     searchChange: true,
-    hotspotActivate: true
+    hotspotActivate: true,
+    annotationActivate: true
   };
 
   private isAllowedOrigin(origin: string): boolean {

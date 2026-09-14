@@ -1188,3 +1188,7 @@
 .bk-hotspot-popup-close { border:0; background:transparent; color:inherit; cursor:pointer; font-size:18px; }
 .bk-hotspot-popup p { margin:8px 0; font-size:.8rem; line-height:1.4; }
 .bk-hotspot-popup a { color:var(--flipbook-accent); font-size:.8rem; overflow-wrap:anywhere; }
+
+.bk-annotation-marker { position:absolute; transform:translate(-50%,-50%); width:24px; height:24px; padding:0; border:0; border-radius:50%; background:color-mix(in srgb,#fff 88%,transparent); color:#111; box-shadow:0 1px 5px rgba(255,255,255,.9); pointer-events:auto; cursor:pointer; font-size:18px; line-height:24px; }
+.bk-annotation-marker:hover,.bk-annotation-marker:focus-visible { outline:2px solid var(--flipbook-accent); }
+.bk-annotation-popup { position:absolute; left:10px; bottom:10px; width:min(280px,calc(100% - 20px)); max-height:calc(100% - 20px); overflow:auto; pointer-events:auto; padding:10px; border:1px solid var(--flipbook-border); border-radius:var(--flipbook-radius-sm); background:color-mix(in srgb,var(--flipbook-bg-surface) 96%,transparent); color:var(--flipbook-text-main); box-shadow:0 8px 24px var(--flipbook-shadow); backdrop-filter:blur(10px); }

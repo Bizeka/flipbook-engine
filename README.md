@@ -221,7 +221,7 @@ const unsubscribe = engine.on('pageChange', ({ currentPage, totalPages, isSingle
 unsubscribe();
 ```
 
-Supported events: `init`, `progress`, `pageChange`, `zoomChange`, `singlePageModeChange`, `thumbsToggle`, `tocToggle`, `orientationChange`, `deepLinkChange`, `bookmarkChange`, `noteChange`, `searchChange`, `hotspotActivate`, `error`, `destroy`.
+Supported events: `init`, `progress`, `pageChange`, `zoomChange`, `singlePageModeChange`, `thumbsToggle`, `tocToggle`, `orientationChange`, `deepLinkChange`, `bookmarkChange`, `noteChange`, `searchChange`, `hotspotActivate`, `annotationActivate`, `error`, `destroy`.
 
 | Option | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
@@ -243,6 +243,7 @@ Supported events: `init`, `progress`, `pageChange`, `zoomChange`, `singlePageMod
 | `bookmarks` | `number[]` | `[]` | Initial zero-based bookmarked page indexes; the host owns persistence. |
 | `notes` | `Record<number, string>` | `{}` | Initial page notes keyed by zero-based page index; the notes toolbar edits them while the host owns persistence. |
 | `hotspots` | `FlipbookHotspot[]` | `[]` | Normalized (0..1) page overlays with labels, plain-text popup content, and optional links. |
+| `annotations` | `FlipbookAnnotation[]` | `[]` | Host-managed page note markers with normalized coordinates and plain-text popup content. |
 | `onShare` | `(url: string) => void` | `null` | Optional callback invoked after the toolbar shares or copies the generated page URL. |
 
 
@@ -365,3 +366,14 @@ engine.on('hotspotActivate', ({ hotspot }) => console.log(hotspot.id));
 ```
 
 Hotspot content is plain text; applications should sanitize server-provided values before passing them to the viewer. Use `activateHotspot(id)` and `closeHotspot()` for programmatic control.
+
+
+### Page annotations
+
+Host uygulamaları, kullanıcı notunu sayfa üzerindeki normalize koordinata bağlamak için `annotations` seçeneğini kullanabilir. Marker tıklaması popup açar ve `annotationActivate` olayı yayınlanır. Bu sözleşme şimdilik host-managed'dir; annotation kayıtlarının backend koordinatlarına taşınması tüketici uygulamanın sorumluluğundadır.
+
+```ts
+const engine = new FlipbookEngine('#viewer', {
+  annotations: [{ id: 'note-1', pageIndex: 4, x: .42, y: .36, text: 'Fiyat kontrol edilecek' }]
+});
+```
