@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { computed } from '@preact/signals-core';
+import { computed, signal } from '@preact/signals-core';
 import { resolveMessages } from '../i18n/service';
 import type { FlipbookStore } from '../state/store';
 
@@ -24,7 +24,7 @@ export function NotesPanel(props: NotesPanelProps) {
         locale: props.store.locale.value,
         messages: props.store.messages.value
     }));
-    let draft = '';
+    const draft = signal('');
     let draftPage = -1;
 
     const draftValue = computed(() => {
@@ -32,18 +32,18 @@ export function NotesPanel(props: NotesPanelProps) {
         const note = props.store.pageNotes.value.get(page) ?? '';
         if (draftPage !== page) {
             draftPage = page;
-            draft = note;
+            draft.value = note;
         }
-        return draft;
+        return draft.value;
     });
     const handleInput = (event: Event) => {
-        draft = (event.currentTarget as HTMLTextAreaElement).value;
+        draft.value = (event.currentTarget as HTMLTextAreaElement).value;
     };
     const save = () => {
-        props.onSave(draft);
+        props.onSave(draft.value);
     };
     const clear = () => {
-        draft = '';
+        draft.value = '';
         props.onClear();
     };
 
@@ -53,7 +53,12 @@ export function NotesPanel(props: NotesPanelProps) {
             style={computed(() => props.store.showNotes.value ? 'display:flex;' : 'display:none;')}
             aria-label={computed(() => messages.value.notes || 'Page note')}
         >
-            <div class="bk-notes-heading-row">\n                <div class="bk-notes-heading">{computed(() => messages.value.notes || 'Page note')}</div>\n                <button type="button" class="bk-notes-close" onClick={props.onClose} aria-label={computed(() => messages.value.closeNote || 'Close note editor')} title={computed(() => messages.value.closeNote || 'Close note editor')}>\n                    <span aria-hidden="true">×</span>\n                </button>\n            </div>
+            <div class="bk-notes-heading-row">
+                <div class="bk-notes-heading">{computed(() => messages.value.notes || 'Page note')}</div>
+                <button type="button" class="bk-notes-close" onClick={props.onClose} aria-label={computed(() => messages.value.closeNote || 'Close note editor')} title={computed(() => messages.value.closeNote || 'Close note editor')}>
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
             <textarea
                 class="bk-notes-input"
                 aria-label={computed(() => messages.value.notes || 'Page note')}
