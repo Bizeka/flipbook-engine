@@ -2,6 +2,10 @@
 
 ## Next (unreleased)
 
+- added an origin-validated iframe embed bridge with parent-side command and event helpers
+- documented embed navigation, zoom, single-mode, runtime options, fullscreen, state queries, and explicit-origin security configuration
+- added regression tests for embed commands, origin/window filtering, and event forwarding
+
 ## 0.6.5
 
 - added automatic A3 landscape PDF splitting with configurable auto, single, and split modes
