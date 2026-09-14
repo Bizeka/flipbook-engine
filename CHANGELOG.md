@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.0.0 - 2026-09-14
+
+- first stable open-source release of the FlipbookEngine viewer
+- added framework-agnostic plugin contract with install/uninstall lifecycle, typed events, toolbar buttons, panels, and namespaced APIs
+- added independent `flipbookengine/core` and `flipbookengine/plugins/*` entry points for notes, bookmarks, TOC, search, annotations, hotspots, share, and deep links
+- added runtime `getToc()/setToc()` APIs and origin-validated iframe TOC read/update commands
+- added plugin and embed regression coverage; full suite passes 83/83 tests
+- documented PDF outline extraction, OCR, analytics, backend rendering, and protected downloads as commercial/backend responsibilities
+- breaking change: 0.x releases were alpha/beta and are not compatibility guarantees; applications should validate imports and options against the 1.0 API before upgrading
+- added an origin-validated iframe embed bridge with parent-side command and event helpers
+- added opt-in deep links, localized share controls, host-managed bookmarks and notes, and their regression coverage
+- added localized notes toolbar/editor; persistence remains with the host application
+
 ## 0.8.0 - 2026-09-14
 
 - added precise PDF.js text-match rectangles and logical left/right split-page mapping
@@ -8,19 +21,6 @@
 - unified search and note focus styling with a single thin accent border and glow
 - disabled text search in image/WebP page-list mode with localized explanation; download URL handling remains independent
 - added localized image-mode messaging and regression coverage
-
-## [Unreleased]
-
-- added an origin-validated iframe embed bridge with parent-side command and event helpers
-- documented embed navigation, zoom, single-mode, runtime options, fullscreen, state queries, and explicit-origin security configuration
-- added regression tests for embed commands, origin/window filtering, and event forwarding
-- added opt-in deep links with browser history synchronization, shareable page URLs, and native-share/clipboard fallback
-- added regression coverage for initial URL pages, URL updates, and popstate navigation
-- added a localized toolbar Share button with native-share/clipboard fallback and an optional `onShare` host callback
-- added regression coverage for toolbar share invocation, generated page URLs, callback delivery, and Turkish localization
-- added host-managed bookmark state with localized toolbar control, public methods, and `bookmarkChange` events
-- added host-managed page notes with initialization options, public methods, `noteChange` events, and iframe event forwarding
-- added localized notes toolbar/editor for live note entry; persistence remains with the host
 
 ## 0.6.5
 

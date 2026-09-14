@@ -23,7 +23,7 @@ Use this checklist for every phase commit and every published release.
 - [ ] Confirm `npm pkg get version` matches the intended release.
 - [ ] Inspect the `npm pack --dry-run` file list and package size.
 - [ ] Confirm both local repositories have clean working trees and the intended commits are on the correct branches.
-- [ ] Create and push the matching Git tag (for example, `v0.8.0`).
+- [ ] Create and push the matching Git tag (for example, `v1.0.0`).
 - [ ] Create or update the GitHub Release from that tag and verify the Latest designation.
 - [ ] Push commits and tags before handing off the manual npm publish step.
 - [ ] Publish to npm manually with maintainer credentials; verify the registry version afterward.

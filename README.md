@@ -1,7 +1,7 @@
 # FlipbookEngine
 
-> **Release notice:** `flipbookengine@0.8.0` is the latest published release and includes the localized Table of Contents API.
-> **Development notice:** Version 0.8.0 adds robust PDF/image-mode search behavior, precise text highlights, and localized search UX improvements on top of the 0.6.x PDF rendering and layout features.
+> **Release candidate:** `flipbookengine@1.0.0` is prepared as the first stable release and includes the localized Table of Contents API.
+> **Release scope:** Version 1.0.0 adds the plugin contract, independent feature entrypoints, TOC runtime/embed APIs, and the complete open-source reader surface.
 
 [![NPM Version](https://img.shields.io/npm/v/flipbookengine?style=flat-square&color=blue)](https://www.npmjs.com/package/flipbookengine)
 [![License](https://img.shields.io/npm/l/flipbookengine?style=flat-square)](https://github.com/Bizeka/flipbook-engine/blob/main/LICENSE)
@@ -75,7 +75,7 @@ Passing `pages` remains optional. When omitted, FlipbookEngine creates the page 
 Use the ESM build with an import map for PDF.js. The worker must be served from a URL your site permits in its Content Security Policy.
 
 ```html
-<link rel="stylesheet" href="https://unpkg.com/flipbookengine@0.8.0/dist/flipbook-engine.css" />
+<link rel="stylesheet" href="https://unpkg.com/flipbookengine@1.0.0/dist/flipbook-engine.css" />
 <div id="viewer" style="width: 100%; height: 600px;"></div>
 
 <script type="importmap">
@@ -86,7 +86,7 @@ Use the ESM build with an import map for PDF.js. The worker must be served from 
 }
 </script>
 <script type="module">
-  import { FlipbookEngine } from 'https://unpkg.com/flipbookengine@0.8.0/dist/flipbook-engine.js';
+  import { FlipbookEngine } from 'https://unpkg.com/flipbookengine@1.0.0/dist/flipbook-engine.js';
 
   const engine = new FlipbookEngine('#viewer', {
     pdfWorkerSrc: 'https://unpkg.com/pdfjs-dist@5.4.530/build/pdf.worker.min.mjs'
@@ -184,6 +184,8 @@ Upgrading from 0.3.x to 0.4.0 keeps the public engine methods intact. The releas
 
 For 0.5.0 behavior, see the [0.5.0 migration guide](./docs/migration-0.5.0.md). PDF-backed viewers now render on demand; callers should use `progress` and `error` events for rendering telemetry.
 
+
+For the 1.0.0 migration and the 0.x compatibility boundary, see the [1.0.0 migration guide](./docs/migration-1.0.0.md).
 
 ## Public API Reference
 

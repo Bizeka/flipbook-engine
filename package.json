@@ -1,6 +1,6 @@
 {
   "name": "flipbookengine",
-  "version": "0.8.0",
+  "version": "1.0.0",
   "description": "A modern, embeddable HTML flipbook engine for PDF-backed catalogs and digital publications.",
   "private": false,
   "scripts": {
@@ -43,6 +43,7 @@
   ],
   "files": [
     "dist",
+    "docs",
     "react",
     "vue",
     "README.md",

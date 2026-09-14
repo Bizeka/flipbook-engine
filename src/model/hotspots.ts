@@ -1,5 +1,5 @@
 /**
- * @license FlipbookEngine v0.8.0
+ * @license FlipbookEngine v1.0.0
  * Copyright (c) 2026 Murat Dogan
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
