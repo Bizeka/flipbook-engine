@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.4
+
+- restored the modular FlipbookEngine source line after the 0.5.3 packaging regression
+- hardened engine lifecycle cleanup, locale API compatibility, and PDF render error propagation
+- added regression coverage for the fixes above
+- **0.5.3 is deprecated and must not be used.** That release contains a source/package regression that can cause serious breaking changes for integrations. Upgrade to 0.5.4 or later.
+
 ## 0.5.3
 
 - pinned the jsdom test dependency to a Node 18-compatible release so the full CI matrix runs consistently

@@ -1,5 +1,7 @@
 # FlipbookEngine
 
+> **Important release notice:** `flipbookengine@0.5.3` is deprecated and must not be used. It contains a source/package regression that can cause serious breaking changes for integrations. Upgrade to `0.5.4` or a later release.
+
 [![NPM Version](https://img.shields.io/npm/v/flipbookengine?style=flat-square&color=blue)](https://www.npmjs.com/package/flipbookengine)
 [![License](https://img.shields.io/npm/l/flipbookengine?style=flat-square)](https://github.com/Bizeka/flipbook-engine/blob/main/LICENSE)
 [![NPM Unpacked Size](https://img.shields.io/npm/unpacked-size/flipbookengine?style=flat-square)](https://www.npmjs.com/package/flipbookengine)
