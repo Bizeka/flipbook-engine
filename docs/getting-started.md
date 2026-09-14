@@ -93,6 +93,9 @@ await engine.sharePage(4);
 engine.on('bookmarkChange', ({ pageNumber, bookmarked }) => {
   console.log(`Page ${pageNumber} bookmarked: ${bookmarked}`);
 });
+engine.on('noteChange', ({ pageNumber, note }) => {
+  console.log(`Page ${pageNumber} note changed`, note);
+});
 engine.on('deepLinkChange', ({ pageNumber, url }) => {
   console.log(`Sharing page ${pageNumber}: ${url}`);
 });

@@ -32,6 +32,7 @@ When instantiating `new FlipbookEngine(selector, options)`, you can configure th
 | `deepLink` | `boolean` | `false` | Synchronizes the active page with a `?page=` URL parameter and browser history. |
 | `onShare` | `(url: string) => void` | `null` | Optional callback invoked after the localized toolbar Share control shares or copies the generated page URL. |
 | `bookmarks` | `number[]` | `[]` | Initial zero-based page indexes marked as bookmarks; persistence remains with the host application. |
+| `notes` | `Record<number, string>` | `{}` | Initial host-managed notes keyed by zero-based page index; persistence remains with the host application. |
 
 ---
 
@@ -76,6 +77,8 @@ Uses the native share dialog when available, otherwise copies the page URL to th
 ### Bookmark methods
 
 `getBookmarkedPages()`, `isBookmarked()`, `setBookmark(pageIndex, bookmarked)`, and `toggleBookmark(pageIndex)` manage zero-based bookmark state. The `bookmarkChange` event payload is `{ pageIndex, pageNumber, bookmarked }`; hosts should persist this payload in their own storage.
+
+`getNotes()`, `getNote(pageIndex)`, `setNote(pageIndex, note)`, and `clearNote(pageIndex)` manage host-owned notes. Empty notes are removed; `noteChange` emits `{ pageIndex, pageNumber, note }` with `null` when a note is cleared.
 
 ### `connectEmbed(options?: FlipbookEmbedOptions)`
 Connects an origin-validated postMessage bridge for iframe integrations. Call this from the document loaded inside the iframe.
@@ -141,6 +144,7 @@ const unsubscribe = engine.on('pageChange', ({ currentPage, pageNumber, totalPag
 - **`orientationChange`**: Emitted when layout orientation changes. Payload: `{ orientation: 'landscape' | 'portrait' }`.
 - **`deepLinkChange`**: Emitted when the active page updates the shareable URL. Payload: `{ pageIndex: number; pageNumber: number; url: string }`.
 - **`bookmarkChange`**: Emitted when a page bookmark is added or removed. Payload: `{ pageIndex: number; pageNumber: number; bookmarked: boolean }`.
+- **`noteChange`**: Emitted when a page note is added, updated, or cleared. Payload: `{ pageIndex: number; pageNumber: number; note: string | null }`.
 - **`error`**: Emitted when PDF loading/rendering fails. Payload: `{ code: 'PDF_LOAD_FAILED' | 'PDF_RENDER_FAILED'; message: string; cause?: unknown }`
 - **`destroy`**: Emitted when the engine is destroyed.
 

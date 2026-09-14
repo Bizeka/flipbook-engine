@@ -68,6 +68,8 @@ export interface FlipbookEngineOptions {
     deepLink?: boolean;
     /** Zero-based page indexes initially marked as bookmarks. */
     bookmarks?: number[];
+    /** Initial host-managed notes keyed by zero-based page index. */
+    notes?: Record<number, string>;
 }
 
 export interface PageImages extends FlipbookPageAsset {
@@ -90,6 +92,7 @@ export interface FlipbookEngineEventMap {
     error: { code: 'PDF_LOAD_FAILED' | 'PDF_RENDER_FAILED'; message: string; cause?: unknown };
     deepLinkChange: { pageIndex: number; pageNumber: number; url: string };
     bookmarkChange: { pageIndex: number; pageNumber: number; bookmarked: boolean };
+    noteChange: { pageIndex: number; pageNumber: number; note: string | null };
 }
 
 export type FlipbookEngineEventName = keyof FlipbookEngineEventMap;
@@ -462,6 +465,34 @@ export class FlipbookEngine {
         this.setBookmark(pageIndex, !this.isBookmarked(pageIndex));
     }
 
+    /** Returns all non-empty host-managed notes keyed by zero-based page index. */
+    public getNotes(): Record<number, string> {
+        return Object.fromEntries(this.store.pageNotes.value);
+    }
+
+    /** Returns the note for a zero-based page index, if one exists. */
+    public getNote(pageIndex = this.getCurrentPage()): string | undefined {
+        return this.store.pageNotes.value.get(Math.trunc(pageIndex));
+    }
+
+    /** Sets or clears a host-managed note and emits noteChange when it changes. */
+    public setNote(pageIndex: number, note: string): void {
+        if (this.store.totalPages.value === 0 || !Number.isFinite(pageIndex)) return;
+        const boundedIndex = Math.max(0, Math.min(this.store.totalPages.value - 1, Math.trunc(pageIndex)));
+        const normalizedNote = String(note ?? '').trim();
+        const currentNote = this.store.pageNotes.value.get(boundedIndex);
+        if (currentNote === (normalizedNote || undefined)) return;
+        const next = new Map(this.store.pageNotes.value);
+        if (normalizedNote) next.set(boundedIndex, normalizedNote); else next.delete(boundedIndex);
+        this.store.pageNotes.value = next;
+        this.emit('noteChange', { pageIndex: boundedIndex, pageNumber: boundedIndex + 1, note: normalizedNote || null });
+    }
+
+    /** Clears the host-managed note for a zero-based page index. */
+    public clearNote(pageIndex = this.getCurrentPage()): void {
+        this.setNote(pageIndex, '');
+    }
+
     public getZoom(): number {
         return this.store.zoomState.value.scale;
     }
@@ -538,6 +569,7 @@ export class FlipbookEngine {
         if (options.autoPlay !== undefined) this.store.isAutoPlaying.value = options.autoPlay;
         if (options.autoPlayInterval !== undefined) this.store.autoPlayInterval.value = options.autoPlayInterval;
         if (options.bookmarks !== undefined) this.store.bookmarkedPages.value = new Set(options.bookmarks.map((page) => Math.trunc(page)).filter((page) => Number.isInteger(page) && page >= 0 && page < this.store.totalPages.value));
+        if (options.notes !== undefined) this.store.pageNotes.value = new Map(Object.entries(options.notes).map(([page, note]) => [Math.trunc(Number(page)), String(note).trim()] as const).filter(([page, note]) => Number.isInteger(page) && page >= 0 && page < this.store.totalPages.value && note.length > 0));
 
         if (this.container) {
             applyThemeConfiguration(this.container, this.options);

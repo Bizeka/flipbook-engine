@@ -10,6 +10,7 @@
 - added a localized toolbar Share button with native-share/clipboard fallback and an optional `onShare` host callback
 - added regression coverage for toolbar share invocation, generated page URLs, callback delivery, and Turkish localization
 - added host-managed bookmark state with localized toolbar control, public methods, and `bookmarkChange` events
+- added host-managed page notes with initialization options, public methods, `noteChange` events, and iframe event forwarding
 
 ## 0.6.5
 
