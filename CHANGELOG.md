@@ -2,6 +2,9 @@
 
 - Added client-side PDF text search with localized panel, page result highlighting, and embed commands.
 - Added normalized page hotspots with accessible popups and activation events.
+- Added normalized PDF text-match rectangles, split-page mapping, and lightweight text overlays.
+- Unified search and note input focus styling and hardened DOMWise result-list rendering.
+- Image-only mode remains text-search unavailable unless a host supplies server-generated text metadata.
 
 # Changelog
 
