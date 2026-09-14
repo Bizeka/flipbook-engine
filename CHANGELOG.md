@@ -1,14 +1,15 @@
-## [Unreleased] - v0.6.5
-
-- Added client-side PDF text search with localized panel, page result highlighting, and embed commands.
-- Added normalized page hotspots with accessible popups and activation events.
-- Added normalized PDF text-match rectangles, split-page mapping, and lightweight text overlays.
-- Unified search and note input focus styling and hardened DOMWise result-list rendering.
-- Image-only mode remains text-search unavailable unless a host supplies server-generated text metadata.
-
 # Changelog
 
-## Next (unreleased)
+## 0.8.0 - 2026-09-14
+
+- added precise PDF.js text-match rectangles and logical left/right split-page mapping
+- replaced full-page search tint with lightweight text-position highlights
+- hardened DOMWise search result rendering so result buttons are not stringified
+- unified search and note focus styling with a single thin accent border and glow
+- disabled text search in image/WebP page-list mode with localized explanation; download URL handling remains independent
+- added localized image-mode messaging and regression coverage
+
+## [Unreleased]
 
 - added an origin-validated iframe embed bridge with parent-side command and event helpers
 - documented embed navigation, zoom, single-mode, runtime options, fullscreen, state queries, and explicit-origin security configuration

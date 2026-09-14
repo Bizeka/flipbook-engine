@@ -1,5 +1,5 @@
 /**
- * @license FlipbookEngine v0.6.5
+ * @license FlipbookEngine v0.8.0
  * Copyright (c) 2026 Murat Dogan
  *
  * This source code is dual-licensed under the AGPLv3 and a Commercial License.
