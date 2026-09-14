@@ -8,6 +8,7 @@ test('exposes built-in turkish messages', () => {
   assert.equal(trMessages.previous, 'Önceki');
   assert.equal(trMessages.settings, 'Ayarlar');
   assert.equal(trMessages.downloadCatalog, 'Kataloğu İndir');
+  assert.equal(trMessages.share, 'Paylaş');
 });
 
 test('supports message override composition at call site', () => {

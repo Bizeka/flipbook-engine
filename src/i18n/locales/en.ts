@@ -17,6 +17,7 @@ export const enMessages = {
   fullscreen: 'Fullscreen',
   settings: 'Settings',
   downloadCatalog: 'Download Catalog',
+  share: 'Share',
   play: 'Play',
   pause: 'Pause',
   tableOfContents: 'Table of Contents'

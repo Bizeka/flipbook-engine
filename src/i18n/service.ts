@@ -20,6 +20,7 @@ export interface FlipbookMessages {
   fullscreen: string;
   settings: string;
   downloadCatalog: string;
+  share: string;
   play: string;
   pause: string;
   tableOfContents: string;

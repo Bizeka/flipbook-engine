@@ -50,6 +50,8 @@ export interface FlipbookEngineOptions {
     className?: string;
     cssVariables?: Record<string, string>;
     onDownload?: (url: string) => void;
+    /** Called after the toolbar creates and shares/copies the current page URL. */
+    onShare?: (url: string) => void;
     singleMode?: boolean;
     isSingleMode?: boolean;
     autoPlay?: boolean;
@@ -250,6 +252,11 @@ export class FlipbookEngine {
                 if (!pdfUrl) return;
                 if (this.options.onDownload) this.options.onDownload(pdfUrl);
                 else window.open(pdfUrl, '_blank');
+            },
+            onShare: () => {
+                void this.sharePage().then((url) => this.options.onShare?.(url)).catch((error) => {
+                    console.warn('Share err:', error);
+                });
             }
         });
 

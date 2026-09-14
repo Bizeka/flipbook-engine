@@ -88,6 +88,7 @@ await engine.init('/files/catalog.pdf');
 
 const pageUrl = engine.getPageUrl(4);
 await engine.sharePage(4);
+// The viewer toolbar also exposes a localized Share button.
 engine.on('deepLinkChange', ({ pageNumber, url }) => {
   console.log(`Sharing page ${pageNumber}: ${url}`);
 });

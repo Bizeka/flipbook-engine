@@ -32,6 +32,7 @@ interface AppProps {
     bookContainerRef: (el: HTMLElement) => void;
     className?: string;
     onDownload: () => void;
+    onShare: () => void;
     onToggleFullscreen: () => void;
     store: FlipbookStore;
 }
@@ -113,6 +114,7 @@ export function App(props: AppProps) {
                 onZoomIn={handleZoomIn}
                 onZoomOut={handleZoomOut}
                 onDownload={props.onDownload}
+                onShare={props.onShare}
                 onNextPage={handleNextPage}
                 onPrevPage={handlePrevPage}
                 onSoundToggle={() => props.store.soundEnabled.value = !props.store.soundEnabled.value}

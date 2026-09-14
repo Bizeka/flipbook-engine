@@ -69,7 +69,7 @@ Changes the UI language programmatically.
 Returns a shareable URL with a 1-based `?page=` parameter for the requested 0-based page index.
 
 ### `sharePage(pageIndex = getCurrentPage())`
-Uses the native share dialog when available, otherwise copies the page URL to the clipboard.
+Uses the native share dialog when available, otherwise copies the page URL to the clipboard. The toolbar exposes this behavior through a localized Share button. Enable `deepLink: true` in the receiving viewer to resolve the `?page=` parameter.
 
 ### `connectEmbed(options?: FlipbookEmbedOptions)`
 Connects an origin-validated postMessage bridge for iframe integrations. Call this from the document loaded inside the iframe.

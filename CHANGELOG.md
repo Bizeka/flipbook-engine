@@ -7,6 +7,8 @@
 - added regression tests for embed commands, origin/window filtering, and event forwarding
 - added opt-in deep links with browser history synchronization, shareable page URLs, and native-share/clipboard fallback
 - added regression coverage for initial URL pages, URL updates, and popstate navigation
+- added a localized toolbar Share button with native-share/clipboard fallback and an optional `onShare` host callback
+- added regression coverage for toolbar share invocation, generated page URLs, callback delivery, and Turkish localization
 
 ## 0.6.5
 

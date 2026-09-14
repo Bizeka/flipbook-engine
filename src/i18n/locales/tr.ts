@@ -17,6 +17,7 @@ export const trMessages = {
   fullscreen: 'Tam Ekran',
   settings: 'Ayarlar',
   downloadCatalog: 'Kataloğu İndir',
+  share: 'Paylaş',
   play: 'Otomatik Oynat',
   pause: 'Duraklat',
   tableOfContents: 'İçindekiler'
