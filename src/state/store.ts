@@ -1,5 +1,5 @@
 /**
- * @license FlipbookEngine v0.5.4
+ * @license FlipbookEngine v0.6.0
  * Copyright (c) 2026 Murat Dogan
  *
  * This source code is dual-licensed under the AGPLv3 and a Commercial License.
@@ -7,6 +7,7 @@
 import { signal, computed, type Signal, type ReadonlySignal } from '@preact/signals-core';
 import type { FlipbookThemeMode } from '../theme/theme';
 import type { NormalizedFlipbookPage } from '../model/pages';
+import { normalizeFlipbookToc, type FlipbookTocEntry } from '../model/toc';
 import type { FlipbookEngineOptions } from '../engine';
 import type { PartialFlipbookMessages } from '../i18n/service';
 
@@ -16,11 +17,11 @@ export interface ZoomState { isActive: boolean; translateX: number; translateY: 
 
 export interface FlipbookStore {
     currentPage: Signal<number>; totalPages: Signal<number>; isSingleMode: Signal<boolean>;
-    showThumbs: Signal<boolean>; showArrows: Signal<boolean>; orientation: Signal<Orientation>;
+    showThumbs: Signal<boolean>; showToc: Signal<boolean>; showArrows: Signal<boolean>; orientation: Signal<Orientation>;
     flipState: Signal<FlipState>; themeMode: Signal<FlipbookThemeMode>; allowDownload: Signal<boolean>;
     hasDownloadUrl: Signal<boolean>; primaryColor: Signal<string>; whiteLabel: Signal<boolean>;
     isZoomed: Signal<boolean>; isAutoPlaying: Signal<boolean>; autoPlayInterval: Signal<number>;
-    soundEnabled: Signal<boolean>; locale: Signal<string>; messages: Signal<Partial<Record<string, PartialFlipbookMessages>>>; zoomState: Signal<ZoomState>; pages: Signal<NormalizedFlipbookPage[]>;
+    soundEnabled: Signal<boolean>; locale: Signal<string>; messages: Signal<Partial<Record<string, PartialFlipbookMessages>>>; zoomState: Signal<ZoomState>; pages: Signal<NormalizedFlipbookPage[]>; toc: Signal<FlipbookTocEntry[]>;
     isDoublePageLayout: ReadonlySignal<boolean>; isFrontCover: ReadonlySignal<boolean>; isBackCover: ReadonlySignal<boolean>;
     init(options: FlipbookEngineOptions, total: number, mappedPages: NormalizedFlipbookPage[], hasPdfUrl: boolean): void;
     reset(): void;
@@ -31,14 +32,14 @@ const initialZoomState = (): ZoomState => ({ isActive: false, translateX: 0, tra
 /** Creates an isolated reactive state container for one FlipbookEngine instance. */
 export function createFlipbookStore(): FlipbookStore {
     const currentPage = signal(0), totalPages = signal(0), isSingleMode = signal(false);
-    const showThumbs = signal(true), showArrows = signal(true), orientation = signal<Orientation>('landscape');
+    const showThumbs = signal(true), showToc = signal(false), showArrows = signal(true), orientation = signal<Orientation>('landscape');
     const flipState = signal<FlipState>('read'), themeMode = signal<FlipbookThemeMode>('auto');
     const allowDownload = signal(true), hasDownloadUrl = signal(false), primaryColor = signal('#7367f0');
     const whiteLabel = signal(false), isZoomed = signal(false), isAutoPlaying = signal(false);
     const autoPlayInterval = signal(3000), soundEnabled = signal(true);
     const locale = signal('en');
     const messages = signal<Partial<Record<string, PartialFlipbookMessages>>>({});
-    const zoomState = signal<ZoomState>(initialZoomState()), pages = signal<NormalizedFlipbookPage[]>([]);
+    const zoomState = signal<ZoomState>(initialZoomState()), pages = signal<NormalizedFlipbookPage[]>([]), toc = signal<FlipbookTocEntry[]>([]);
     const isDoublePageLayout = computed(() => !isSingleMode.value && orientation.value === 'landscape');
     const isFrontCover = computed(() => isDoublePageLayout.value && currentPage.value === 0);
     const isBackCover = computed(() => isDoublePageLayout.value && currentPage.value >= totalPages.value - 1);
@@ -47,6 +48,8 @@ export function createFlipbookStore(): FlipbookStore {
         if (options.theme !== undefined) themeMode.value = options.theme;
         if (options.primaryColor !== undefined) primaryColor.value = options.primaryColor;
         if (options.showThumbs !== undefined) showThumbs.value = options.showThumbs;
+        if (options.showToc !== undefined) showToc.value = options.showToc;
+        toc.value = normalizeFlipbookToc(options.toc ?? [], total);
         if (options.showArrows !== undefined) showArrows.value = options.showArrows;
         if (options.allowDownload !== undefined) allowDownload.value = options.allowDownload;
         if (options.whiteLabel !== undefined) whiteLabel.value = options.whiteLabel;
@@ -80,18 +83,19 @@ export function createFlipbookStore(): FlipbookStore {
         messages.value = {};
         zoomState.value = initialZoomState();
         pages.value = [];
+        toc.value = [];
     };
-    return { currentPage, totalPages, isSingleMode, showThumbs, showArrows, orientation, flipState, themeMode, allowDownload, hasDownloadUrl, primaryColor, whiteLabel, isZoomed, isAutoPlaying, autoPlayInterval, soundEnabled, locale, messages, zoomState, pages, isDoublePageLayout, isFrontCover, isBackCover, init, reset };
+    return { currentPage, totalPages, isSingleMode, showThumbs, showToc, showArrows, orientation, flipState, themeMode, allowDownload, hasDownloadUrl, primaryColor, whiteLabel, isZoomed, isAutoPlaying, autoPlayInterval, soundEnabled, locale, messages, zoomState, pages, toc, isDoublePageLayout, isFrontCover, isBackCover, init, reset };
 }
 
 // Compatibility exports for consumers of the former internal singleton module.
 const legacyStore = createFlipbookStore();
 export const currentPage = legacyStore.currentPage, totalPages = legacyStore.totalPages, isSingleMode = legacyStore.isSingleMode;
-export const showThumbs = legacyStore.showThumbs, showArrows = legacyStore.showArrows, orientation = legacyStore.orientation;
+export const showThumbs = legacyStore.showThumbs, showToc = legacyStore.showToc, showArrows = legacyStore.showArrows, orientation = legacyStore.orientation;
 export const flipState = legacyStore.flipState, themeMode = legacyStore.themeMode, allowDownload = legacyStore.allowDownload;
 export const hasDownloadUrl = legacyStore.hasDownloadUrl, primaryColor = legacyStore.primaryColor, whiteLabel = legacyStore.whiteLabel;
 export const isZoomed = legacyStore.isZoomed, isAutoPlaying = legacyStore.isAutoPlaying, autoPlayInterval = legacyStore.autoPlayInterval;
-export const soundEnabled = legacyStore.soundEnabled, locale = legacyStore.locale, messages = legacyStore.messages, zoomState = legacyStore.zoomState, pages = legacyStore.pages;
+export const soundEnabled = legacyStore.soundEnabled, locale = legacyStore.locale, messages = legacyStore.messages, zoomState = legacyStore.zoomState, pages = legacyStore.pages, toc = legacyStore.toc;
 export const isDoublePageLayout = legacyStore.isDoublePageLayout, isFrontCover = legacyStore.isFrontCover, isBackCover = legacyStore.isBackCover;
 export function initStore(options: FlipbookEngineOptions, total: number, mappedPages: NormalizedFlipbookPage[], hasPdfUrl: boolean) { legacyStore.init(options, total, mappedPages, hasPdfUrl); }
 

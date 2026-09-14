@@ -1,6 +1,6 @@
 import { computed } from '@preact/signals-core';
 /**
- * @license FlipbookEngine v0.5.4
+ * @license FlipbookEngine v0.6.0
  * Copyright (c) 2026 Murat Dogan
  *
  * This source code is dual-licensed under the AGPLv3 and a Commercial License.
@@ -17,6 +17,7 @@ import { computed } from '@preact/signals-core';
 
 import { Toolbar } from './Toolbar';
 import { Thumbnails } from './Thumbnails';
+import { TableOfContents } from './TableOfContents';
 import { Viewer } from './Viewer';
 import { NavigationArrows } from './NavigationArrows';
 import type { FlipbookStore } from '../state/store';
@@ -40,6 +41,10 @@ export function App(props: AppProps) {
         props.store.showThumbs.value = !props.store.showThumbs.value;
     };
 
+    const handleToggleToc = () => {
+        props.store.showToc.value = !props.store.showToc.value;
+    };
+
     const handleToggleSingleMode = () => {
         props.store.isSingleMode.value = !props.store.isSingleMode.value;
     };
@@ -57,6 +62,11 @@ export function App(props: AppProps) {
     };
 
     const handleToggleFullscreen = () => props.onToggleFullscreen();
+    const handleTocEntryClick = (pageIndex: number) => {
+        props.store.currentPage.value = pageIndex;
+        props.store.showToc.value = false;
+    };
+
     const handleThumbClick = (index: number) => {
         if (props.store.currentPage.value !== index) {
             props.store.currentPage.value = index;
@@ -93,10 +103,12 @@ export function App(props: AppProps) {
                         Powered by <a href="https://flipbookengine.com" target="_blank" rel="noopener" style="text-decoration: underline;">FlipbookEngine</a>
                     </div>
                 ) : null}
+                <TableOfContents store={props.store} onEntryClick={handleTocEntryClick} />
             </div>
 
             <Toolbar store={props.store}
                 onToggleThumbs={handleToggleThumbs}
+                onToggleToc={handleToggleToc}
                 onToggleSingleMode={handleToggleSingleMode}
                 onZoomIn={handleZoomIn}
                 onZoomOut={handleZoomOut}

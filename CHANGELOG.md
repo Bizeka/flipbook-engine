@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.0 (unreleased)
+
+- added a localized, theme-aware Table of Contents panel with nested host-provided page entries
+- added TOC visibility events, page navigation, normalization, accessibility, and regression tests
+
 ## 0.5.4
 
 - restored the modular FlipbookEngine source line after an unreleased post-0.5.3 source regression

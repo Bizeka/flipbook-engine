@@ -10,6 +10,8 @@ When instantiating `new FlipbookEngine(selector, options)`, you can configure th
 |---|---|---|---|
 | `allowDownload` | `boolean` | `true` | Exposes a download button in the toolbar. |
 | `showThumbs` | `boolean` | `true` | Starts the viewer with the thumbnail navigation rail open. |
+| `showToc` | `boolean` | `false` | Shows the supplied table of contents panel when it contains entries. |
+| `toc` | `FlipbookTocEntry[]` | `[]` | Host-provided chapter/category entries using zero-based page indexes. |
 | `showArrows` | `boolean` | `true` | Shows the previous/next navigation arrows. |
 | `primaryColor` | `string` | `'#7367f0'` | Sets the primary theme accent color. |
 | `theme` | `'auto' \| 'light' \| 'dark'` | `'auto'` | Force light/dark mode or let it respond automatically. |
@@ -84,6 +86,8 @@ const unsubscribe = engine.on('pageChange', ({ currentPage, pageNumber, totalPag
 - **`singlePageModeChange`**: Emitted when switching layout mode.
   - Payload: `{ isSingle: boolean }`
 - **`thumbsToggle`**: Emitted when thumbnail rail is toggled.
+- **`tocToggle`**: Emitted when the table of contents panel is toggled.
+  - Payload: `{ showToc: boolean }`
   - Payload: `{ showThumbs: boolean }`
 - **`init`**: Emitted after the viewer is ready. Payload: `{ totalPages: number }`
 - **`progress`**: Emitted during PDF loading/rendering. Payload: `{ phase: 'loading' | 'rendering'; completed: number; total: number }`
@@ -97,3 +101,19 @@ const unsubscribe = engine.on('pageChange', ({ currentPage, pageNumber, totalPag
 When `pdfUrl` is supplied without a `pages` list, the engine creates lightweight page placeholders immediately after the document metadata loads. The first page is rendered before `init()` resolves, and the next page is prefetched. Remaining pages render on demand as they become visible or are selected. Rendering requests are deduplicated per page and cancelled when initialization is superseded or the engine is destroyed.
 
 Use `pdfRenderConcurrency` to bound concurrent PDF.js work and `pdfRenderCacheSize` to configure the per-instance LRU cache. Set the cache size to `0` when rendered page data should not be retained.
+
+## Table of contents
+
+TOC entries are supplied by the host application so the viewer stays backend-agnostic. `pageIndex` is zero-based and is clamped to the loaded page range. Nested `children` entries are supported.
+
+```ts
+const engine = new FlipbookEngine('#viewer', {
+  toc: [
+    { title: 'Introduction', pageIndex: 0 },
+    { title: 'Products', pageIndex: 4, children: [
+      { title: 'Category A', pageIndex: 5 }
+    ] }
+  ],
+  showToc: true
+});
+```

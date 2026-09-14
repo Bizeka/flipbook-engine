@@ -1,5 +1,5 @@
 /**
- * @license FlipbookEngine v0.5.4
+ * @license FlipbookEngine v0.6.0
  * Copyright (c) 2026 Murat Dogan
  *
  * This source code is dual-licensed under the AGPLv3 and a Commercial License.
@@ -19,6 +19,7 @@ import { resolveMessages } from '../i18n/service';
 interface ToolbarProps {
     store: FlipbookStore;
     onToggleThumbs: () => void;
+    onToggleToc: () => void;
     onToggleSingleMode: () => void;
     onZoomIn: () => void;
     onZoomOut: () => void;
@@ -43,6 +44,17 @@ export function Toolbar(props: ToolbarProps) {
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
                 </button>
+                {computed(() => props.store.toc.value.length ? (
+                    <button type="button"
+                        class={computed(() => props.store.showToc.value ? 'bk-btn active' : 'bk-btn')}
+                        onClick={props.onToggleToc}
+                        aria-label={computed(() => messages.value.tableOfContents || 'Table of Contents')}
+                        aria-pressed={computed(() => props.store.showToc.value ? 'true' : 'false')}
+                        title={computed(() => messages.value.tableOfContents || 'Table of Contents')}
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                    </button>
+                ) : null)}
 
                 <button type="button"
                     class={computed(() => `bk-btn bz-hide-mobile ${props.store.isSingleMode.value ? 'active' : ''}`)}

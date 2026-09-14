@@ -22,6 +22,9 @@ export type {
   NormalizedFlipbookPage
 } from './model/pages';
 
+export type { FlipbookTocEntry } from './model/toc';
+export { normalizeFlipbookToc } from './model/toc';
+
 export {
   normalizeFlipbookPages,
   isFlipbookPageAsset

@@ -22,6 +22,7 @@ export interface FlipbookMessages {
   downloadCatalog: string;
   play: string;
   pause: string;
+  tableOfContents: string;
 }
 
 export const builtInMessages = {

@@ -18,5 +18,6 @@ export const trMessages = {
   settings: 'Ayarlar',
   downloadCatalog: 'Kataloğu İndir',
   play: 'Otomatik Oynat',
-  pause: 'Duraklat'
+  pause: 'Duraklat',
+  tableOfContents: 'İçindekiler'
 } as const;

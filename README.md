@@ -1,6 +1,7 @@
 # FlipbookEngine
 
 > **Release notice:** `flipbookengine@0.5.3` is a valid published release. Upgrade to `0.5.4` or later for lifecycle, locale, and PDF render error-handling fixes. The post-tag source regression was corrected before the 0.5.4 release.
+> **Development notice:** `0.6.0` is the next unreleased feature candidate and adds the localized Table of Contents API. `0.5.4` remains the latest published version until the 0.6.0 release.
 
 [![NPM Version](https://img.shields.io/npm/v/flipbookengine?style=flat-square&color=blue)](https://www.npmjs.com/package/flipbookengine)
 [![License](https://img.shields.io/npm/l/flipbookengine?style=flat-square)](https://github.com/Bizeka/flipbook-engine/blob/main/LICENSE)
@@ -175,11 +176,13 @@ const unsubscribe = engine.on('pageChange', ({ currentPage, totalPages, isSingle
 unsubscribe();
 ```
 
-Supported events: `init`, `progress`, `pageChange`, `zoomChange`, `singlePageModeChange`, `thumbsToggle`, `orientationChange`, `error`, `destroy`.
+Supported events: `init`, `progress`, `pageChange`, `zoomChange`, `singlePageModeChange`, `thumbsToggle`, `tocToggle`, `orientationChange`, `error`, `destroy`.
 
 | Option | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
 | `showArrows` | `boolean` | `true` | Shows the previous/next navigation arrows. |
+| `showToc` | `boolean` | `false` | Shows the table of contents panel when `toc` entries are supplied. |
+| `toc` | `FlipbookTocEntry[]` | `[]` | Host-provided chapter/category entries with zero-based page indexes. |
 | `soundEnabled` | `boolean` | `true` | Enables page turning sound effect. |
 | `soundUrl` | `string` | `'https://.../page-flip.mp3'` | URL of the audio file. |
 | `autoPlayInterval`| `number` | `3000` | Autoplay page duration in milliseconds. |

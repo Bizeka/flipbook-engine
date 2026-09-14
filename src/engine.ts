@@ -1,5 +1,5 @@
 /**
- * @license FlipbookEngine v0.5.4
+ * @license FlipbookEngine v0.6.0
  * Copyright (c) 2026 Murat Dogan
  *
  * This source code is dual-licensed under the AGPLv3 and a Commercial License.
@@ -23,11 +23,14 @@ import { isFlipbookPageAsset, normalizeFlipbookPages, type FlipbookPageAsset, ty
 import { applyThemeConfiguration, type FlipbookThemeMode } from './theme/theme';
 import { resolveMessages, type FlipbookLocale, type PartialFlipbookMessages } from './i18n/service';
 import { PdfRenderer } from './core/PdfRenderer';
+import { normalizeFlipbookToc, type FlipbookTocEntry } from './model/toc';
 import './styles/flipbook-engine.css';
 
 export interface FlipbookEngineOptions {
     allowDownload?: boolean;
     showThumbs?: boolean;
+    showToc?: boolean;
+    toc?: FlipbookTocEntry[];
     showArrows?: boolean;
     primaryColor?: string;
     soundEnabled?: boolean;
@@ -69,6 +72,7 @@ export interface FlipbookEngineEventMap {
     pageChange: { currentPage: number; pageNumber: number; totalPages: number; isSingle: boolean };
     zoomChange: { zoom: number; isActive: boolean };
     thumbsToggle: { showThumbs: boolean };
+    tocToggle: { showToc: boolean };
     singlePageModeChange: { isSingle: boolean };
     orientationChange: { orientation: 'landscape' | 'portrait' };
     progress: { phase: 'loading' | 'rendering'; completed: number; total: number };
@@ -98,7 +102,7 @@ export class FlipbookEngine {
     private initGeneration = 0;
     private initAbortController: AbortController | null = null;
     private eventsReady = false;
-    private lastEventState = { currentPage: 0, zoom: 1, zoomActive: false, showThumbs: true, isSingle: false, orientation: '' as '' | 'landscape' | 'portrait' };
+    private lastEventState = { currentPage: 0, zoom: 1, zoomActive: false, showThumbs: true, showToc: false, isSingle: false, orientation: '' as '' | 'landscape' | 'portrait' };
     private eventSyncStop: (() => void) | null = null;
     private qualityObserver: IntersectionObserver | null = null;
     private pdfLazyStop: (() => void) | null = null;
@@ -425,6 +429,8 @@ export class FlipbookEngine {
         if (options.theme !== undefined) this.store.themeMode.value = options.theme;
         if (options.primaryColor !== undefined) this.store.primaryColor.value = options.primaryColor;
         if (options.showThumbs !== undefined) this.store.showThumbs.value = options.showThumbs;
+        if (options.showToc !== undefined) this.store.showToc.value = options.showToc;
+        if (options.toc !== undefined) this.store.toc.value = normalizeFlipbookToc(options.toc, this.store.totalPages.value);
         if (options.showArrows !== undefined) this.store.showArrows.value = options.showArrows;
         if (options.allowDownload !== undefined) this.store.allowDownload.value = options.allowDownload;
         if (options.whiteLabel !== undefined) this.store.whiteLabel.value = options.whiteLabel;
@@ -511,6 +517,7 @@ export class FlipbookEngine {
                 zoom: this.store.zoomState.value.scale,
                 zoomActive: this.store.zoomState.value.isActive,
                 showThumbs: this.store.showThumbs.value,
+                showToc: this.store.showToc.value,
                 isSingle: this.store.isSingleMode.value,
                 orientation: this.store.orientation.value
             };
@@ -532,6 +539,9 @@ export class FlipbookEngine {
             if (state.showThumbs !== this.lastEventState.showThumbs) {
                 this.emit('thumbsToggle', { showThumbs: state.showThumbs });
             }
+            if (state.showToc !== this.lastEventState.showToc) {
+                this.emit('tocToggle', { showToc: state.showToc });
+            }
             if (state.isSingle !== this.lastEventState.isSingle) {
                 this.emit('singlePageModeChange', { isSingle: state.isSingle });
             }
@@ -548,6 +558,7 @@ export class FlipbookEngine {
             zoom: this.store.zoomState.value.scale,
             zoomActive: this.store.zoomState.value.isActive,
             showThumbs: this.store.showThumbs.value,
+            showToc: this.store.showToc.value,
             isSingle: this.store.isSingleMode.value,
             orientation: this.store.orientation.value
         };

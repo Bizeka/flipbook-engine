@@ -18,5 +18,6 @@ export const enMessages = {
   settings: 'Settings',
   downloadCatalog: 'Download Catalog',
   play: 'Play',
-  pause: 'Pause'
+  pause: 'Pause',
+  tableOfContents: 'Table of Contents'
 } as const;
