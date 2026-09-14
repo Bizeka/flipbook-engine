@@ -1,4 +1,5 @@
 import { computed } from '@preact/signals-core';
+import { resolveMessages } from '../i18n/service';
 import type { FlipbookHotspot } from '../model/hotspots';
 import type { FlipbookAnnotation } from '../model/annotations';
 import type { FlipbookStore } from '../state/store';
@@ -13,6 +14,7 @@ interface HotspotLayerProps {
 }
 
 export function HotspotLayer(props: HotspotLayerProps) {
+  const messages = computed(() => resolveMessages({ locale: props.store.locale.value, messages: props.store.messages.value }));
   const hotspots = computed(() => props.store.hotspots.value.filter((item) => item.pageIndex === props.pageIndex));
   const annotations = computed(() => props.store.annotations.value.filter((item) => item.pageIndex === props.pageIndex));
   return (
@@ -30,7 +32,7 @@ export function HotspotLayer(props: HotspotLayerProps) {
         if (!active) return null;
         return (
           <div class="bk-hotspot-popup" role="dialog" aria-label={active.label}>
-            <div class="bk-hotspot-popup-heading"><strong>{active.label}</strong><button type="button" class="bk-hotspot-popup-close" onClick={props.onClose} aria-label="Close">×</button></div>
+            <div class="bk-hotspot-popup-heading"><strong>{active.label}</strong><button type="button" class="bk-hotspot-popup-close" onClick={props.onClose} aria-label={computed(() => messages.value.closeHotspot || 'Close popup')}>×</button></div>
             {active.content ? <p>{active.content}</p> : null}
             {active.href ? <a href={active.href} target={active.target || '_blank'} rel="noopener noreferrer">{active.href}</a> : null}
           </div>
@@ -40,8 +42,8 @@ export function HotspotLayer(props: HotspotLayerProps) {
         const active = props.store.annotations.value.find((item) => item.id === props.store.activeAnnotationId.value && item.pageIndex === props.pageIndex);
         if (!active) return null;
         return (
-          <div class="bk-annotation-popup" role="dialog" aria-label="Page annotation">
-            <div class="bk-hotspot-popup-heading"><strong>Page annotation</strong><button type="button" class="bk-hotspot-popup-close" onClick={props.onAnnotationClose} aria-label="Close">×</button></div>
+          <div class="bk-annotation-popup" role="dialog" aria-label={computed(() => messages.value.annotation || 'Page annotation')}>
+            <div class="bk-hotspot-popup-heading"><strong>{computed(() => messages.value.annotation || 'Page annotation')}</strong><button type="button" class="bk-hotspot-popup-close" onClick={props.onAnnotationClose} aria-label="Close">×</button></div>
             <p>{active.text}</p>
           </div>
         );

@@ -37,6 +37,8 @@ export interface FlipbookMessages {
   clearSearch: string;
   closeSearch: string;
   noSearchResults: string;
+  closeHotspot: string;
+  annotation: string;
 }
 
 export const builtInMessages = {

@@ -33,5 +33,7 @@ export const enMessages = {
   searchPlaceholder: 'Search PDF text',
   clearSearch: 'Clear',
   closeSearch: 'Close search',
-  noSearchResults: 'No results'
+  noSearchResults: 'No results',
+  closeHotspot: 'Close popup',
+  annotation: 'Page annotation'
 } as const;

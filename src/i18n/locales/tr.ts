@@ -33,5 +33,7 @@ export const trMessages = {
   searchPlaceholder: 'PDF metninde ara',
   clearSearch: 'Temizle',
   closeSearch: 'Aramayı kapat',
-  noSearchResults: 'Sonuç bulunamadı'
+  noSearchResults: 'Sonuç bulunamadı',
+  closeHotspot: 'Açılır pencereyi kapat',
+  annotation: 'Sayfa açıklaması'
 } as const;
