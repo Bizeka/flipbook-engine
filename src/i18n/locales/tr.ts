@@ -24,6 +24,8 @@ export const trMessages = {
   saveNote: 'Notu kaydet',
   clearNote: 'Notu temizle',
   closeNote: 'Not editörünü kapat',
+  editNote: 'Düzenle',
+  deleteNote: 'Sil',
   play: 'Otomatik Oynat',
   pause: 'Duraklat',
   tableOfContents: 'İçindekiler'

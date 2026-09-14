@@ -27,6 +27,8 @@ export interface FlipbookMessages {
   saveNote: string;
   clearNote: string;
   closeNote: string;
+  editNote: string;
+  deleteNote: string;
   play: string;
   pause: string;
   tableOfContents: string;

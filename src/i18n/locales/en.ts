@@ -24,6 +24,8 @@ export const enMessages = {
   saveNote: 'Save note',
   clearNote: 'Clear note',
   closeNote: 'Close note editor',
+  editNote: 'Edit',
+  deleteNote: 'Delete',
   play: 'Play',
   pause: 'Pause',
   tableOfContents: 'Table of Contents'

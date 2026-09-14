@@ -16,8 +16,8 @@ interface NotesPanelProps {
 }
 
 /**
- * Inline page-note editor. Storage remains host-owned through the engine note API
- * and noteChange event; this panel only provides a small local editing surface.
+ * Page-level note UI. Persistence remains host-owned through the engine API and
+ * noteChange event; the panel intentionally does not know about a backend.
  */
 export function NotesPanel(props: NotesPanelProps) {
     const messages = computed(() => resolveMessages({
@@ -25,6 +25,8 @@ export function NotesPanel(props: NotesPanelProps) {
         messages: props.store.messages.value
     }));
     const draft = signal('');
+    const editing = signal(false);
+    const noteInputRef = { current: null as HTMLTextAreaElement | null };
     let draftPage = -1;
 
     const draftValue = computed(() => {
@@ -33,33 +35,36 @@ export function NotesPanel(props: NotesPanelProps) {
         if (draftPage !== page) {
             draftPage = page;
             draft.value = note;
+            editing.value = !note;
         }
         return draft.value;
     });
+    const currentNote = computed(() => props.store.pageNotes.value.get(props.store.currentPage.value) ?? '');
+
     const handleInput = (event: Event) => {
         draft.value = (event.currentTarget as HTMLTextAreaElement).value;
     };
-    const save = () => {
-        props.onSave(draft.value);
+    const beginEdit = () => {
+        draft.value = currentNote.value;
+        editing.value = true;
     };
-    const clear = () => {
+    const save = (event?: Event) => {
+        event?.preventDefault();
+        props.onSave(noteInputRef.current?.value ?? draft.value);
+        editing.value = false;
+    };
+    const clear = (event?: Event) => {
+        event?.preventDefault();
         draft.value = '';
+        if (noteInputRef.current) noteInputRef.current.value = '';
         props.onClear();
+        editing.value = true;
     };
 
-    return (
-        <aside
-            class="bk-notes-panel"
-            style={computed(() => props.store.showNotes.value ? 'display:flex;' : 'display:none;')}
-            aria-label={computed(() => messages.value.notes || 'Page note')}
-        >
-            <div class="bk-notes-heading-row">
-                <div class="bk-notes-heading">{computed(() => messages.value.notes || 'Page note')}</div>
-                <button type="button" class="bk-notes-close" onClick={props.onClose} aria-label={computed(() => messages.value.closeNote || 'Close note editor')} title={computed(() => messages.value.closeNote || 'Close note editor')}>
-                    <span aria-hidden="true">×</span>
-                </button>
-            </div>
+    const renderEditor = () => (
+        <div class="bk-notes-editor">
             <textarea
+                ref={noteInputRef}
                 class="bk-notes-input"
                 aria-label={computed(() => messages.value.notes || 'Page note')}
                 placeholder={computed(() => messages.value.notes || 'Page note')}
@@ -75,6 +80,36 @@ export function NotesPanel(props: NotesPanelProps) {
                     {computed(() => messages.value.saveNote || 'Save note')}
                 </button>
             </div>
+        </div>
+    );
+
+    const renderSavedNote = () => (
+        <div class="bk-note-saved">
+            <p class="bk-note-content">{currentNote}</p>
+            <div class="bk-note-actions">
+                <button type="button" class="bk-note-badge bk-note-badge--edit" onClick={beginEdit}>
+                    {computed(() => messages.value.editNote || 'Edit')}
+                </button>
+                <button type="button" class="bk-note-badge bk-note-badge--delete" onClick={clear}>
+                    {computed(() => messages.value.deleteNote || 'Delete')}
+                </button>
+            </div>
+        </div>
+    );
+
+    return (
+        <aside
+            class="bk-notes-panel"
+            style={computed(() => props.store.showNotes.value ? 'display:flex;' : 'display:none;')}
+            aria-label={computed(() => messages.value.notes || 'Page note')}
+        >
+            <div class="bk-notes-heading-row">
+                <div class="bk-notes-heading">{computed(() => messages.value.notes || 'Page note')}</div>
+                <button type="button" class="bk-notes-close" onClick={props.onClose} aria-label={computed(() => messages.value.closeNote || 'Close note editor')} title={computed(() => messages.value.closeNote || 'Close note editor')}>
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            {computed(() => currentNote.value && !editing.value ? renderSavedNote() : renderEditor())}
         </aside>
     );
 }

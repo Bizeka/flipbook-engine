@@ -29,13 +29,19 @@ test('notes toolbar opens an editor, saves a note, and clears it for host persis
   assert.equal(notesButton.getAttribute('aria-pressed'), 'true');
 
   input.value = '  Görüşme sonrası takip edilecek  ';
-  input.dispatchEvent(new window.Event('input', { bubbles: true }));
+  // Save reads the live DOM value, so it remains reliable even if an input event is lost.
   (document.querySelector('.bk-notes-save') as HTMLButtonElement).click();
   await new Promise((resolve) => setTimeout(resolve, 0));
 
   assert.equal(engine.getNote(0), 'Görüşme sonrası takip edilecek');
   assert.deepEqual(changes[0], { pageIndex: 0, pageNumber: 1, note: 'Görüşme sonrası takip edilecek' });
+  assert.equal((document.querySelector('.bk-note-content') as HTMLElement).textContent, 'Görüşme sonrası takip edilecek');
+  assert.ok(document.querySelector('.bk-note-badge--edit'));
+  assert.ok(document.querySelector('.bk-note-badge--delete'));
 
+  (document.querySelector('.bk-note-badge--edit') as HTMLButtonElement).click();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.ok(document.querySelector('.bk-notes-input'));
   (document.querySelector('.bk-notes-clear') as HTMLButtonElement).click();
   await new Promise((resolve) => setTimeout(resolve, 0));
   assert.equal(engine.getNote(0), undefined);

@@ -1101,3 +1101,46 @@
   border-color: var(--flipbook-accent);
   color: var(--flipbook-accent);
 }
+
+.bk-note-saved {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.bk-note-content {
+  margin: 0;
+  min-height: 72px;
+  padding: 12px;
+  border: 1px solid var(--flipbook-border);
+  border-radius: var(--flipbook-radius-sm);
+  background: var(--flipbook-bg-surface-alt);
+  color: var(--flipbook-text-main);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.45;
+}
+.bk-note-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.bk-note-badge {
+  border: 1px solid var(--flipbook-border);
+  border-radius: 999px;
+  padding: 5px 11px;
+  background: transparent;
+  color: var(--flipbook-text-main);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8rem;
+}
+.bk-note-badge:hover,
+.bk-note-badge:focus-visible {
+  border-color: var(--flipbook-accent);
+  color: var(--flipbook-accent);
+}
+.bk-note-badge--delete:hover,
+.bk-note-badge--delete:focus-visible {
+  border-color: #dc3545;
+  color: #dc3545;
+}
