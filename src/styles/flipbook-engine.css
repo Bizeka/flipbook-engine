@@ -956,11 +956,11 @@
   transform: translateX(-50%);
   margin: 0;
   padding: 0;
-  color: #fff !important;
+  color: #000 !important;
   background: transparent;
   border: 0;
   text-align: center;
-  text-shadow: 0 1px 1px #0b1020, 0 0 2px rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.98), 0 0 2px rgba(255, 255, 255, 0.9);
   font-size: 18px;
   line-height: 20px;
   font-weight: 900;
@@ -972,9 +972,9 @@
     0 0 2px var(--flipbook-accent);
 }
 .thumb-item.active .thumb-page-number {
-  color: #fff !important;
+  color: #000 !important;
   background: transparent;
-  text-shadow: 0 1px 1px #0b1020, 0 0 2px rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.98), 0 0 2px rgba(255, 255, 255, 0.9);
 }
 @media (max-width: 768px) {
   .bk-thumbs {
