@@ -1,7 +1,7 @@
 # FlipbookEngine
 
-> **Release notice:** `flipbookengine@0.6.0` is the latest published release and includes the localized Table of Contents API.
-> **Development notice:** The next unreleased candidate adds automatic PDF A3 splitting, per-theme backgrounds, responsive viewer gutters, and compact thumbnails.
+> **Release notice:** `flipbookengine@0.6.5` is the latest published release and includes the localized Table of Contents API.
+> **Development notice:** Version 0.6.5 adds automatic PDF A3 splitting, per-theme backgrounds, responsive viewer gutters, enlarged thumbnails, and mobile touch fixes.
 
 [![NPM Version](https://img.shields.io/npm/v/flipbookengine?style=flat-square&color=blue)](https://www.npmjs.com/package/flipbookengine)
 [![License](https://img.shields.io/npm/l/flipbookengine?style=flat-square)](https://github.com/Bizeka/flipbook-engine/blob/main/LICENSE)
@@ -70,7 +70,7 @@ Passing `pages` remains optional. When omitted, FlipbookEngine creates the page 
 Use the ESM build with an import map for PDF.js. The worker must be served from a URL your site permits in its Content Security Policy.
 
 ```html
-<link rel="stylesheet" href="https://unpkg.com/flipbookengine@0.6.0/dist/flipbook-engine.css" />
+<link rel="stylesheet" href="https://unpkg.com/flipbookengine@0.6.5/dist/flipbook-engine.css" />
 <div id="viewer" style="width: 100%; height: 600px;"></div>
 
 <script type="importmap">
@@ -81,7 +81,7 @@ Use the ESM build with an import map for PDF.js. The worker must be served from 
 }
 </script>
 <script type="module">
-  import { FlipbookEngine } from 'https://unpkg.com/flipbookengine@0.6.0/dist/flipbook-engine.js';
+  import { FlipbookEngine } from 'https://unpkg.com/flipbookengine@0.6.5/dist/flipbook-engine.js';
 
   const engine = new FlipbookEngine('#viewer', {
     pdfWorkerSrc: 'https://unpkg.com/pdfjs-dist@5.4.530/build/pdf.worker.min.mjs'

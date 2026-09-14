@@ -2,11 +2,16 @@
 
 ## Next (unreleased)
 
+## 0.6.5
+
 - added automatic A3 landscape PDF splitting with configurable auto, single, and split modes
 - added source-page-aware lazy rendering for split PDF pages
 - added optional light/dark viewer backgrounds and responsive presentation gutters
-- reduced thumbnail rail dimensions and prevented vertical overflow
-- added regression coverage for PDF splitting, backgrounds, and presentation layout
+- enlarged the opt-in thumbnail rail and moved page labels into transparent, high-contrast overlays
+- kept thumbnail labels black in both themes and preserved a thin neon selected state
+- enabled native mobile scrolling to avoid non-cancelable touchstart interventions
+- fixed single-view PDF hydration after switching from spread mode
+- added regression coverage for PDF splitting, backgrounds, presentation layout, and PDF hydration
 
 ## 0.6.0
 
