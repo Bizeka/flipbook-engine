@@ -84,7 +84,8 @@ export class PageFlipAdapter {
             drawShadow: true,
             showCover: true,
             usePortrait: true,
-            mobileScrollSupport: false,
+            // Keep native mobile scrolling available; this avoids preventDefault on non-cancelable touchstart events.
+            mobileScrollSupport: true,
             maxShadowOpacity: this.options.maxShadowOpacity || 0.5,
             flippingTime: resolveFlippingTime(this.options.flippingTime)
         });
