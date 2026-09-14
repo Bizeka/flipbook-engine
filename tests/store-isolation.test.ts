@@ -23,7 +23,7 @@ test('store instances keep navigation and display state isolated', () => {
   assert.equal(first.showThumbs.value, false);
   assert.equal(second.currentPage.value, 0);
   assert.equal(second.zoomState.value.scale, 1);
-  assert.equal(second.showThumbs.value, true);
+  assert.equal(second.showThumbs.value, false);
   assert.equal(second.totalPages.value, 4);
   assert.equal(second.themeMode.value, 'light');
 });

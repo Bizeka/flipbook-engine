@@ -32,7 +32,7 @@ const initialZoomState = (): ZoomState => ({ isActive: false, translateX: 0, tra
 /** Creates an isolated reactive state container for one FlipbookEngine instance. */
 export function createFlipbookStore(): FlipbookStore {
     const currentPage = signal(0), totalPages = signal(0), isSingleMode = signal(false);
-    const showThumbs = signal(true), showToc = signal(false), showArrows = signal(true), orientation = signal<Orientation>('landscape');
+    const showThumbs = signal(false), showToc = signal(false), showArrows = signal(true), orientation = signal<Orientation>('landscape');
     const flipState = signal<FlipState>('read'), themeMode = signal<FlipbookThemeMode>('auto');
     const allowDownload = signal(true), hasDownloadUrl = signal(false), primaryColor = signal('#7367f0');
     const whiteLabel = signal(false), isZoomed = signal(false), isAutoPlaying = signal(false);
@@ -66,7 +66,7 @@ export function createFlipbookStore(): FlipbookStore {
         currentPage.value = 0;
         totalPages.value = 0;
         isSingleMode.value = false;
-        showThumbs.value = true;
+        showThumbs.value = false;
         showArrows.value = true;
         orientation.value = 'landscape';
         flipState.value = 'read';

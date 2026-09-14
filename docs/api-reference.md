@@ -9,7 +9,7 @@ When instantiating `new FlipbookEngine(selector, options)`, you can configure th
 | Property | Type | Default | Description |
 |---|---|---|---|
 | `allowDownload` | `boolean` | `true` | Exposes a download button in the toolbar. |
-| `showThumbs` | `boolean` | `true` | Starts the viewer with the thumbnail navigation rail open. |
+| `showThumbs` | `boolean` | `false` | Starts the viewer with the thumbnail navigation rail hidden. |
 | `showToc` | `boolean` | `false` | Shows the supplied table of contents panel when it contains entries. |
 | `toc` | `FlipbookTocEntry[]` | `[]` | Host-provided chapter/category entries using zero-based page indexes. |
 | `showArrows` | `boolean` | `true` | Shows the previous/next navigation arrows. |

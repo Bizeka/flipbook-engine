@@ -106,7 +106,7 @@ export class FlipbookEngine {
     private initGeneration = 0;
     private initAbortController: AbortController | null = null;
     private eventsReady = false;
-    private lastEventState = { currentPage: 0, zoom: 1, zoomActive: false, showThumbs: true, showToc: false, isSingle: false, orientation: '' as '' | 'landscape' | 'portrait' };
+    private lastEventState = { currentPage: 0, zoom: 1, zoomActive: false, showThumbs: false, showToc: false, isSingle: false, orientation: '' as '' | 'landscape' | 'portrait' };
     private eventSyncStop: (() => void) | null = null;
     private qualityObserver: IntersectionObserver | null = null;
     private pdfLazyStop: (() => void) | null = null;
@@ -118,7 +118,7 @@ export class FlipbookEngine {
     constructor(private selector: string | HTMLElement, options: FlipbookEngineOptions = {}) {
         this.options = {
             allowDownload: true,
-            showThumbs: true,
+            showThumbs: false,
             primaryColor: '#7367f0',
             theme: 'auto',
             soundUrl: 'https://flipbookengine.com/Content/page-flip.mp3',

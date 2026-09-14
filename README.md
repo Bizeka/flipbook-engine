@@ -45,7 +45,7 @@ import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.mjs?url';
 
 const engine = new FlipbookEngine('#viewer', {
   allowDownload: true,
-  showThumbs: true,
+  showThumbs: false,
   primaryColor: '#7367f0',
   theme: 'auto',
   locale: 'en',

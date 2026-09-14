@@ -32,7 +32,7 @@ test('public state changes emit documented events exactly once', async () => {
   assert.deepEqual(pageChanges, [{ currentPage: 2, pageNumber: 3, totalPages: 3, isSingle: false }]);
   assert.deepEqual(zoomChanges, [{ zoom: 2, isActive: true }]);
   assert.deepEqual(modeChanges, [{ isSingle: true }]);
-  assert.deepEqual(thumbChanges, [{ showThumbs: false }]);
+  assert.deepEqual(thumbChanges, [{ showThumbs: true }]);
   engine.destroy();
 });
 

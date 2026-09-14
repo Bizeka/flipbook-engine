@@ -35,7 +35,7 @@ import 'flipbookengine/dist/flipbook-engine.css';
 
 const engine = new FlipbookEngine('#viewer', {
   allowDownload: true,
-  showThumbs: true,
+  showThumbs: false,
   primaryColor: '#7367f0'
 });
 
