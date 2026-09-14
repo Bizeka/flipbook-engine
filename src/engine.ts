@@ -24,7 +24,7 @@ import { applyThemeConfiguration, type FlipbookBackgrounds, type FlipbookThemeMo
 import { resolveMessages, type FlipbookLocale, type PartialFlipbookMessages } from './i18n/service';
 import { PdfRenderer, type PdfPageLayout, type PdfPageMode } from './core/PdfRenderer';
 import { normalizeFlipbookToc, type FlipbookTocEntry } from './model/toc';
-import type { FlipbookSearchOptions, FlipbookSearchResult } from './model/search';
+import type { FlipbookSearchHighlight, FlipbookSearchOptions, FlipbookSearchResult } from './model/search';
 import type { FlipbookHotspot } from './model/hotspots';
 import type { FlipbookAnnotation } from './model/annotations';
 import './styles/flipbook-engine.css';
@@ -533,7 +533,9 @@ export class FlipbookEngine {
         sourceResults.forEach((source) => {
             this.store.pages.value.forEach((page) => {
                 if ((page.sourcePageNumber ?? page.pageNumber) !== source.sourcePageNumber) return;
-                results.push({ pageIndex: page.index, pageNumber: page.pageNumber, sourcePageNumber: source.sourcePageNumber, matches: source.matches, snippet: source.snippet });
+                const highlights = this.mapSearchHighlights(source.highlights, page.cropMode);
+                if (source.highlights?.length && !highlights.length) return;
+                results.push({ pageIndex: page.index, pageNumber: page.pageNumber, sourcePageNumber: source.sourcePageNumber, matches: source.matches, snippet: source.snippet, ...(source.highlights ? { highlights } : {}) });
             });
         });
         const maxResults = Number.isFinite(options.maxResults) ? Math.max(1, Math.trunc(options.maxResults as number)) : 100;
@@ -541,6 +543,22 @@ export class FlipbookEngine {
         this.store.searchResults.value = results.slice(0, maxResults);
         this.emit('searchChange', { query: normalizedQuery, results: this.store.searchResults.value });
         return this.store.searchResults.value;
+    }
+
+    private mapSearchHighlights(highlights: FlipbookSearchHighlight[] | undefined, cropMode: NormalizedFlipbookPage['cropMode']): FlipbookSearchHighlight[] {
+        if (!highlights?.length || cropMode === 'full') return highlights ?? [];
+        const cropStart = cropMode === 'right' ? 0.5 : 0;
+        return highlights.flatMap((highlight) => {
+            const start = Math.max(cropStart, highlight.x);
+            const end = Math.min(cropStart + 0.5, highlight.x + highlight.width);
+            if (end <= start) return [];
+            return [{
+                x: Math.max(0, Math.min(1, (start - cropStart) * 2)),
+                y: Math.max(0, Math.min(1, highlight.y)),
+                width: Math.max(0, Math.min(1, (end - start) * 2)),
+                height: Math.max(0, Math.min(1, highlight.height))
+            }];
+        });
     }
 
     /** Clears the current client-side search. */

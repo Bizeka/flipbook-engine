@@ -104,7 +104,7 @@ engine.on('deepLinkChange', ({ pageNumber, url }) => {
 
 ## Client-side PDF search
 
-When initialized with a PDF URL, `search(query)` extracts text through PDF.js without rendering every page. It returns page-level matches and snippets, updates the search toolbar panel, and outlines matching pages.
+When initialized with a PDF URL, `search(query)` extracts text through PDF.js without rendering every page. It returns page-level matches and snippets, updates the search toolbar panel, and overlays precise normalized rectangles over matching text when PDF.js exposes text geometry. Search results use a zero-based `pageIndex` for API navigation and a one-based `pageNumber` for display.
 
 ```ts
 const results = await engine.search('catalog', { caseSensitive: false, maxResults: 50 });
@@ -112,7 +112,7 @@ engine.goToPage(results[0]?.pageIndex ?? 0);
 engine.clearSearch();
 ```
 
-Search is unavailable for image-only page lists because those assets do not contain extractable PDF text. The iframe controller exposes the same operation with `search`, `clearSearch`, and `getSearchResults`.
+Search is unavailable for image-only page lists because those assets do not contain extractable PDF text or text geometry. For image mode, applications that need search/highlights should generate page text and normalized coordinates on the server and pass the resulting page metadata as a host-side feature; the open-source viewer does not OCR raster images. The iframe controller exposes the same operation with `search`, `clearSearch`, and `getSearchResults`.
 
 ## Interactive hotspots
 

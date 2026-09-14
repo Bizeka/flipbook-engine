@@ -23,7 +23,7 @@ export type {
 } from './model/pages';
 
 export type { FlipbookTocEntry } from './model/toc';
-export type { FlipbookSearchResult, FlipbookSearchOptions } from './model/search';
+export type { FlipbookSearchHighlight, FlipbookSearchResult, FlipbookSearchOptions } from './model/search';
 export type { FlipbookHotspot } from './model/hotspots';
 export type { FlipbookAnnotation } from './model/annotations';
 export { normalizeFlipbookToc } from './model/toc';

@@ -84,7 +84,7 @@ test('search results render as buttons rather than stringified DOM objects', asy
   PdfRenderer.prototype.renderPageToDataUrl = async () => 'data:image/mock,page';
   PdfRenderer.prototype.getPageLayouts = async () => [{ width: 595, height: 842, split: false }];
   PdfRenderer.prototype.calculateViewportDimensions = async () => ({ width: 420, height: 594 });
-  PdfRenderer.prototype.searchText = async () => [{ sourcePageNumber: 1, matches: 1, snippet: 'Product catalog' }];
+  PdfRenderer.prototype.searchText = async () => [{ sourcePageNumber: 1, matches: 1, snippet: 'Product catalog', highlights: [{ x: .2, y: .3, width: .15, height: .04 }] }];
   t.after(() => {
     PdfRenderer.prototype.loadDocument = originalLoad;
     PdfRenderer.prototype.renderPageToDataUrl = originalRender;
@@ -98,8 +98,9 @@ test('search results render as buttons rather than stringified DOM objects', asy
   const input = document.querySelector('.bk-search-input') as HTMLInputElement;
   input.value = 'product';
   (document.querySelector('.bk-search-submit') as HTMLButtonElement).click();
-  await new Promise((resolve) => setTimeout(resolve, 0));
+  await new Promise((resolve) => setTimeout(resolve, 20));
   assert.equal(document.querySelectorAll('.bk-search-result').length, 1);
   assert.equal(document.querySelector('.bk-search-results')?.textContent?.includes('[object HTMLButtonElement]'), false);
+  assert.ok(document.querySelectorAll('.bk-search-text-highlight').length >= 1);
   engine.destroy();
 });

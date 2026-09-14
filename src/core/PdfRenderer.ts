@@ -1,6 +1,6 @@
 import * as pdfjsLib from 'pdfjs-dist';
 import type { NormalizedFlipbookPage } from '../model/pages';
-import type { FlipbookSearchOptions } from '../model/search';
+import type { FlipbookSearchOptions, FlipbookSearchHighlight } from '../model/search';
 import { PdfRenderCache } from './PdfRenderCache';
 
 export interface PdfRenderProgress { completed: number; total: number; }
@@ -132,16 +132,19 @@ export class PdfRenderer {
         return text;
     }
 
-    /** Searches all PDF source pages without rendering them. */
-    public async searchText(query: string, options: FlipbookSearchOptions = {}): Promise<Array<{ sourcePageNumber: number; matches: number; snippet: string }>> {
+    /** Searches all PDF source pages and returns normalized rectangles for matched text. */
+    public async searchText(query: string, options: FlipbookSearchOptions = {}): Promise<Array<{ sourcePageNumber: number; matches: number; snippet: string; highlights?: FlipbookSearchHighlight[] }>> {
         const normalizedQuery = String(query ?? '').trim();
         if (!this.pdfDoc || !normalizedQuery) return [];
         const caseSensitive = options.caseSensitive === true;
         const needle = caseSensitive ? normalizedQuery : normalizedQuery.toLocaleLowerCase();
         const maxResults = Number.isFinite(options.maxResults) ? Math.max(1, Math.trunc(options.maxResults as number)) : 100;
-        const results: Array<{ sourcePageNumber: number; matches: number; snippet: string }> = [];
+        const results: Array<{ sourcePageNumber: number; matches: number; snippet: string; highlights?: FlipbookSearchHighlight[] }> = [];
         for (let pageNumber = 1; pageNumber <= this.pdfDoc.numPages && results.length < maxResults; pageNumber++) {
-            const text = await this.extractPageText(pageNumber);
+            const page = await this.pdfDoc.getPage(pageNumber);
+            const content = await page.getTextContent();
+            const items = (content?.items ?? []).filter((item: any) => typeof item?.str === 'string' && item.str.length > 0);
+            const text = items.map((item: any) => item.str).join(' ').replace(/\s+/g, ' ').trim();
             const haystack = caseSensitive ? text : text.toLocaleLowerCase();
             let matches = 0;
             let offset = haystack.indexOf(needle);
@@ -150,7 +153,37 @@ export class PdfRenderer {
             const first = haystack.indexOf(needle);
             const start = Math.max(0, first - 70);
             const end = Math.min(text.length, first + normalizedQuery.length + 100);
-            results.push({ sourcePageNumber: pageNumber, matches, snippet: text.slice(start, end).trim() });
+            const highlights: FlipbookSearchHighlight[] = [];
+            const viewport = typeof page.getViewport === 'function' ? page.getViewport({ scale: 1 }) : null;
+            const viewportWidth = Number(viewport?.width);
+            const viewportHeight = Number(viewport?.height);
+            if (viewportWidth > 0 && viewportHeight > 0) {
+                items.forEach((item: any) => {
+                    const itemText = String(item.str);
+                    const itemHaystack = caseSensitive ? itemText : itemText.toLocaleLowerCase();
+                    const transform = Array.isArray(item.transform) ? item.transform : [];
+                    const itemX = Number(transform[4]);
+                    const itemY = Number(transform[5]);
+                    const itemWidth = Number(item.width) || Math.abs(Number(transform[0])) || 0;
+                    const itemHeight = Number(item.height) || Math.abs(Number(transform[3])) || 0;
+                    if (!(itemWidth > 0 && itemHeight > 0 && Number.isFinite(itemX) && Number.isFinite(itemY))) return;
+                    let itemOffset = itemHaystack.indexOf(needle);
+                    while (itemOffset >= 0) {
+                        const ratioStart = Math.max(0, Math.min(1, itemOffset / Math.max(1, itemText.length)));
+                        const ratioWidth = Math.max(0.02, Math.min(1 - ratioStart, needle.length / Math.max(1, itemText.length)));
+                        highlights.push({
+                            x: Math.max(0, Math.min(1, (itemX + itemWidth * ratioStart) / viewportWidth)),
+                            y: Math.max(0, Math.min(1, (viewportHeight - itemY - itemHeight) / viewportHeight)),
+                            width: Math.max(0, Math.min(1, itemWidth * ratioWidth / viewportWidth)),
+                            height: Math.max(0, Math.min(1, itemHeight / viewportHeight))
+                        });
+                        itemOffset = itemHaystack.indexOf(needle, itemOffset + Math.max(1, needle.length));
+                    }
+                });
+            }
+            const result: { sourcePageNumber: number; matches: number; snippet: string; highlights?: FlipbookSearchHighlight[] } = { sourcePageNumber: pageNumber, matches, snippet: text.slice(start, end).trim() };
+            if (highlights.length) result.highlights = highlights;
+            results.push(result);
         }
         return results;
     }

@@ -31,6 +31,24 @@ interface ViewerProps {
     onAnnotationClose: () => void;
 }
 
+
+function SearchHighlightLayer(props: { store: FlipbookStore; pageIndex: number }) {
+    const highlights = computed(() => props.store.searchResults.value
+        .filter((result) => result.pageIndex === props.pageIndex)
+        .flatMap((result) => result.highlights ?? []));
+    return (
+        <div class="bk-search-highlight-layer" aria-hidden="true">
+            {computed(() => (
+                <div class="bk-search-highlight-items">
+                    {highlights.value.map((highlight) => (
+                        <span class="bk-search-text-highlight" style={'left:' + (highlight.x * 100) + '%;top:' + (highlight.y * 100) + '%;width:' + (highlight.width * 100) + '%;height:' + (highlight.height * 100) + '%;'} />
+                    ))}
+                </div>
+            ))}
+        </div>
+    );
+}
+
 export function Viewer(props: ViewerProps) {
     return (
         <div
@@ -61,7 +79,7 @@ export function Viewer(props: ViewerProps) {
                             return (
                                 <div
                                     // @ts-ignore
-                                    class={computed(() => `bz-page ${index === 0 ? 'bz-page--cover' : ''} ${index === props.store.pages.value.length - 1 ? 'bz-page--back' : ''} ${props.store.searchResults.value.some((result) => result.pageIndex === index) ? 'bk-page--search-match' : ''}`)}
+                                    class={computed(() => `bz-page ${index === 0 ? 'bz-page--cover' : ''} ${index === props.store.pages.value.length - 1 ? 'bz-page--back' : ''}`)}
                                     data-density={isHard ? "hard" : "soft"}
                                     data-idx={index}
                                 >
@@ -74,6 +92,7 @@ export function Viewer(props: ViewerProps) {
                                             alt={`Page ${index + 1}`}
                                             loading="lazy"
                                         />
+                                        <SearchHighlightLayer store={props.store} pageIndex={index} />
                                         <HotspotLayer store={props.store} pageIndex={index} onActivate={props.onHotspotActivate} onClose={props.onHotspotClose} onAnnotationActivate={props.onAnnotationActivate} onAnnotationClose={props.onAnnotationClose} />
                                         <div class="page-shadow"></div>
                                     </div>
@@ -90,13 +109,16 @@ export function Viewer(props: ViewerProps) {
                         const page = props.store.pages.value[props.store.currentPage.value];
                         if (!page) return null;
                         return (
-                            <img
-                                data-pdf-page={page.assetId.startsWith('pdf-page-') ? (page.sourcePageNumber ?? page.pageNumber) : undefined}
-                                class={computed(() => `bk-single-img page-content ${page.cropMode !== 'full' ? 'page-content--split page-content--' + page.cropMode : ''} ${props.store.searchResults.value.some((result) => result.pageIndex === props.store.currentPage.value) ? 'bk-page--search-match' : ''}`)}
-                                src={props.store.zoomState.value.isActive ? page.normal : (page.low || page.normal)}
-                                alt={`Page ${props.store.currentPage.value + 1}`}
-                                style="opacity: 1; transition: opacity 0.3s; box-shadow: var(--flipbook-shadow);"
-                            />
+                            <div class="bk-single-page">
+                                <img
+                                    data-pdf-page={page.assetId.startsWith('pdf-page-') ? (page.sourcePageNumber ?? page.pageNumber) : undefined}
+                                    class={computed(() => `bk-single-img page-content ${page.cropMode !== 'full' ? 'page-content--split page-content--' + page.cropMode : ''}`)}
+                                    src={props.store.zoomState.value.isActive ? page.normal : (page.low || page.normal)}
+                                    alt={`Page ${props.store.currentPage.value + 1}`}
+                                    style="opacity: 1; transition: opacity 0.3s; box-shadow: var(--flipbook-shadow);"
+                                />
+                                <SearchHighlightLayer store={props.store} pageIndex={props.store.currentPage.value} />
+                            </div>
                         );
                     })}
                 </div>

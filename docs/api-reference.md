@@ -179,7 +179,7 @@ const engine = new FlipbookEngine('#viewer', {
 
 ### Search
 
-- **`search(query, options?)`**: Extracts and searches PDF text client-side. Returns `{ pageIndex, pageNumber, matches, snippet, sourcePageNumber }[]`, stores results for the built-in search panel, and highlights matching pages.
+- **`search(query, options?)`**: Extracts and searches PDF text client-side. Returns `{ pageIndex, pageNumber, matches, snippet, sourcePageNumber, highlights? }[]`, stores results for the built-in search panel, and overlays matching text rectangles. `pageIndex` is zero-based; `pageNumber` is one-based. `highlights` coordinates are normalized to the logical page (0..1), including left/right mapping for split PDF pages.
 - **`clearSearch()`** / **`getSearchResults()`**: Clears or reads the current search state.
 
 ### Hotspots
