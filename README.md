@@ -1,6 +1,6 @@
 # FlipbookEngine
 
-> **Important release notice:** `flipbookengine@0.5.3` is deprecated and must not be used. It contains a source/package regression that can cause serious breaking changes for integrations. Upgrade to `0.5.4` or a later release.
+> **Release notice:** `flipbookengine@0.5.3` is a valid published release. Upgrade to `0.5.4` or later for lifecycle, locale, and PDF render error-handling fixes. The post-tag source regression was corrected before the 0.5.4 release.
 
 [![NPM Version](https://img.shields.io/npm/v/flipbookengine?style=flat-square&color=blue)](https://www.npmjs.com/package/flipbookengine)
 [![License](https://img.shields.io/npm/l/flipbookengine?style=flat-square)](https://github.com/Bizeka/flipbook-engine/blob/main/LICENSE)

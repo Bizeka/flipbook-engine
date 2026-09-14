@@ -2,10 +2,10 @@
 
 ## 0.5.4
 
-- restored the modular FlipbookEngine source line after the 0.5.3 packaging regression
+- restored the modular FlipbookEngine source line after an unreleased post-0.5.3 source regression
 - hardened engine lifecycle cleanup, locale API compatibility, and PDF render error propagation
 - added regression coverage for the fixes above
-- **0.5.3 is deprecated and must not be used.** That release contains a source/package regression that can cause serious breaking changes for integrations. Upgrade to 0.5.4 or later.
+- The published 0.5.3 package remains valid; upgrade to 0.5.4 or later for the fixes in this release. The post-tag source regression was not published to npm.
 
 ## 0.5.3
 
