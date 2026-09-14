@@ -62,6 +62,8 @@ export interface FlipbookEngineOptions {
     pdfWorkerSrc?: string;
     /** Controls PDF page splitting: auto detects A3 landscape, single disables it, split splits every landscape page. */
     pdfPageMode?: PdfPageMode;
+    /** Enables URL-based page deep links and browser history synchronization. */
+    deepLink?: boolean;
 }
 
 export interface PageImages extends FlipbookPageAsset {
@@ -82,6 +84,7 @@ export interface FlipbookEngineEventMap {
     orientationChange: { orientation: 'landscape' | 'portrait' };
     progress: { phase: 'loading' | 'rendering'; completed: number; total: number };
     error: { code: 'PDF_LOAD_FAILED' | 'PDF_RENDER_FAILED'; message: string; cause?: unknown };
+    deepLinkChange: { pageIndex: number; pageNumber: number; url: string };
 }
 
 export type FlipbookEngineEventName = keyof FlipbookEngineEventMap;
@@ -116,6 +119,7 @@ export class FlipbookEngine {
     private readonly pdfRenderedPages = new Set<number>();
     private readonly pdfRenderedSources = new Map<number, string>();
     private pdfSourcePageCount = 0;
+    private deepLinkListener: (() => void) | null = null;
 
     constructor(private selector: string | HTMLElement, options: FlipbookEngineOptions = {}) {
         this.options = {
@@ -131,6 +135,7 @@ export class FlipbookEngine {
             pdfRenderConcurrency: 3,
             pdfRenderCacheSize: 32,
             pdfPageMode: 'auto',
+            deepLink: false,
             ...options
         };
         this.setupEventSync();
@@ -147,6 +152,7 @@ export class FlipbookEngine {
 
         this.eventsReady = false;
         this.destroy(true);
+        this.setupDeepLinkListener();
         const generation = this.initGeneration;
         const abortController = new AbortController();
         this.initAbortController = abortController;
@@ -215,6 +221,7 @@ export class FlipbookEngine {
 
         // 1. Initialize State
         this.store.init(this.options, resolvedPages.length, resolvedPages, !!pdfUrl);
+        this.applyInitialDeepLink();
 
         // 2. Setup DOM container
         applyThemeConfiguration(this.container, this.options);
@@ -471,7 +478,12 @@ export class FlipbookEngine {
     }
 
     public updateOptions(options: Partial<FlipbookEngineOptions>) {
+        const deepLinkChanged = options.deepLink !== undefined && options.deepLink !== this.options.deepLink;
         this.options = { ...this.options, ...options };
+        if (deepLinkChanged) {
+            if (this.options.deepLink) this.setupDeepLinkListener();
+            else this.teardownDeepLinkListener();
+        }
         if (options.theme !== undefined) this.store.themeMode.value = options.theme;
         if (options.primaryColor !== undefined) this.store.primaryColor.value = options.primaryColor;
         if (options.showThumbs !== undefined) this.store.showThumbs.value = options.showThumbs;
@@ -491,6 +503,83 @@ export class FlipbookEngine {
         if (this.container) {
             applyThemeConfiguration(this.container, this.options);
         }
+    }
+
+    private setupDeepLinkListener() {
+        this.teardownDeepLinkListener();
+        if (!this.options.deepLink || typeof window === 'undefined') return;
+        this.deepLinkListener = () => {
+            if (!this.eventsReady || this.store.totalPages.value === 0) return;
+            const pageIndex = this.readDeepLinkPage();
+            if (pageIndex !== null && pageIndex !== this.store.currentPage.value) this.goToPage(pageIndex);
+        };
+        window.addEventListener('popstate', this.deepLinkListener);
+        window.addEventListener('hashchange', this.deepLinkListener);
+    }
+
+    private teardownDeepLinkListener() {
+        if (!this.deepLinkListener || typeof window === 'undefined') return;
+        window.removeEventListener('popstate', this.deepLinkListener);
+        window.removeEventListener('hashchange', this.deepLinkListener);
+        this.deepLinkListener = null;
+    }
+
+    private readDeepLinkPage(url = typeof window === 'undefined' ? '' : window.location.href): number | null {
+        if (!url || this.store.totalPages.value === 0) return null;
+        try {
+            const parsed = new URL(url, typeof document === 'undefined' ? undefined : document.baseURI);
+            const hashPage = parsed.hash.match(/(?:^#|&)page=(\d+)/i)?.[1];
+            const rawPage = parsed.searchParams.get('page') ?? hashPage;
+            const pageNumber = Number(rawPage);
+            if (!Number.isInteger(pageNumber) || pageNumber < 1) return null;
+            return Math.min(pageNumber - 1, this.store.totalPages.value - 1);
+        } catch {
+            return null;
+        }
+    }
+
+    private applyInitialDeepLink() {
+        if (!this.options.deepLink) return;
+        const pageIndex = this.readDeepLinkPage();
+        if (pageIndex !== null) this.store.currentPage.value = pageIndex;
+    }
+
+    private updateDeepLink(pageIndex: number) {
+        if (!this.options.deepLink || typeof window === 'undefined' || this.store.totalPages.value === 0) return;
+        const boundedIndex = Math.max(0, Math.min(this.store.totalPages.value - 1, Math.trunc(pageIndex)));
+        const pageNumber = boundedIndex + 1;
+        try {
+            const url = new URL(window.location.href);
+            url.searchParams.set('page', String(pageNumber));
+            const nextUrl = url.toString();
+            if (nextUrl !== window.location.href) window.history.replaceState(window.history.state, '', nextUrl);
+            this.emit('deepLinkChange', { pageIndex: boundedIndex, pageNumber, url: nextUrl });
+        } catch {
+            // Ignore restricted history contexts such as sandboxed documents.
+        }
+    }
+
+    /** Returns a shareable URL addressing a 1-based page number. */
+    public getPageUrl(pageIndex = this.getCurrentPage()): string {
+        if (typeof window === 'undefined') return '';
+        const totalPages = this.getTotalPages();
+        const boundedIndex = totalPages > 0
+            ? Math.max(0, Math.min(totalPages - 1, Math.trunc(pageIndex)))
+            : Math.max(0, Math.trunc(pageIndex));
+        const url = new URL(window.location.href);
+        url.searchParams.set('page', String(boundedIndex + 1));
+        return url.toString();
+    }
+
+    /** Opens the native share dialog or copies a page URL to the clipboard. */
+    public async sharePage(pageIndex = this.getCurrentPage()): Promise<string> {
+        const url = this.getPageUrl(pageIndex);
+        if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+            await navigator.share({ title: typeof document === 'undefined' ? undefined : document.title, url });
+        } else if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(url);
+        }
+        return url;
     }
 
     /** Connects an optional postMessage bridge for iframe/embed integrations. */
@@ -583,6 +672,7 @@ export class FlipbookEngine {
                     totalPages: this.store.totalPages.value,
                     isSingle: state.isSingle
                 });
+                this.updateDeepLink(state.currentPage);
             }
             if (state.zoom !== this.lastEventState.zoom || state.zoomActive !== this.lastEventState.zoomActive) {
                 this.emit('zoomChange', { zoom: state.zoom, isActive: state.zoomActive });
@@ -617,6 +707,7 @@ export class FlipbookEngine {
     public destroy(keepContainer = false) {
         const hadSession = this.hasActiveSession || !!this.initAbortController || !!this.pageFlipAdapter || !!this.layoutManager || !!this.interactionManager || !!this.pdfRenderer;
         this.initGeneration++;
+        this.teardownDeepLinkListener();
         this.initAbortController?.abort();
         this.initAbortController = null;
         if (this.initializationTimer) {

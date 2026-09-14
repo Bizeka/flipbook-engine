@@ -194,6 +194,8 @@ The `FlipbookEngine` class exposes the following public methods:
 - **`toggleFullscreen()`**: Programmatically toggles fullscreen mode.
 - **`updateOptions(options: Partial<FlipbookEngineOptions>)`**: Updates instance options at runtime.
 - **`setLocale(locale: string, messages?: PartialFlipbookMessages | Record<string, PartialFlipbookMessages>)`**: Updates the locale programmatically and optionally overrides messages for that locale.
+- **`getPageUrl(pageIndex = getCurrentPage())`**: Returns a shareable URL for a 0-based page index.
+- **`sharePage(pageIndex = getCurrentPage())`**: Opens the native share dialog or copies the page URL to the clipboard.
 - **`destroy(keepContainer = false)`**: Tears down the instance and listeners; when `true`, keeps the container markup for an immediate reinitialization.
 
 ### Subscribing to Events
@@ -209,7 +211,7 @@ const unsubscribe = engine.on('pageChange', ({ currentPage, totalPages, isSingle
 unsubscribe();
 ```
 
-Supported events: `init`, `progress`, `pageChange`, `zoomChange`, `singlePageModeChange`, `thumbsToggle`, `tocToggle`, `orientationChange`, `error`, `destroy`.
+Supported events: `init`, `progress`, `pageChange`, `zoomChange`, `singlePageModeChange`, `thumbsToggle`, `tocToggle`, `orientationChange`, `deepLinkChange`, `error`, `destroy`.
 
 | Option | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
@@ -227,6 +229,7 @@ Supported events: `init`, `progress`, `pageChange`, `zoomChange`, `singlePageMod
 | `pdfRenderCacheSize` | `number` | `32` | Maximum number of rendered PDF page images retained per engine instance (LRU); `0` disables caching. |
 | `pdfPageMode` | `'auto' \| 'single' \| 'split'` | `'auto'` | Controls PDF page splitting: A3 landscape pages are split automatically, all landscape pages can be split explicitly, or splitting can be disabled. |
 | `background` | `FlipbookBackgrounds \| null` | `null` | Optional light/dark viewer backgrounds with color, image, size, position, and repeat settings. |
+| `deepLink` | `boolean` | `false` | Keeps the active page synchronized with a `?page=` URL parameter. |
 
 ## PDF page formats
 

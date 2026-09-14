@@ -137,7 +137,8 @@ export class FlipbookEmbedBridge {
     singlePageModeChange: true,
     orientationChange: true,
     progress: true,
-    error: true
+    error: true,
+    deepLinkChange: true
   };
 
   private isAllowedOrigin(origin: string): boolean {

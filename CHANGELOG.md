@@ -5,6 +5,8 @@
 - added an origin-validated iframe embed bridge with parent-side command and event helpers
 - documented embed navigation, zoom, single-mode, runtime options, fullscreen, state queries, and explicit-origin security configuration
 - added regression tests for embed commands, origin/window filtering, and event forwarding
+- added opt-in deep links with browser history synchronization, shareable page URLs, and native-share/clipboard fallback
+- added regression coverage for initial URL pages, URL updates, and popstate navigation
 
 ## 0.6.5
 

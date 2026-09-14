@@ -29,6 +29,7 @@ When instantiating `new FlipbookEngine(selector, options)`, you can configure th
 | `pdfRenderCacheSize` | `number` | `32` | Maximum number of rendered PDF page images retained per engine instance (LRU); `0` disables caching. |
 | `pdfPageMode` | `'auto' \| 'single' \| 'split'` | `'auto'` | Automatically split A3 landscape pages, split every landscape page, or keep source pages intact. |
 | `background` | `FlipbookBackgrounds \| null` | `null` | Optional per-theme viewer background styles. |
+| `deepLink` | `boolean` | `false` | Synchronizes the active page with a `?page=` URL parameter and browser history. |
 
 ---
 
@@ -63,6 +64,12 @@ Updates options dynamically at runtime.
 
 ### `setLocale(locale: string, messages?: PartialFlipbookMessages | Record<string, PartialFlipbookMessages>)`
 Changes the UI language programmatically.
+
+### `getPageUrl(pageIndex = getCurrentPage())`
+Returns a shareable URL with a 1-based `?page=` parameter for the requested 0-based page index.
+
+### `sharePage(pageIndex = getCurrentPage())`
+Uses the native share dialog when available, otherwise copies the page URL to the clipboard.
 
 ### `connectEmbed(options?: FlipbookEmbedOptions)`
 Connects an origin-validated postMessage bridge for iframe integrations. Call this from the document loaded inside the iframe.
@@ -126,6 +133,7 @@ const unsubscribe = engine.on('pageChange', ({ currentPage, pageNumber, totalPag
 - **`init`**: Emitted after the viewer is ready. Payload: `{ totalPages: number }`
 - **`progress`**: Emitted during PDF loading/rendering. Payload: `{ phase: 'loading' | 'rendering'; completed: number; total: number }`
 - **`orientationChange`**: Emitted when layout orientation changes. Payload: `{ orientation: 'landscape' | 'portrait' }`.
+- **`deepLinkChange`**: Emitted when the active page updates the shareable URL. Payload: `{ pageIndex: number; pageNumber: number; url: string }`.
 - **`error`**: Emitted when PDF loading/rendering fails. Payload: `{ code: 'PDF_LOAD_FAILED' | 'PDF_RENDER_FAILED'; message: string; cause?: unknown }`
 - **`destroy`**: Emitted when the engine is destroyed.
 

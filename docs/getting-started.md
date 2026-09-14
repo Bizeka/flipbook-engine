@@ -76,3 +76,19 @@ await controller.goToPage(2);
 ```
 
 Always configure explicit origins for cross-origin embeds. The bridge supports page navigation, zoom, single mode, option updates, fullscreen, state queries, and event forwarding.
+
+
+## Deep links and sharing
+
+Enable opt-in URL synchronization with the `deepLink` option. The viewer reads an initial `?page=` value, updates it when the page changes, and responds to browser back/forward navigation. Page numbers in URLs are 1-based; engine API indexes remain 0-based.
+
+```ts
+const engine = new FlipbookEngine('#viewer', { deepLink: true });
+await engine.init('/files/catalog.pdf');
+
+const pageUrl = engine.getPageUrl(4);
+await engine.sharePage(4);
+engine.on('deepLinkChange', ({ pageNumber, url }) => {
+  console.log(`Sharing page ${pageNumber}: ${url}`);
+});
+```
