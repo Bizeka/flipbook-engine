@@ -269,7 +269,10 @@ export class FlipbookEngine {
                 this.store.showNotes.value = !this.store.showNotes.value;
             },
             onSaveNote: (note: string) => this.setNote(this.getCurrentPage(), note),
-            onClearNote: () => this.clearNote(this.getCurrentPage())
+            onClearNote: () => this.clearNote(this.getCurrentPage()),
+            onCloseNotes: () => {
+                this.store.showNotes.value = false;
+            }
         });
 
         this.container.appendChild(appNode as unknown as Node);

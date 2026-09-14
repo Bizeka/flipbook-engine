@@ -40,6 +40,11 @@ test('notes toolbar opens an editor, saves a note, and clears it for host persis
   await new Promise((resolve) => setTimeout(resolve, 0));
   assert.equal(engine.getNote(0), undefined);
   assert.deepEqual(changes[1], { pageIndex: 0, pageNumber: 1, note: null });
+  assert.equal(input.value, '');
+
+  notesButton.click();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.equal(panel.style.display, 'none');
 
   engine.destroy();
 });

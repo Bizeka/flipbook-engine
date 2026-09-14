@@ -38,6 +38,7 @@ interface AppProps {
     onToggleNotes: () => void;
     onSaveNote: (note: string) => void;
     onClearNote: () => void;
+    onCloseNotes: () => void;
     onToggleFullscreen: () => void;
     store: FlipbookStore;
 }
@@ -114,7 +115,7 @@ export function App(props: AppProps) {
                     </div>
                 ) : null}
                 <TableOfContents store={props.store} onEntryClick={handleTocEntryClick} />
-                <NotesPanel store={props.store} onSave={props.onSaveNote} onClear={props.onClearNote} />
+                <NotesPanel store={props.store} onSave={props.onSaveNote} onClear={props.onClearNote} onClose={props.onCloseNotes} />
             </div>
 
             <Toolbar store={props.store}

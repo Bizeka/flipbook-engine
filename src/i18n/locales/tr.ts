@@ -23,6 +23,7 @@ export const trMessages = {
   notes: 'Sayfa notu',
   saveNote: 'Notu kaydet',
   clearNote: 'Notu temizle',
+  closeNote: 'Not editörünü kapat',
   play: 'Otomatik Oynat',
   pause: 'Duraklat',
   tableOfContents: 'İçindekiler'

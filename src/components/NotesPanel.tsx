@@ -12,6 +12,7 @@ interface NotesPanelProps {
     store: FlipbookStore;
     onSave: (note: string) => void;
     onClear: () => void;
+    onClose: () => void;
 }
 
 /**
@@ -52,7 +53,7 @@ export function NotesPanel(props: NotesPanelProps) {
             style={computed(() => props.store.showNotes.value ? 'display:flex;' : 'display:none;')}
             aria-label={computed(() => messages.value.notes || 'Page note')}
         >
-            <div class="bk-notes-heading">{computed(() => messages.value.notes || 'Page note')}</div>
+            <div class="bk-notes-heading-row">\n                <div class="bk-notes-heading">{computed(() => messages.value.notes || 'Page note')}</div>\n                <button type="button" class="bk-notes-close" onClick={props.onClose} aria-label={computed(() => messages.value.closeNote || 'Close note editor')} title={computed(() => messages.value.closeNote || 'Close note editor')}>\n                    <span aria-hidden="true">×</span>\n                </button>\n            </div>
             <textarea
                 class="bk-notes-input"
                 aria-label={computed(() => messages.value.notes || 'Page note')}
