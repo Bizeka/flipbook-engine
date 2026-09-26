@@ -42,8 +42,8 @@ test('two vanilla instances remain isolated and keyboard thumbnails navigate', a
       { normal: image, low: image, thumb: image },
       { normal: image, low: image, thumb: image }
     ];
-    const first = new Engine('#one');
-    const second = new Engine('#two');
+    const first = new Engine('#one', { showThumbs: true });
+    const second = new Engine('#two', { showThumbs: true });
     await Promise.all([first.init('', pages), second.init('', pages)]);
     (window as any).__engines = { first, second };
   }, pageImage);
