@@ -59,6 +59,8 @@ export class InteractionManager {
 
     private bindWheel() {
         this.container.addEventListener('wheel', (e) => {
+            if (this.store.textSelection.value || this.store.placingNote.value || (e.target as Element).closest('button,input,textarea,select,[contenteditable=true]')) return;
+            if (e.ctrlKey || e.metaKey) { e.preventDefault(); e.deltaY < 0 ? this.zoomIn() : this.zoomOut(); return; }
             if (this.store.zoomState.value.isActive) {
                 e.preventDefault();
                 this.updateZoomPan(
@@ -77,7 +79,9 @@ export class InteractionManager {
         let initialTy = 0;
 
         this.container.addEventListener('mousedown', (e) => {
+            if (e.button !== 0 || this.store.textSelection.value || this.store.placingNote.value || (e.target as Element).closest('button,a,input,textarea,select,[contenteditable=true]')) return;
             if (this.store.zoomState.value.isActive) {
+                e.preventDefault(); e.stopPropagation();
                 isDragging = true;
                 startX = e.clientX;
                 startY = e.clientY;
@@ -85,66 +89,73 @@ export class InteractionManager {
                 initialTy = this.store.zoomState.value.translateY;
                 this.container.style.cursor = 'grabbing';
             }
-        }, { signal: this.listenerAbortController.signal });
+        }, { capture: true, signal: this.listenerAbortController.signal });
 
         window.addEventListener('mousemove', (e) => {
             if (!isDragging || !this.store.zoomState.value.isActive) return;
             const dx = e.clientX - startX;
             const dy = e.clientY - startY;
             this.updateZoomPan(initialTx + dx, initialTy + dy);
-        }, { signal: this.listenerAbortController.signal });
+        }, { capture: true, signal: this.listenerAbortController.signal });
 
         window.addEventListener('mouseup', () => {
             if (isDragging) {
                 isDragging = false;
                 this.container.style.cursor = this.store.zoomState.value.isActive ? 'grab' : '';
             }
-        }, { signal: this.listenerAbortController.signal });
+        }, { capture: true, signal: this.listenerAbortController.signal });
     }
 
     private bindTouch() {
-        let isDragging = false;
-        let startTx = 0;
-        let startTy = 0;
-
-        this.container.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 1) {
-                if (!this.store.zoomState.value.isActive) {
-                    this.touchStartX = e.touches[0].clientX;
-                } else {
-                    isDragging = true;
-                    this.touchStartX = e.touches[0].clientX;
-                    const touchStartY = e.touches[0].clientY;
-                    startTx = this.store.zoomState.value.translateX;
-                    startTy = this.store.zoomState.value.translateY;
-                    (this.container as any)._touchStartY = touchStartY;
-                }
+        let startY = 0, startTx = 0, startTy = 0, pinchDistance = 0, pinchScale = 1;
+        let pinchX = 0, pinchY = 0, pinchCenterX = 0, pinchCenterY = 0, wasPinch = false;
+        const signal = this.listenerAbortController.signal;
+        const interactive = (target: EventTarget | null) => (target as Element)?.closest('button,a,input,textarea,select,[contenteditable="true"]');
+        this.container.addEventListener('touchstart', event => {
+            if (interactive(event.target) || this.store.textSelection.value || this.store.placingNote.value || this.store.pendingAnnotation.value || this.store.activeAnnotationId.value) { this.touchStartX = null; return; }
+            if (event.touches.length === 2) {
+                const [a, b] = Array.from(event.touches);
+                const box = this.container.parentElement!.getBoundingClientRect();
+                pinchDistance = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+                pinchScale = this.store.zoomState.value.scale;
+                pinchX = (a.clientX + b.clientX) / 2; pinchY = (a.clientY + b.clientY) / 2;
+                pinchCenterX = box.left + box.width / 2; pinchCenterY = box.top + box.height / 2;
+                startTx = this.store.zoomState.value.translateX; startTy = this.store.zoomState.value.translateY;
+                wasPinch = true; this.touchStartX = null;
+                event.stopPropagation(); if (event.cancelable) event.preventDefault();
+            } else if (event.touches.length === 1) {
+                wasPinch = false; pinchDistance = 0;
+                this.touchStartX = event.touches[0].clientX; startY = event.touches[0].clientY;
+                startTx = this.store.zoomState.value.translateX; startTy = this.store.zoomState.value.translateY;
+                if (this.store.zoomState.value.isActive) event.stopPropagation();
             }
-        }, { passive: true, signal: this.listenerAbortController.signal });
-
-        this.container.addEventListener('touchmove', (e) => {
-            if (isDragging && this.store.zoomState.value.isActive && e.touches.length === 1 && this.touchStartX !== null) {
-                e.preventDefault();
-                const dx = e.touches[0].clientX - this.touchStartX;
-                const dy = e.touches[0].clientY - (this.container as any)._touchStartY;
-                this.updateZoomPan(startTx + dx, startTy + dy);
+        }, { capture: true, passive: false, signal });
+        this.container.addEventListener('touchmove', event => {
+            if (interactive(event.target) || this.store.placingNote.value) return;
+            if (event.touches.length === 2 && pinchDistance > 0) {
+                const [a, b] = Array.from(event.touches);
+                const scale = Math.max(1, Math.min(5, pinchScale * Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) / pinchDistance));
+                const ratio = scale / pinchScale;
+                this.store.zoomState.value = { ...this.store.zoomState.value, scale, isActive: scale > 1,
+                    translateX: startTx + (pinchX - pinchCenterX) * (1 - ratio) + (a.clientX + b.clientX) / 2 - pinchX,
+                    translateY: startTy + (pinchY - pinchCenterY) * (1 - ratio) + (a.clientY + b.clientY) / 2 - pinchY };
+                event.stopPropagation(); if (event.cancelable) event.preventDefault();
+            } else if (!wasPinch && this.store.zoomState.value.isActive && this.touchStartX !== null && event.touches.length === 1) {
+                this.updateZoomPan(startTx + event.touches[0].clientX - this.touchStartX, startTy + event.touches[0].clientY - startY);
+                event.stopPropagation(); if (event.cancelable) event.preventDefault();
             }
-        }, { passive: false, signal: this.listenerAbortController.signal });
-
-        this.container.addEventListener('touchend', (e) => {
-            if (this.touchStartX !== null && !this.store.zoomState.value.isActive && this.store.isSingleMode.value && e.changedTouches.length === 1) {
-                const diffX = e.changedTouches[0].clientX - this.touchStartX;
-                if (diffX > 50 && this.store.currentPage.value > 0) {
-                    this.pageFlipAdapter.turnToPrevPage();
-                } else if (diffX < -50 && this.store.currentPage.value < this.store.totalPages.value - 1) {
-                    this.pageFlipAdapter.turnToNextPage();
-                }
+        }, { capture: true, passive: false, signal });
+        const finish = (event: TouchEvent) => {
+            if (!wasPinch && !this.store.placingNote.value && !this.store.pendingAnnotation.value && !this.store.activeAnnotationId.value && this.touchStartX !== null && !this.store.zoomState.value.isActive && this.store.isSingleMode.value && event.changedTouches.length === 1) {
+                const dx = event.changedTouches[0].clientX - this.touchStartX, dy = event.changedTouches[0].clientY - startY;
+                if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.4) dx > 0 ? this.pageFlipAdapter.turnToPrevPage() : this.pageFlipAdapter.turnToNextPage();
             }
-            this.touchStartX = null;
-            isDragging = false;
-        }, { passive: true, signal: this.listenerAbortController.signal });
+            if (wasPinch || this.store.zoomState.value.isActive) event.stopPropagation();
+            this.touchStartX = null; if (!event.touches.length) { wasPinch = false; pinchDistance = 0; }
+        };
+        this.container.addEventListener('touchend', finish, { capture: true, passive: true, signal });
+        this.container.addEventListener('touchcancel', () => { this.touchStartX = null; wasPinch = false; pinchDistance = 0; }, { capture: true, signal });
     }
-
     public zoomIn() {
         let newScale = this.store.zoomState.value.scale + 0.5;
         if (newScale > 5) newScale = 5;

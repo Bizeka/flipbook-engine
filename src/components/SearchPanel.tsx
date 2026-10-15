@@ -25,7 +25,7 @@ export function SearchPanel(props: SearchPanelProps) {
     props.onClear();
   };
   return (
-    <section class="bk-search-panel" style={computed(() => props.store.showSearch.value ? 'display:flex;' : 'display:none;')} aria-label={computed(() => messages.value.search || 'Search')}>
+    <section class="bk-search-panel" style={computed(() => props.store.showSearch.value ? 'display:flex;' : 'display:none;')} aria-label={computed(() => messages.value.search || 'Search')} onKeyDown={(event: KeyboardEvent) => { if (event.key === 'Escape') props.onClose(); }}>
       <div class="bk-search-heading-row">
         <strong class="bk-search-heading">{computed(() => messages.value.search || 'Search')}</strong>
         <button type="button" class="bk-search-close" onClick={props.onClose} aria-label={computed(() => messages.value.closeSearch || 'Close search')}>×</button>
@@ -38,6 +38,8 @@ export function SearchPanel(props: SearchPanelProps) {
       <div class="bk-search-results" aria-live="polite">
         {computed(() => {
           const results = props.store.searchResults.value;
+          if (props.store.searchBusy.value) return <div role="status">{messages.value.searching}</div>;
+          if (props.store.searchFailed.value) return <div role="alert">{messages.value.searchFailed}</div>;
           if (!props.store.searchQuery.value) return null;
           if (!results.length) return <div class="bk-search-empty">{messages.value.noSearchResults || 'No results'}</div>;
           return <div class="bk-search-result-list">

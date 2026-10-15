@@ -1,3 +1,4 @@
+import type { FlipbookTextPage } from '../model/text-layer';
 /**
  * @license FlipbookEngine v1.0.0
  * Copyright (c) 2026 Murat Dogan
@@ -13,12 +14,15 @@ import type { PartialFlipbookMessages } from '../i18n/service';
 import type { FlipbookSearchResult } from '../model/search';
 import type { FlipbookHotspot } from '../model/hotspots';
 import type { FlipbookAnnotation } from '../model/annotations';
+import type { FlipbookNoteDocument, FlipbookNoteEditorFactory } from '../model/note-editor';
 
 export type FlipState = 'read' | 'fold_corner' | 'flipping';
 export type Orientation = 'landscape' | 'portrait';
 export interface ZoomState { isActive: boolean; translateX: number; translateY: number; isDragging: boolean; scale: number; }
 
 export interface FlipbookStore {
+    textAvailable: Signal<boolean>; textPages: Signal<ReadonlyMap<number, FlipbookTextPage>>; textSelection: Signal<boolean>;
+    pageNoteDocuments: Signal<ReadonlyMap<number, FlipbookNoteDocument>>; noteEditor: Signal<FlipbookNoteEditorFactory | undefined>; canAnnotate: Signal<boolean>; placingNote: Signal<boolean>; pendingAnnotation: Signal<FlipbookAnnotation | null>; notesView: Signal<'page' | 'all'>; searchAvailable: Signal<boolean>; searchBusy: Signal<boolean>; searchFailed: Signal<boolean>; notesSaving: Signal<boolean>; notesFailed: Signal<boolean>;
     currentPage: Signal<number>; totalPages: Signal<number>; isSingleMode: Signal<boolean>;
     showThumbs: Signal<boolean>; showToc: Signal<boolean>; showNotes: Signal<boolean>; showSearch: Signal<boolean>; showArrows: Signal<boolean>; orientation: Signal<Orientation>;
     flipState: Signal<FlipState>; themeMode: Signal<FlipbookThemeMode>; allowDownload: Signal<boolean>; bookmarkedPages: Signal<ReadonlySet<number>>; pageNotes: Signal<ReadonlyMap<number, string>>;
@@ -34,6 +38,13 @@ const initialZoomState = (): ZoomState => ({ isActive: false, translateX: 0, tra
 
 /** Creates an isolated reactive state container for one FlipbookEngine instance. */
 export function createFlipbookStore(): FlipbookStore {
+    const textPages = signal<ReadonlyMap<number, FlipbookTextPage>>(new Map());
+    const textSelection = signal(false), textAvailable = signal(false);
+    const pageNoteDocuments = signal<ReadonlyMap<number, FlipbookNoteDocument>>(new Map());
+    const noteEditor = signal<FlipbookNoteEditorFactory | undefined>(undefined);
+    const canAnnotate = signal(false), placingNote = signal(false), pendingAnnotation = signal<FlipbookAnnotation | null>(null);
+    const notesView = signal<'page' | 'all'>('page');
+    const searchAvailable = signal(false), searchBusy = signal(false), searchFailed = signal(false), notesSaving = signal(false), notesFailed = signal(false);
     const currentPage = signal(0), totalPages = signal(0), isSingleMode = signal(false);
     const showThumbs = signal(false), showToc = signal(false), showNotes = signal(false), showSearch = signal(false), showArrows = signal(true), orientation = signal<Orientation>('landscape');
     const flipState = signal<FlipState>('read'), themeMode = signal<FlipbookThemeMode>('auto');
@@ -52,13 +63,17 @@ export function createFlipbookStore(): FlipbookStore {
     const isFrontCover = computed(() => isDoublePageLayout.value && currentPage.value === 0);
     const isBackCover = computed(() => isDoublePageLayout.value && currentPage.value >= totalPages.value - 1);
     const init = (options: FlipbookEngineOptions, total: number, mappedPages: NormalizedFlipbookPage[], hasPdfUrl: boolean, pdfMode = hasPdfUrl) => {
+        pageNoteDocuments.value = new Map(Object.entries(options.noteDocuments ?? {}).map(([page, doc]) => [Number(page), doc])); noteEditor.value = options.noteEditor; canAnnotate.value = !!options.annotationProvider; placingNote.value = false; pendingAnnotation.value = null;
+        textAvailable.value = !!options.textLayerProvider;
+        textPages.value = new Map(); textSelection.value = options.textSelection ?? false;
+        searchAvailable.value = pdfMode || !!options.searchProvider;
         totalPages.value = total; pages.value = mappedPages; hasDownloadUrl.value = hasPdfUrl; isPdfMode.value = pdfMode;
         if (options.theme !== undefined) themeMode.value = options.theme;
         if (options.primaryColor !== undefined) primaryColor.value = options.primaryColor;
         if (options.showThumbs !== undefined) showThumbs.value = options.showThumbs;
         if (options.showToc !== undefined) showToc.value = options.showToc;
-        showNotes.value = false;
-        showSearch.value = false;
+        showNotes.value = false; notesView.value = 'page';
+        showSearch.value = false; searchBusy.value = false; searchFailed.value = false; notesSaving.value = false; notesFailed.value = false;
         searchQuery.value = '';
         searchResults.value = [];
         hotspots.value = options.hotspots ?? [];
@@ -81,13 +96,14 @@ export function createFlipbookStore(): FlipbookStore {
         currentPage.value = 0;
     };
     const reset = () => {
+        textPages.value = new Map(); textSelection.value = false; textAvailable.value = false;
         currentPage.value = 0;
         totalPages.value = 0;
         isSingleMode.value = false;
         showThumbs.value = false;
         showToc.value = false;
-        showNotes.value = false;
-        showSearch.value = false;
+        showNotes.value = false; notesView.value = 'page';
+        showSearch.value = false; searchBusy.value = false; searchFailed.value = false; notesSaving.value = false; notesFailed.value = false;
         showArrows.value = true;
         orientation.value = 'landscape';
         flipState.value = 'read';
@@ -95,6 +111,7 @@ export function createFlipbookStore(): FlipbookStore {
         allowDownload.value = true;
         hasDownloadUrl.value = false;
         isPdfMode.value = false;
+        searchAvailable.value = false; pageNoteDocuments.value = new Map(); canAnnotate.value = false; placingNote.value = false; pendingAnnotation.value = null;
         primaryColor.value = '#7367f0';
         whiteLabel.value = false;
         isZoomed.value = false;
@@ -115,7 +132,7 @@ export function createFlipbookStore(): FlipbookStore {
         annotations.value = [];
         activeAnnotationId.value = null;
     };
-    return { currentPage, totalPages, isSingleMode, showThumbs, showToc, showNotes, showSearch, showArrows, orientation, flipState, themeMode, allowDownload, bookmarkedPages, pageNotes, hasDownloadUrl, isPdfMode, primaryColor, whiteLabel, isZoomed, isAutoPlaying, autoPlayInterval, soundEnabled, searchQuery, searchResults, hotspots, activeHotspotId, annotations, activeAnnotationId, locale, messages, zoomState, pages, toc, isDoublePageLayout, isFrontCover, isBackCover, init, reset };
+    return { textAvailable, textPages, textSelection, pageNoteDocuments, noteEditor, canAnnotate, placingNote, pendingAnnotation, notesView, searchAvailable, searchBusy, searchFailed, notesSaving, notesFailed, currentPage, totalPages, isSingleMode, showThumbs, showToc, showNotes, showSearch, showArrows, orientation, flipState, themeMode, allowDownload, bookmarkedPages, pageNotes, hasDownloadUrl, isPdfMode, primaryColor, whiteLabel, isZoomed, isAutoPlaying, autoPlayInterval, soundEnabled, searchQuery, searchResults, hotspots, activeHotspotId, annotations, activeAnnotationId, locale, messages, zoomState, pages, toc, isDoublePageLayout, isFrontCover, isBackCover, init, reset };
 }
 
 // Compatibility exports for consumers of the former internal singleton module.

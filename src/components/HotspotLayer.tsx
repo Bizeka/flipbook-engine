@@ -52,9 +52,9 @@ export function HotspotLayer(props: HotspotLayerProps) {
           <span class="bk-hotspot-label">{hotspot.label}</span>
         </button>
       ))}
-      {annotations.value.map((annotation) => (
-        <button type="button" class="bk-annotation-marker" style={'left:' + Math.max(0, Math.min(1, annotation.x)) * 100 + '%;top:' + Math.max(0, Math.min(1, annotation.y)) * 100 + '%;' + (annotation.color ? 'color:' + annotation.color + ';' : '')} aria-label={annotation.text} onClick={() => props.onAnnotationActivate(annotation)}>●</button>
-      ))}
+      {computed(() => <div class="bk-annotation-markers">{annotations.value.map((annotation) => (
+        <button type="button" data-annotation-id={annotation.id} class={computed(() => 'bk-annotation-marker' + (props.store.activeAnnotationId.value === annotation.id ? ' active' : ''))} style={'left:' + Math.max(0, Math.min(1, annotation.x)) * 100 + '%;top:' + Math.max(0, Math.min(1, annotation.y)) * 100 + '%;'} aria-label={annotation.text} onPointerDown={stopPageFlipInteraction} onTouchStart={stopPageFlipInteraction} onMouseDown={stopPageFlipInteraction} onClick={(event: Event) => { event.stopPropagation(); props.onAnnotationActivate(annotation); }}>●</button>
+      ))}</div>)}
       {computed(() => {
         const active = props.store.hotspots.value.find((item) => item.id === props.store.activeHotspotId.value && item.pageIndex === props.pageIndex);
         if (!active) return null;
@@ -85,6 +85,7 @@ export function HotspotLayer(props: HotspotLayerProps) {
         );
       })}
       {computed(() => {
+        if (props.store.canAnnotate.value) return null;
         const active = props.store.annotations.value.find((item) => item.id === props.store.activeAnnotationId.value && item.pageIndex === props.pageIndex);
         if (!active) return null;
         return (

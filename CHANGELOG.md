@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+- Native backend search, page-note and coordinate-annotation providers, including multiple note markers per page and host-owned persistence.
+- Optional restricted rich-note editor factory and validated structured-note rendering; native note list, marker popups, edit/delete and failed-save draft retention.
+- Responsive native panels and More actions menu, localized keyboard help, focus restoration and gesture isolation for notes, zoom and page navigation.
+- Optional backend text-layer provider for image/WebP books, with schema v1 normalized logical-page runs and UTF-16 offsets.
+- Bounded current/adjacent-page loading, abort/stale-response isolation, defensive geometry validation and opt-in native text selection.
+- Isolated page images from host padding/margins so normalized overlays align with the complete page viewport.
+- Select-text command in the native More actions menu; Escape exits selection without hijacking page flipping or note gestures.
+- Backend search highlights continue to work independently of a text layer. OCR, persistence and search indexing remain host responsibilities.
+- Existing native backend providers and coordinate/rich-note integration are also unreleased additions; no package publication is implied.
+
 ## 1.0.0 - 2026-09-14
 
 - first stable open-source release of the FlipbookEngine viewer

@@ -13,6 +13,7 @@
  *    https://flipbookengine.com/pricing
  */
 
+import { attachToolbarMore } from './ToolbarMore';
 import { computed } from '@preact/signals-core';
 import type { FlipbookStore } from '../state/store';
 import type { FlipbookPluginRegistry } from '../plugins';
@@ -62,7 +63,7 @@ function renderPluginToolbarButtons(props: { registry?: FlipbookPluginRegistry; 
 export function Toolbar(props: ToolbarProps) {
     const messages = computed(() => resolveMessages({ locale: props.store.locale.value, messages: props.store.messages.value }));
 
-    return (
+    const toolbar = (
         <div class="bk-toolbar" role="toolbar" aria-label="Flipbook controls">
             <div class="bk-btn-group">
                 {renderPluginToolbarButtons({ registry: props.pluginRegistry, placement: 'start' })}
@@ -88,16 +89,16 @@ export function Toolbar(props: ToolbarProps) {
                 <button type="button"
                     class={computed(() => props.store.showSearch.value ? 'bk-btn active' : 'bk-btn')}
                     onClick={props.onToggleSearch}
-                    disabled={computed(() => !props.store.isPdfMode.value)}
-                    aria-label={computed(() => props.store.isPdfMode.value ? (messages.value.search || 'Search') : (messages.value.searchUnavailable || 'Text search is available only in Direct PDF mode.'))}
+                    disabled={computed(() => !props.store.searchAvailable.value)}
+                    aria-label={computed(() => props.store.searchAvailable.value ? (messages.value.search || 'Search') : (messages.value.searchUnavailable || 'Text search is available only in Direct PDF mode.'))}
                     aria-pressed={computed(() => props.store.showSearch.value ? 'true' : 'false')}
-                    title={computed(() => props.store.isPdfMode.value ? (messages.value.search || 'Search') : (messages.value.searchUnavailable || 'Text search is available only in Direct PDF mode.'))}
+                    title={computed(() => props.store.searchAvailable.value ? (messages.value.search || 'Search') : (messages.value.searchUnavailable || 'Text search is available only in Direct PDF mode.'))}
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="16" y1="16" x2="21" y2="21"></line></svg>
                 </button>
 
                 <button type="button"
-                    class={computed(() => `bk-btn bz-hide-mobile ${props.store.isSingleMode.value ? 'active' : ''}`)}
+                    class={computed(() => `bk-btn bk-btn--single ${props.store.isSingleMode.value ? 'active' : ''}`)}
                     onClick={props.onToggleSingleMode}
                     aria-label={computed(() => messages.value.singlePageMode || 'Single Page')} aria-pressed={computed(() => props.store.isSingleMode.value ? 'true' : 'false')} title={computed(() => messages.value.singlePageMode || 'Single Page')}
                 >
@@ -105,7 +106,7 @@ export function Toolbar(props: ToolbarProps) {
                 </button>
 
                 <button type="button"
-                    class={computed(() => `bk-btn ${props.store.isAutoPlaying.value ? 'active' : ''}`)}
+                    class={computed(() => `bk-btn bk-btn--autoplay ${props.store.isAutoPlaying.value ? 'active' : ''}`)}
                     onClick={props.onToggleAutoPlay}
                     aria-label={computed(() => props.store.isAutoPlaying.value ? (messages.value.pause || 'Pause') : (messages.value.play || 'Play'))} aria-pressed={computed(() => props.store.isAutoPlaying.value ? 'true' : 'false')} title={computed(() => props.store.isAutoPlaying.value ? (messages.value.pause || 'Pause') : (messages.value.play || 'Play'))}
                 >
@@ -160,13 +161,14 @@ export function Toolbar(props: ToolbarProps) {
                 </button>
 
                 <button type="button"
-                    class={computed(() => `bk-btn bk-btn--notes ${props.store.showNotes.value ? 'active' : ''}`)}
+                    class={computed(() => `bk-btn bk-btn--notes ${props.store.showNotes.value ? 'active' : ''} ${props.store.pageNotes.value.has(props.store.currentPage.value) || props.store.annotations.value.some(note => note.pageIndex === props.store.currentPage.value) ? 'bk-has-page-note' : ''}`)}
                     onClick={props.onToggleNotes}
-                    aria-label={computed(() => messages.value.notes || 'Page note')}
-                    title={computed(() => messages.value.notes || 'Page note')}
+                    aria-label={computed(() => `${messages.value.myNotes} (${props.store.pageNotes.value.size + props.store.annotations.value.length})`)}
+                    title={computed(() => messages.value.myNotes)}
                     aria-pressed={computed(() => props.store.showNotes.value ? 'true' : 'false')}
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="14" y2="17"></line></svg>
+                <span class="bk-notes-count" aria-hidden="true">{computed(() => props.store.pageNotes.value.size + props.store.annotations.value.length || "")}</span>
                 </button>
 
                 {computed(() => {
@@ -182,7 +184,7 @@ export function Toolbar(props: ToolbarProps) {
 
                 <button type="button"
                     // @ts-ignore
-                    class={computed(() => `bk-btn ${!props.store.soundEnabled.value ? 'muted' : ''}`)}
+                    class={computed(() => `bk-btn bk-btn--sound ${!props.store.soundEnabled.value ? 'muted' : ''}`)}
                     onClick={props.onSoundToggle}
                     aria-label="Sound" aria-pressed={computed(() => props.store.soundEnabled.value ? 'true' : 'false')} title="Sound"
                 >
@@ -193,7 +195,9 @@ export function Toolbar(props: ToolbarProps) {
                 {renderPluginToolbarButtons({ registry: props.pluginRegistry, placement: 'end' })}
             </div>
         </div>
-    );
+    ) as HTMLElement;
+    attachToolbarMore(toolbar, messages, props.store);
+    return toolbar;
 }
 
 

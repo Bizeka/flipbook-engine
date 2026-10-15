@@ -19,6 +19,10 @@ import { Toolbar } from './Toolbar';
 import { Thumbnails } from './Thumbnails';
 import { TableOfContents } from './TableOfContents';
 import { NotesPanel } from './NotesPanel';
+import { AnnotationPopover } from './AnnotationPopover';
+import { AnnotationPlacement } from './AnnotationPlacement';
+import { ReaderShortcuts } from './ReaderShortcuts';
+import type { FlipbookNoteDocument } from '../model/note-editor';
 import { Viewer } from './Viewer';
 import { NavigationArrows } from './NavigationArrows';
 import { SearchPanel } from './SearchPanel';
@@ -42,8 +46,13 @@ interface AppProps {
     onShare: () => void;
     onToggleBookmark: () => void;
     onToggleNotes: () => void;
-    onSaveNote: (note: string) => void;
-    onClearNote: () => void;
+    onSelectNote: (pageIndex: number) => void;
+    onBeginAnnotation: () => void;
+    onPlaceAnnotation: (pageIndex: number, x: number, y: number) => void;
+    onSaveAnnotation: (annotation: FlipbookAnnotation) => Promise<boolean>;
+    onDeleteAnnotation: (annotation: FlipbookAnnotation) => Promise<boolean>;
+    onSaveNote: (note: string, document?: FlipbookNoteDocument) => Promise<boolean>;
+    onClearNote: () => Promise<boolean>;
     onCloseNotes: () => void;
     onSearch: (query: string, options?: FlipbookSearchOptions) => void;
     onClearSearch: () => void;
@@ -56,6 +65,7 @@ interface AppProps {
     onToggleFullscreen: () => void;
     store: FlipbookStore;
     pluginRegistry?: FlipbookPluginRegistry;
+    signal: AbortSignal;
 }
 
 export function App(props: AppProps) {
@@ -64,10 +74,14 @@ export function App(props: AppProps) {
     };
 
     const handleToggleToc = () => {
+        props.store.showSearch.value = false;
+        props.store.showNotes.value = false;
         props.store.showToc.value = !props.store.showToc.value;
     };
 
     const handleToggleNotes = () => {
+        props.store.showToc.value = false;
+        props.store.showSearch.value = false;
         props.onToggleNotes();
     };
 
@@ -111,6 +125,8 @@ export function App(props: AppProps) {
     return (
         <div
             class={computed(() => `bk-wrapper bk-theme-${props.store.themeMode.value} ${props.className || ''}`)}
+            tabIndex={0} role="region" aria-label="Flipbook"
+            ref={(element: HTMLElement) => ReaderShortcuts(element, props.store, props, props.signal)}
         >
             <div class="bk-main-area">
                 <Viewer store={props.store}
@@ -121,6 +137,8 @@ export function App(props: AppProps) {
                     onHotspotClose={props.onHotspotClose}
                     onAnnotationActivate={props.onAnnotationActivate}
                     onAnnotationClose={props.onAnnotationClose}
+                    onPlaceAnnotation={props.onPlaceAnnotation}
+                    signal={props.signal}
                 />
 
                 <NavigationArrows store={props.store}
@@ -133,16 +151,18 @@ export function App(props: AppProps) {
                         Powered by <a href="https://flipbookengine.com" target="_blank" rel="noopener" style="text-decoration: underline;">FlipbookEngine</a>
                     </div>
                 ) : null}
-                <TableOfContents store={props.store} onEntryClick={handleTocEntryClick} />
+                <TableOfContents store={props.store} onEntryClick={handleTocEntryClick} onClose={() => props.store.showToc.value = false} />
                 <SearchPanel store={props.store} onSearch={props.onSearch} onClear={props.onClearSearch} onClose={props.onCloseSearch} onSelect={props.onSelectSearchResult} />
-                <NotesPanel store={props.store} onSave={props.onSaveNote} onClear={props.onClearNote} onClose={props.onCloseNotes} />
+                <NotesPanel store={props.store} signal={props.signal} onSelect={props.onSelectNote} onAnnotation={props.onAnnotationActivate} onAdd={props.onBeginAnnotation} onSave={props.onSaveNote} onClear={props.onClearNote} onClose={props.onCloseNotes} />
+                <AnnotationPopover store={props.store} signal={props.signal} onSave={props.onSaveAnnotation} onDelete={props.onDeleteAnnotation} onClose={props.onAnnotationClose} />
+                <AnnotationPlacement store={props.store} />
                 {props.pluginRegistry ? <PluginPanels registry={props.pluginRegistry} /> : null}
             </div>
 
             <Toolbar store={props.store}
                 onToggleThumbs={handleToggleThumbs}
                 onToggleToc={handleToggleToc}
-                onToggleSearch={() => props.store.showSearch.value = !props.store.showSearch.value}
+                onToggleSearch={() => { props.store.showToc.value = false; props.store.showNotes.value = false; props.store.showSearch.value = !props.store.showSearch.value; }}
                 onToggleSingleMode={handleToggleSingleMode}
                 onZoomIn={handleZoomIn}
                 onZoomOut={handleZoomOut}

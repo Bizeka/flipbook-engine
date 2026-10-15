@@ -36,5 +36,17 @@ export const enMessages = {
   noSearchResults: 'No results',
   searchUnavailable: 'Text search is available only in Direct PDF mode.',
   closeHotspot: 'Close popup',
-  annotation: 'Page annotation'
+  annotation: 'Page annotation',
+  saving: 'Saving…',
+  noteFailed: 'Could not save the note. Your draft is retained; try again.',
+  searching: 'Searching…',
+  searchFailed: 'Search failed. Try again.',
+  closeContents: 'Close table of contents',
+  moreActions: 'More actions',
+  sound: 'Sound',
+  myNotes: 'My notes', currentPage: 'This page', allNotes: 'All notes',
+  privateNotes: 'Your personal notes for this document.', noNotes: 'No notes yet. Select a place on the page to add your first note.',
+  addNote: 'Place a note', pageHasNote: 'This page has a note', page: 'Page', noteSaved: 'Saved',
+  confirmDeleteNote: 'Delete this note?', cancel: 'Cancel', placeNote: 'Click or tap a place on the page for your note.',
+  keyboardShortcuts: 'Keyboard shortcuts', textSelection: 'Select text', resetZoom: 'Fit page'
 } as const;

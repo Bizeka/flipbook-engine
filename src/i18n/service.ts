@@ -9,6 +9,7 @@ import { enMessages } from './locales/en';
 import { trMessages } from './locales/tr';
 
 export interface FlipbookMessages {
+  textSelection: string;
   emptyStateTitle: string;
   thumbnails: string;
   singlePageMode: string;
@@ -40,6 +41,27 @@ export interface FlipbookMessages {
   searchUnavailable: string;
   closeHotspot: string;
   annotation: string;
+  saving: string;
+  noteFailed: string;
+  searching: string;
+  searchFailed: string;
+  closeContents: string;
+  moreActions: string;
+  sound: string;
+  myNotes: string;
+  currentPage: string;
+  allNotes: string;
+  privateNotes: string;
+  noNotes: string;
+  addNote: string;
+  pageHasNote: string;
+  page: string;
+  noteSaved: string;
+  confirmDeleteNote: string;
+  cancel: string;
+  placeNote: string;
+  keyboardShortcuts: string;
+  resetZoom: string;
 }
 
 export const builtInMessages = {

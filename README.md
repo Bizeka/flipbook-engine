@@ -27,6 +27,12 @@ FlipbookEngine is a modern, lightweight, and embeddable HTML flipbook viewer for
 - **Client-Side PDF Search**: Extracts and searches PDF text on demand with localized snippets and normalized text-rectangle highlighting.
 - **Interactive Hotspots**: Adds normalized page overlays with accessible plain-text popups and optional links.
 
+## Backend text layers for image books (Unreleased)
+
+WebP/JPEG books can consume persistent text extracted by the host backend. Supply optional `textLayerProvider(pageIndex, signal)` alongside `searchProvider`. The reader loads at most the current page and its neighbors, validates normalized run coordinates, and overlays transparent selectable text without downloading the PDF. Enable **More actions > Select text**, or call `setTextSelection(true)`; Escape returns to navigation mode. Pointer selection is isolated from flip gestures and note long-press. Toolbar/keyboard page navigation stays available.
+
+Extraction, OCR, indexing, authorization and persistence belong to the host, not the browser. A text layer is fixed-layout accessibility/selection data, not EPUB reflow. See [backend text layer contract](docs/backend-text-layers.md) and [API reference](docs/api-reference.md). These APIs are unreleased source additions; npm 1.0.0 does not include them.
+
 ## Installation
 
 Install via npm:

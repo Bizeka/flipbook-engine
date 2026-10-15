@@ -23,9 +23,11 @@ export type {
 } from './model/pages';
 
 export type { FlipbookTocEntry } from './model/toc';
+export type { FlipbookSearchProvider, FlipbookNoteProvider, FlipbookAnnotationProvider } from './model/backend';
 export type { FlipbookSearchHighlight, FlipbookSearchResult, FlipbookSearchOptions } from './model/search';
 export type { FlipbookHotspot, FlipbookHotspotKind, FlipbookHotspotMedia, FlipbookHotspotMediaType, FlipbookHotspotGalleryItem } from './model/hotspots';
 export type { FlipbookAnnotation } from './model/annotations';
+export type { FlipbookNoteDocument, FlipbookNoteValue, FlipbookNoteEditor, FlipbookNoteEditorFactory } from './model/note-editor';
 export { FlipbookPluginRegistry } from './plugins';
 export type { FlipbookPlugin, FlipbookPluginContext, FlipbookPluginApiHandler, FlipbookPluginEventHandler, FlipbookPluginPanel, FlipbookPluginToolbarButton } from './plugins';
 export { normalizeFlipbookToc } from './model/toc';
@@ -47,3 +49,5 @@ export { isA3Landscape } from './core/PdfRenderer';
 
 export { FlipbookEmbedBridge, createFlipbookEmbedController } from './embed';
 export type { FlipbookEmbedOptions, FlipbookEmbedCommandName, FlipbookEmbedCommand, FlipbookEmbedEvent, FlipbookEmbedResponse, FlipbookEmbedState, FlipbookEmbedController } from './embed';
+
+export type { FlipbookTextRun, FlipbookTextPage, FlipbookTextLayerProvider } from './model/text-layer';

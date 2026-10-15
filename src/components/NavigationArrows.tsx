@@ -28,11 +28,11 @@ export function NavigationArrows(props: NavigationArrowsProps) {
     });
 
     return (
-        <div class="bk-nav-arrows" style={computed(() => props.store.showArrows.value ? 'display: flex;' : 'display: none;')}>
+        <div class="bk-nav-arrows" style={computed(() => props.store.showArrows.value && !props.store.showToc.value && !props.store.showSearch.value && !props.store.showNotes.value && !props.store.placingNote.value && !props.store.pendingAnnotation.value && !props.store.activeAnnotationId.value ? 'display: flex;' : 'display: none;')}>
             <button type="button"
                 class="bk-nav-arrow bk-nav-prev"
                 style={computed(() => isLeftVisible.value ? 'visibility: visible;' : 'visibility: hidden;')}
-                onClick={(e: Event) => { e.preventDefault(); props.onPrevPage(); }}
+                onClick={(e: Event) => { e.preventDefault(); e.stopPropagation(); props.onPrevPage(); }}
                 aria-label="Previous Page"
             >
                 <div class="bk-arrow-icon bk-arrow-left"></div>
@@ -40,7 +40,7 @@ export function NavigationArrows(props: NavigationArrowsProps) {
             <button type="button"
                 class="bk-nav-arrow bk-nav-next"
                 style={computed(() => isRightVisible.value ? 'visibility: visible;' : 'visibility: hidden;')}
-                onClick={(e: Event) => { e.preventDefault(); props.onNextPage(); }}
+                onClick={(e: Event) => { e.preventDefault(); e.stopPropagation(); props.onNextPage(); }}
                 aria-label="Next Page"
             >
                 <div class="bk-arrow-icon bk-arrow-right"></div>

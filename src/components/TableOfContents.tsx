@@ -10,6 +10,7 @@ import type { FlipbookTocEntry } from '../model/toc';
 import type { FlipbookStore } from '../state/store';
 
 interface TableOfContentsProps {
+    onClose?: () => void;
     store: FlipbookStore;
     onEntryClick: (pageIndex: number) => void;
 }
@@ -40,10 +41,14 @@ export function TableOfContents(props: TableOfContentsProps) {
     return (
         <nav
             class="bk-toc"
+            onKeyDown={(event: KeyboardEvent) => { if (event.key === 'Escape') props.onClose?.(); }}
             aria-label={computed(() => messages.value.tableOfContents || 'Table of Contents')}
             style={computed(() => props.store.showToc.value && props.store.toc.value.length ? 'display:flex;' : 'display:none;')}
         >
-            <div class="bk-toc-heading">{computed(() => messages.value.tableOfContents || 'Table of Contents')}</div>
+            <div class="bk-search-heading-row">
+                <div class="bk-toc-heading">{computed(() => messages.value.tableOfContents || 'Table of Contents')}</div>
+                <button type="button" class="bk-search-close" onClick={props.onClose} aria-label={computed(() => messages.value.closeContents)}>×</button>
+            </div>
             {renderEntries(props.store.toc.value, props.store, props.onEntryClick)}
         </nav>
     );

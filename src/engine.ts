@@ -1,3 +1,5 @@
+import { loadTextLayers } from './core/TextLayerLoader';
+import type { FlipbookTextLayerProvider } from './model/text-layer';
 /**
  * @license FlipbookEngine v1.0.0
  * Copyright (c) 2026 Murat Dogan
@@ -14,6 +16,8 @@
  */
 import * as pdfjsLib from 'pdfjs-dist';
 import { effect } from '@preact/signals-core';
+import type { FlipbookSearchProvider, FlipbookNoteProvider, FlipbookAnnotationProvider } from './model/backend';
+import type { FlipbookNoteDocument, FlipbookNoteEditorFactory } from './model/note-editor';
 import { App } from './components/App';
 import { PageFlipAdapter } from './adapters/PageFlipAdapter';
 import { LayoutManager } from './core/LayoutManager';
@@ -32,6 +36,14 @@ import { FlipbookEmbedBridge, type FlipbookEmbedOptions } from './embed';
 import { FlipbookPluginRegistry, type FlipbookPlugin } from './plugins';
 
 export interface FlipbookEngineOptions {
+    textLayerProvider?: FlipbookTextLayerProvider;
+    /** Opt in to selection; turning pages remains available through toolbar/keyboard. */
+    textSelection?: boolean;
+    searchProvider?: FlipbookSearchProvider;
+    noteProvider?: FlipbookNoteProvider;
+    annotationProvider?: FlipbookAnnotationProvider;
+    noteEditor?: FlipbookNoteEditorFactory;
+    noteDocuments?: Record<number, FlipbookNoteDocument>;
     allowDownload?: boolean;
     showThumbs?: boolean;
     showToc?: boolean;
@@ -106,6 +118,7 @@ export interface FlipbookEngineEventMap {
     searchChange: { query: string; results: FlipbookSearchResult[] };
     hotspotActivate: { hotspot: FlipbookHotspot; pageIndex: number };
     annotationActivate: { annotation: FlipbookAnnotation; pageIndex: number };
+    annotationChange: { annotation: FlipbookAnnotation; action: 'save' | 'delete' };
 }
 
 export type FlipbookEngineEventName = keyof FlipbookEngineEventMap;
@@ -115,6 +128,8 @@ type FlipbookEventHandler<T extends FlipbookEngineEventName> = (payload: Flipboo
 type AnyFlipbookEventHandler = (payload: FlipbookEngineEventMap[FlipbookEngineEventName]) => void;
 
 export class FlipbookEngine {
+    private searchSequence = 0;
+    private textLayerStop: (() => void) | null = null;
     private static readonly DEFAULT_PAGE_VIEWPORT = { width: 420, height: 594 };
     private container: HTMLElement | null = null;
     private options: FlipbookEngineOptions;
@@ -245,6 +260,7 @@ export class FlipbookEngine {
         // 1. Initialize State
         this.store.init(this.options, resolvedPages.length, resolvedPages, !!pdfUrl, !imageList?.length && !!pdfUrl);
         this.applyInitialDeepLink();
+        if (this.options.textLayerProvider) this.textLayerStop = loadTextLayers(this.store, this.options.textLayerProvider, abortController.signal);
 
         // 2. Setup DOM container
         applyThemeConfiguration(this.container, this.options);
@@ -269,6 +285,7 @@ export class FlipbookEngine {
             className: this.options.className,
             store: this.store,
             pluginRegistry: this.pluginRegistry,
+            signal: abortController.signal,
             onToggleFullscreen: () => this.toggleFullscreen(),
             onDownload: () => {
                 if (!pdfUrl) return;
@@ -282,14 +299,20 @@ export class FlipbookEngine {
             },
             onToggleBookmark: () => this.toggleBookmark(),
             onToggleNotes: () => {
+                if (!this.store.showNotes.value) this.store.notesView.value = this.store.pageNotes.value.size || this.store.annotations.value.length ? 'all' : 'page';
                 this.store.showNotes.value = !this.store.showNotes.value;
             },
-            onSaveNote: (note: string) => this.setNote(this.getCurrentPage(), note),
-            onClearNote: () => this.clearNote(this.getCurrentPage()),
+            onSelectNote: (pageIndex: number) => { this.goToPage(pageIndex); this.store.notesView.value = 'page'; },
+            onBeginAnnotation: () => this.beginAnnotation(),
+            onPlaceAnnotation: (pageIndex: number, x: number, y: number) => this.placeAnnotation(pageIndex, x, y),
+            onSaveAnnotation: (annotation: FlipbookAnnotation) => this.saveAnnotation(annotation),
+            onDeleteAnnotation: (annotation: FlipbookAnnotation) => this.saveAnnotation(annotation, 'delete'),
+            onSaveNote: (note: string, document?: FlipbookNoteDocument) => this.saveNote(this.getCurrentPage(), note, document),
+            onClearNote: () => this.saveNote(this.getCurrentPage(), null),
             onCloseNotes: () => {
                 this.store.showNotes.value = false;
             },
-            onSearch: (query, searchOptions) => { void this.search(query, searchOptions); },
+            onSearch: (query, searchOptions) => { void this.search(query, searchOptions).catch(() => {}); },
             onClearSearch: () => this.clearSearch(),
             onCloseSearch: () => { this.store.showSearch.value = false; },
             onSelectSearchResult: (pageIndex) => { this.goToPage(pageIndex); this.store.showSearch.value = false; },
@@ -568,7 +591,27 @@ export class FlipbookEngine {
 
     /** Searches the loaded PDF text without rendering pages and updates result highlights. */
     public async search(query: string, options: FlipbookSearchOptions = {}): Promise<FlipbookSearchResult[]> {
+        const sequence = ++this.searchSequence;
         const normalizedQuery = String(query ?? '').trim();
+        this.store.searchBusy.value = false;
+        this.store.searchFailed.value = false;
+        if (this.options.searchProvider && normalizedQuery) {
+            this.store.searchQuery.value = normalizedQuery;
+            this.store.searchResults.value = [];
+            this.store.searchBusy.value = true;
+            const signal = this.initAbortController?.signal ?? new AbortController().signal;
+            try {
+                const results = await this.options.searchProvider(normalizedQuery, options, signal);
+                if (signal.aborted || sequence !== this.searchSequence) return [];
+                const max = Number.isFinite(options.maxResults) ? Math.max(1, Math.trunc(options.maxResults!)) : 100;
+                this.store.searchResults.value = results.filter(result => Number.isInteger(result.pageIndex) && result.pageIndex >= 0 && result.pageIndex < this.store.totalPages.value).slice(0, max);
+                this.emit('searchChange', { query: normalizedQuery, results: this.store.searchResults.value });
+                return this.store.searchResults.value;
+            } catch (error) {
+                if (!signal.aborted && sequence === this.searchSequence) this.store.searchFailed.value = true;
+                throw error;
+            } finally { if (sequence === this.searchSequence) this.store.searchBusy.value = false; }
+        }
         if (!normalizedQuery || !this.pdfRenderer || !this.store.isPdfMode.value) {
             this.store.searchQuery.value = normalizedQuery;
             this.store.searchResults.value = [];
@@ -576,6 +619,7 @@ export class FlipbookEngine {
             return [];
         }
         const sourceResults = await this.pdfRenderer.searchText(normalizedQuery, options);
+        if (sequence !== this.searchSequence) return [];
         const results: FlipbookSearchResult[] = [];
         sourceResults.forEach((source) => {
             this.store.pages.value.forEach((page) => {
@@ -610,12 +654,36 @@ export class FlipbookEngine {
 
     /** Clears the current client-side search. */
     public clearSearch(): void {
+        this.searchSequence++;
+        this.store.searchBusy.value = false;
+        this.store.searchFailed.value = false;
         this.store.searchQuery.value = '';
         this.store.searchResults.value = [];
         this.emit('searchChange', { query: '', results: [] });
     }
 
     public getSearchResults(): FlipbookSearchResult[] { return this.store.searchResults.value.slice(); }
+
+    /** The native editor commits locally only after host persistence succeeds. */
+    public async saveNote(pageIndex: number, note: string | null, document?: FlipbookNoteDocument): Promise<boolean> {
+        if (this.store.notesSaving.value || !Number.isInteger(pageIndex) || pageIndex < 0 || pageIndex >= this.store.totalPages.value) return false;
+        const signal = this.initAbortController?.signal ?? new AbortController().signal;
+        const normalized = note?.trim() || null;
+        this.store.notesSaving.value = true;
+        this.store.notesFailed.value = false;
+        try {
+            await this.options.noteProvider?.(pageIndex, normalized, signal, document);
+            if (signal.aborted) return false;
+            this.setNote(pageIndex, normalized ?? '');
+            const documents = new Map(this.store.pageNoteDocuments.value);
+            if (document && normalized) documents.set(pageIndex, document); else documents.delete(pageIndex);
+            this.store.pageNoteDocuments.value = documents;
+            return true;
+        } catch {
+            if (!signal.aborted) this.store.notesFailed.value = true;
+            return false;
+        } finally { this.store.notesSaving.value = false; }
+    }
 
     public getHotspots(pageIndex = this.getCurrentPage()): FlipbookHotspot[] {
         return this.store.hotspots.value.filter((hotspot) => hotspot.pageIndex === pageIndex);
@@ -637,11 +705,61 @@ export class FlipbookEngine {
     public activateAnnotation(annotationId: string): void {
         const annotation = this.store.annotations.value.find((item) => item.id === annotationId);
         if (!annotation) return;
+        this.goToPage(annotation.pageIndex);
+        this.store.showNotes.value = false;
+        this.store.showToc.value = false;
+        this.store.showSearch.value = false;
         this.store.activeAnnotationId.value = annotation.id;
         this.emit('annotationActivate', { annotation, pageIndex: annotation.pageIndex });
     }
 
-    public closeAnnotation(): void { this.store.activeAnnotationId.value = null; }
+    public closeAnnotation(): void { this.store.activeAnnotationId.value = null; this.store.pendingAnnotation.value = null; }
+
+    public beginAnnotation(): void {
+        if (!this.store.canAnnotate.value) return;
+        this.closeAnnotation();
+        this.store.showNotes.value = false;
+        this.store.showToc.value = false;
+        this.store.showSearch.value = false;
+        this.store.textSelection.value = false;
+        this.store.placingNote.value = true;
+        queueMicrotask(() => {
+            if (!this.store.placingNote.value) return;
+            [...(this.container?.querySelectorAll<HTMLElement>('.bk-note-placement-layer') ?? [])]
+                .find(element => element.getBoundingClientRect().width > 0)?.focus();
+        });
+    }
+
+    public placeAnnotation(pageIndex: number, x: number, y: number): void {
+        if (!this.store.placingNote.value || !Number.isInteger(pageIndex) || pageIndex < 0 || pageIndex >= this.store.totalPages.value || !Number.isFinite(x) || !Number.isFinite(y)) return;
+        this.goToPage(pageIndex);
+        this.store.pendingAnnotation.value = { id: crypto.randomUUID(), pageIndex, x: Math.max(0, Math.min(1, x)), y: Math.max(0, Math.min(1, y)), text: '' };
+        this.store.placingNote.value = false;
+    }
+
+    public async saveAnnotation(annotation: FlipbookAnnotation, action: 'save' | 'delete' = 'save'): Promise<boolean> {
+        if (!this.options.annotationProvider || this.store.notesSaving.value || !annotation.id ||
+            !Number.isInteger(annotation.pageIndex) || annotation.pageIndex < 0 || annotation.pageIndex >= this.store.totalPages.value ||
+            !Number.isFinite(annotation.x) || !Number.isFinite(annotation.y) || annotation.x < 0 || annotation.x > 1 || annotation.y < 0 || annotation.y > 1 ||
+            (action === 'save' && (!annotation.text.trim() || annotation.text.length > 4000))) return false;
+        const signal = this.initAbortController?.signal ?? new AbortController().signal;
+        const saved = { ...annotation, text: annotation.text.trim() };
+        this.store.notesSaving.value = true;
+        this.store.notesFailed.value = false;
+        try {
+            await this.options.annotationProvider(saved, action, signal);
+            if (signal.aborted) return false;
+            const remaining = this.store.annotations.value.filter(note => note.id !== saved.id);
+            this.store.annotations.value = action === 'delete' ? remaining : [...remaining, saved];
+            this.store.pendingAnnotation.value = null;
+            this.store.activeAnnotationId.value = action === 'delete' ? null : saved.id;
+            this.emit('annotationChange', { annotation: saved, action });
+            return true;
+        } catch {
+            if (!signal.aborted) this.store.notesFailed.value = true;
+            return false;
+        } finally { if (!signal.aborted) this.store.notesSaving.value = false; }
+    }
 
     public getZoom(): number {
         return this.store.zoomState.value.scale;
@@ -686,6 +804,7 @@ export class FlipbookEngine {
     }
 
     public setSingleMode(isSingle: boolean) {
+        this.options = { ...this.options, singleMode: isSingle, isSingleMode: isSingle };
         this.store.isSingleMode.value = isSingle;
         if (isSingle && this.pdfRenderer) {
             setTimeout(() => {
@@ -697,6 +816,8 @@ export class FlipbookEngine {
     }
 
     public updateOptions(options: Partial<FlipbookEngineOptions>) {
+        if ('annotationProvider' in options) this.store.canAnnotate.value = !!options.annotationProvider;
+        if ('searchProvider' in options) this.store.searchAvailable.value = !!options.searchProvider || this.store.isPdfMode.value;
         const deepLinkChanged = options.deepLink !== undefined && options.deepLink !== this.options.deepLink;
         this.options = { ...this.options, ...options };
         if (deepLinkChanged) {
@@ -928,7 +1049,10 @@ export class FlipbookEngine {
             orientation: this.store.orientation.value
         };
     }
+    public setTextSelection(enabled: boolean) { this.store.textSelection.value = !!enabled; }
+
     public destroy(keepContainer = false) {
+        this.textLayerStop?.(); this.textLayerStop = null;
         const hadSession = this.hasActiveSession || !!this.initAbortController || !!this.pageFlipAdapter || !!this.layoutManager || !!this.interactionManager || !!this.pdfRenderer;
         this.initGeneration++;
         this.teardownDeepLinkListener();

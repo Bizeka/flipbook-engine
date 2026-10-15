@@ -6,6 +6,7 @@
 
 /** A host-provided note marker anchored to a logical page using 0..1 coordinates. */
 export interface FlipbookAnnotation {
+  document?: import('./note-editor').FlipbookNoteDocument;
   id: string;
   pageIndex: number;
   x: number;

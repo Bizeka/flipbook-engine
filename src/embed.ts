@@ -150,7 +150,7 @@ export class FlipbookEmbedBridge {
     noteChange: true,
     searchChange: true,
     hotspotActivate: true,
-    annotationActivate: true
+    annotationChange: true, annotationActivate: true
   };
 
   private isAllowedOrigin(origin: string): boolean {

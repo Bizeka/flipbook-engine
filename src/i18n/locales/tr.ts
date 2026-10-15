@@ -36,5 +36,17 @@ export const trMessages = {
   noSearchResults: 'Sonuç bulunamadı',
   searchUnavailable: 'Metin arama yalnızca Doğrudan PDF modunda desteklenir.',
   closeHotspot: 'Açılır pencereyi kapat',
-  annotation: 'Sayfa açıklaması'
+  annotation: 'Sayfa açıklaması',
+  saving: 'Kaydediliyor…',
+  noteFailed: 'Not kaydedilemedi. Taslağınız korundu; tekrar deneyin.',
+  searching: 'Aranıyor…',
+  searchFailed: 'Arama başarısız oldu. Tekrar deneyin.',
+  closeContents: 'İçindekileri kapat',
+  moreActions: 'Diğer işlemler',
+  sound: 'Ses',
+  myNotes: 'Notlarım', currentPage: 'Bu sayfa', allNotes: 'Tüm notlar',
+  privateNotes: 'Bu belge için kişisel notlarınız.', noNotes: 'Henüz not yok. İlk notunuz için sayfada bir yer seçin.',
+  addNote: 'Konuma not ekle', pageHasNote: 'Bu sayfada not var', page: 'Sayfa', noteSaved: 'Kaydedildi',
+  confirmDeleteNote: 'Bu not silinsin mi?', cancel: 'Vazgeç', placeNote: 'Not eklemek için sayfada bir yere tıklayın veya dokunun.',
+  keyboardShortcuts: 'Klavye kısayolları', textSelection: 'Metin seçimi', resetZoom: 'Sayfaya sığdır'
 } as const;

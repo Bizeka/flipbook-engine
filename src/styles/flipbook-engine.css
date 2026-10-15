@@ -1284,3 +1284,76 @@
 .bk-annotation-marker { position:absolute; transform:translate(-50%,-50%); width:24px; height:24px; padding:0; border:0; border-radius:50%; background:color-mix(in srgb,#fff 88%,transparent); color:#111; box-shadow:0 1px 5px rgba(255,255,255,.9); pointer-events:auto; cursor:pointer; font-size:18px; line-height:24px; }
 .bk-annotation-marker:hover,.bk-annotation-marker:focus-visible { outline:2px solid var(--flipbook-accent); }
 .bk-annotation-popup { position:absolute; left:10px; bottom:10px; width:min(280px,calc(100% - 20px)); max-height:calc(100% - 20px); overflow:auto; pointer-events:auto; padding:10px; border:1px solid var(--flipbook-border); border-radius:var(--flipbook-radius-sm); background:color-mix(in srgb,var(--flipbook-bg-surface) 96%,transparent); color:var(--flipbook-text-main); box-shadow:0 8px 24px var(--flipbook-shadow); backdrop-filter:blur(10px); }
+
+/* Panels own the interaction layer; canvas controls never overlap them. */
+.bk-main-area { isolation: isolate; min-width: 0; }
+.bk-watermark { z-index: 20; }
+.bk-toc, .bk-search-panel, .bk-notes-panel { box-sizing: border-box; max-height: 100%; z-index: 40; }
+.bk-toc { width: min(340px, calc(100% - 16px)); }
+.bk-search-panel, .bk-notes-panel { top: 8px; left: 8px; right: auto; bottom: auto; width: min(380px, calc(100% - 16px)); max-height: calc(100% - 16px); overflow: auto; }
+.bk-notes-input { max-height: 40dvh; }
+.bk-search-form { display: flex; flex-wrap: wrap; min-width: 0; }
+.bk-search-input { flex: 1 1 100%; min-width: 0; width: 100%; box-sizing: border-box; }
+.bk-search-result-text { min-width: 0; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+.bk-toolbar { overflow: visible; }
+.bk-more { position: relative; }
+.bk-more > summary { list-style: none; font-size: 1.5rem; }
+.bk-more > summary::-webkit-details-marker { display: none; }
+.bk-more-menu { position: absolute; z-index: 50; right: 0; bottom: calc(100% + 8px); width: 220px; max-height: 60dvh; overflow: auto; padding: 8px; box-sizing: border-box; border: 1px solid var(--flipbook-border); border-radius: var(--flipbook-radius-md); background: var(--flipbook-bg-panel); color: var(--flipbook-toolbar-text); box-shadow: 0 8px 24px var(--flipbook-shadow); }
+.bk-more-menu .bk-btn { display: flex; width: 100%; min-height: 44px; justify-content: flex-start; gap: 12px; padding: 8px; text-align: left; border-radius: var(--flipbook-radius-sm); }
+.bk-more-menu svg { flex: 0 0 18px; }
+@media (max-width: 767px) {
+  .bk-toolbar { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); height: auto; min-height: 96px; padding: 4px; gap: 0; }
+  .bk-toolbar > .bk-btn-group { display: contents; }
+  .bk-toolbar > .bk-btn-group--center { display: flex; grid-column: 1 / -1; grid-row: 1; justify-content: center; }
+  .bk-toolbar .bk-btn { min-width: 0; width: 100%; height: 44px; }
+  .bk-toolbar .bk-btn-group--center .bk-btn { width: 44px; }
+}
+
+/* Personal note navigation and coordinate placement. */
+.bk-btn--notes { position: relative; }
+.bk-btn--notes.bk-has-page-note::after { content: ''; position: absolute; width: 7px; height: 7px; border-radius: 50%; right: 3px; top: 3px; background: var(--flipbook-accent); box-shadow: 0 0 0 2px var(--flipbook-bg-panel); }
+.bk-note-total { padding: 2px 7px; border-radius: 99px; background: var(--flipbook-accent); color: var(--flipbook-accent-text); }
+.bk-note-privacy { margin: 0; font-size: .8rem; color: var(--flipbook-text-muted); line-height: 1.5; }
+.bk-note-tabs { display: flex; gap: 4px; padding: 4px; border-radius: var(--flipbook-radius-md); background: var(--flipbook-bg-surface-alt); }
+.bk-note-tabs button { flex: 1; border: 0; padding: 10px 6px; min-height: 44px; background: transparent; color: var(--flipbook-text-main); border-radius: var(--flipbook-radius-sm); font: inherit; }
+.bk-note-tabs button[aria-pressed=true] { background: var(--flipbook-bg-surface); box-shadow: 0 1px 4px var(--flipbook-shadow); color: var(--flipbook-accent); }
+.bk-add-annotation { flex: none; min-height: 44px; border: 1px solid var(--flipbook-accent); border-radius: var(--flipbook-radius-sm); padding: 10px; font: inherit; cursor: pointer; }
+.bk-note-list { flex-direction: column; gap: 8px; }
+.bk-note-list-item { display: flex; flex-direction: column; gap: 6px; padding: 12px; min-height: 64px; text-align: left; border: 1px solid var(--flipbook-border); border-radius: var(--flipbook-radius-md); background: var(--flipbook-bg-surface-alt); color: var(--flipbook-text-main); font: inherit; cursor: pointer; }
+.bk-note-list-item strong { color: var(--flipbook-accent); font-size: .8rem; }
+.bk-note-list-item span { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; font-size: .875rem; line-height: 1.5; }
+.bk-note-empty { color: var(--flipbook-text-muted); line-height: 1.6; }
+.bk-note-popover { position: absolute; right: 8px; top: 8px; z-index: 60; display: flex; flex-direction: column; gap: 12px; width: min(400px,calc(100% - 16px)); max-height: calc(100% - 16px); overflow: auto; box-sizing: border-box; padding: 16px; background: var(--flipbook-bg-surface); color: var(--flipbook-text-main); border: 1px solid var(--flipbook-border); border-radius: var(--flipbook-radius-md); box-shadow: 0 8px 24px var(--flipbook-shadow); }
+.bk-note-document { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; }
+.bk-note-document p { margin: 0 0 .6em; }
+.bk-note-popover .bk-notes-actions { flex-wrap: wrap; }
+.bk-note-popover button { min-height: 44px; }
+.bk-note-placement-layer { position: absolute; inset: 0; z-index: 70; width: 100%; height: 100%; margin: 0; padding: 0; border: 2px dashed var(--flipbook-accent); border-radius: 0; background: color-mix(in srgb,var(--flipbook-accent) 6%,transparent); cursor: crosshair; touch-action: none; }
+.bk-note-placement-hint { position: absolute; z-index: 80; top: 8px; left: 8px; right: 8px; gap: 12px; align-items: center; justify-content: space-between; padding: 12px; border-radius: var(--flipbook-radius-md); background: var(--flipbook-bg-panel); color: var(--flipbook-toolbar-text); box-shadow: 0 4px 12px var(--flipbook-shadow); font-size: .875rem; pointer-events: none; }
+.bk-note-placement-hint button { pointer-events: auto; min-height: 44px; padding: 8px; border: 1px solid var(--flipbook-border); border-radius: var(--flipbook-radius-sm); background: transparent; color: inherit; font: inherit; }
+.bk-annotation-marker { width: 36px; height: 36px; font-size: 18px; background: var(--flipbook-accent); color: var(--flipbook-accent-text); box-shadow: 0 0 0 3px var(--flipbook-bg-surface),0 3px 9px var(--flipbook-shadow); border: 0; touch-action: manipulation; }
+.bk-annotation-marker.active { outline: 3px solid var(--flipbook-accent-text); }
+.bk-wrapper :focus-visible { outline: 2px solid var(--flipbook-accent); outline-offset: 3px; }
+@media (pointer:coarse) { .bk-annotation-marker { width: 44px; height: 44px; } }
+@media (prefers-reduced-motion:reduce) { .bk-wrapper *, .bk-wrapper *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; } }
+.bk-shortcuts-dialog { width: min(440px,calc(100vw - 32px)); max-height: 80dvh; overflow: auto; padding: 20px; border: 1px solid var(--flipbook-border); border-radius: var(--flipbook-radius-md); background: var(--flipbook-bg-surface); color: var(--flipbook-text-main); box-sizing: border-box; }
+.bk-shortcuts-dialog::backdrop { background: #0008; }
+.bk-shortcuts-dialog dl { display: grid; grid-template-columns: auto 1fr; gap: 12px 20px; font-size: .875rem; }
+.bk-shortcuts-dialog dt { font-weight: 700; }
+.bk-shortcuts-dialog dd { margin: 0; }
+.bk-shortcuts-dialog button { min-height: 44px; padding: 8px 16px; background: var(--flipbook-accent); color: var(--flipbook-accent-text); border: 0; border-radius: var(--flipbook-radius-sm); }
+.bk-notes-count { position: absolute; top: -2px; right: -2px; font-size: 10px; line-height: 16px; min-width: 16px; padding: 0 2px; border-radius: 99px; background: var(--flipbook-accent); color: var(--flipbook-accent-text); box-sizing: border-box; }
+.bk-notes-count:empty { display: none; }
+.bk-note-list-items { display: flex; flex-direction: column; gap: 8px; }
+.bk-add-annotation { background: var(--flipbook-accent); color: var(--flipbook-accent-text); }
+/* PageFlip writes display:block during initialization; single mode owns its own paper. */
+.bk-book-wrapper.single-mode .bk-book { display: none !important; }
+
+/* Optional backend text layer. */
+.bk-book-wrapper img.page-content { padding:0 !important; margin:0 !important; border:0 !important; box-sizing:border-box; }
+.bk-text-layer { position:absolute; inset:0; z-index:3; pointer-events:none; container-type:size; overflow:hidden; }
+.bk-text-layer span { position:absolute; color:transparent; white-space:pre; line-height:1; font-family:sans-serif; overflow:hidden; user-select:none; }
+.bk-text-layer.is-selectable { pointer-events:auto; touch-action:pan-y; cursor:text; }
+.bk-text-layer.is-selectable span { user-select:text; -webkit-user-select:text; }
+.bk-text-layer span::selection { background:color-mix(in srgb, var(--flipbook-primary,#7367f0) 35%, transparent); color:transparent; }

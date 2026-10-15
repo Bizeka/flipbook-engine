@@ -204,3 +204,25 @@ const engine = new FlipbookEngine('#viewer', {
 
 See [Plugin architecture](./plugin-architecture.md) for the v1 plugin contract and lifecycle.
 
+
+## Host backend providers
+
+The native search panel also works with pre-rendered page images. Supply `searchProvider(query, options, signal)` returning logical page results (`pageIndex` is zero-based, `pageNumber` is one-based, plus `matches`, `snippet` and optional normalized `highlights`). The host owns authentication, document identity and authorization. Stale responses are ignored; destroy aborts the session signal. Without a provider, Direct PDF search retains its existing behavior.
+
+Supply initial `notes` and `noteProvider(pageIndex, note, signal)` to persist the native note editor. A cleared note is `null`. The editor awaits the provider before changing the saved note or emitting `noteChange`. On failure it retains the draft and offers another save. `saveNote(pageIndex, note)` exposes the same asynchronous workflow; `setNote` remains a synchronous programmatic update for compatibility.
+
+Contents, search and notes are mutually exclusive panels. Canvas arrows hide while a panel is open; the pager remains available. Contents has a close control. Secondary toolbar commands are in the accessible More actions menu; mobile navigation and primary controls occupy two rows.
+
+## Personal coordinate notes
+
+`annotationProvider(annotation, action, signal)` persists native coordinate notes (`action` is `save` or `delete`). Initial `annotations` load existing notes. `beginAnnotation()` enters a dedicated placement mode; `placeAnnotation(pageIndex,x,y)` uses normalized logical-page coordinates in [0,1]. `saveAnnotation()` commits only after the host succeeds. Multiple note IDs may share a page. The host remains responsible for authentication, ownership and document identity. Right click and a stationary touch/pen hold open an editor at the selected point; movement beyond10px or another pointer cancels long press. A placement overlay consumes page-flip gestures. Escape cancels placement. Markers are available in both single-page and spread views.
+
+The My notes panel includes existing page notes and coordinate notes, navigation, an empty state and a total count. The toolbar shows the count and highlights pages containing notes. Selecting a marker opens a readable popover outside the scaled paper; editing and deletion remain in that popover. Delete requires a second explicit action.
+
+`noteEditor(container,value,signal)` is an optional host editor factory returning `getValue`, `setReadOnly` and `destroy`. `value` contains plain `text` and an optional structured `document`; the base engine retains a textarea fallback and has no Tiptap dependency. Legacy page notes can supply `noteDocuments`; noteProvider receives the document as an optional fourth argument. The built-in viewer renders only doc/paragraph/text/hardBreak nodes with bold, italic, font-size and hex foreground/background marks. It never renders raw note HTML.
+
+When the viewer owns keyboard focus: arrows/PageUp/PageDown navigate, Home/End jump, +/- zoom,0 resets, N places a note, Shift+N opens My notes, / searches, I opens contents, T toggles thumbnails, F toggles fullscreen, and ? shows help. Text inputs and rich editors keep their own shortcuts. Toolbar arrows move focus among visible commands; Tab/Shift+Tab preserve native focus order. Closing panels returns focus. Pinch zoom and one-finger pan suppress page turning; only predominantly horizontal unzoomed single-page swipes turn pages. Ctrl/wheel zoom is scoped to the paper. Native touch behavior still requires real-device acceptance.
+
+## Backend text layer API (Unreleased)
+
+Optional `textLayerProvider`, `textSelection` and `setTextSelection(enabled)` add fixed-layout selectable text to image books. Public `FlipbookTextPage`, `FlipbookTextRun` and `FlipbookTextLayerProvider` types are exported from root and core entrypoints. See [schema, lifecycle, geometry and backend responsibilities](backend-text-layers.md). Existing search highlights remain independent. No backend, OCR engine or database is bundled.

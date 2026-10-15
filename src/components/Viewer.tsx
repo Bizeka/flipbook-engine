@@ -1,3 +1,4 @@
+import { TextLayer } from './TextLayer';
 /**
  * @license FlipbookEngine v1.0.0
  * Copyright (c) 2026 Murat Dogan
@@ -19,6 +20,7 @@ import type { FlipbookStore } from '../state/store';
 import { HotspotLayer } from './HotspotLayer';
 import type { FlipbookHotspot } from '../model/hotspots';
 import type { FlipbookAnnotation } from '../model/annotations';
+import { NotePlacementLayer, bindNoteGestures } from './NotePlacementLayer';
 
 interface ViewerProps {
     store: FlipbookStore;
@@ -29,6 +31,8 @@ interface ViewerProps {
     onHotspotClose: () => void;
     onAnnotationActivate: (annotation: FlipbookAnnotation) => void;
     onAnnotationClose: () => void;
+    onPlaceAnnotation: (pageIndex: number, x: number, y: number) => void;
+    signal: AbortSignal;
 }
 
 
@@ -56,13 +60,14 @@ export function Viewer(props: ViewerProps) {
             aria-label="Flipbook viewer"
             class={computed(() => {
                 let classes = 'bk-book-wrapper ';
+                if (props.store.isSingleMode.value) classes += 'single-mode ';
                 if (props.store.isDoublePageLayout.value) classes += 'double-mode ';
                 if (props.store.isFrontCover.value) classes += 'bk-is-cover ';
                 if (props.store.isBackCover.value) classes += 'bk-is-back-cover ';
                 if (props.store.zoomState.value.isActive) classes += 'zoomed ';
                 return classes.trim();
             })}
-            ref={props.bookWrapperRef}
+            ref={(element: HTMLElement) => { props.bookWrapperRef(element); bindNoteGestures(element, props.store, props.onPlaceAnnotation, props.signal); }}
         >
             <div
                 class="bk-book-sizer"
@@ -92,9 +97,11 @@ export function Viewer(props: ViewerProps) {
                                             alt={`Page ${index + 1}`}
                                             loading="lazy"
                                         />
+                                        <TextLayer store={props.store} pageIndex={index} signal={props.signal} />
                                         <SearchHighlightLayer store={props.store} pageIndex={index} />
                                         <HotspotLayer store={props.store} pageIndex={index} onActivate={props.onHotspotActivate} onClose={props.onHotspotClose} onAnnotationActivate={props.onAnnotationActivate} onAnnotationClose={props.onAnnotationClose} />
                                         <div class="page-shadow"></div>
+                                        <NotePlacementLayer store={props.store} pageIndex={index} onPlace={props.onPlaceAnnotation} />
                                     </div>
                                 </div>
                             );
@@ -109,7 +116,7 @@ export function Viewer(props: ViewerProps) {
                         const page = props.store.pages.value[props.store.currentPage.value];
                         if (!page) return null;
                         return (
-                            <div class="bk-single-page">
+                            <div class="bk-single-page" data-idx={props.store.currentPage.value}>
                                 <img
                                     data-pdf-page={page.assetId.startsWith('pdf-page-') ? (page.sourcePageNumber ?? page.pageNumber) : undefined}
                                     class={computed(() => `bk-single-img page-content ${page.cropMode !== 'full' ? 'page-content--split page-content--' + page.cropMode : ''}`)}
@@ -117,7 +124,10 @@ export function Viewer(props: ViewerProps) {
                                     alt={`Page ${props.store.currentPage.value + 1}`}
                                     style="opacity: 1; transition: opacity 0.3s; box-shadow: var(--flipbook-shadow);"
                                 />
+                                <TextLayer store={props.store} pageIndex={props.store.currentPage.value} signal={props.signal} />
                                 <SearchHighlightLayer store={props.store} pageIndex={props.store.currentPage.value} />
+                                <HotspotLayer store={props.store} pageIndex={props.store.currentPage.value} onActivate={props.onHotspotActivate} onClose={props.onHotspotClose} onAnnotationActivate={props.onAnnotationActivate} onAnnotationClose={props.onAnnotationClose} />
+                                <NotePlacementLayer store={props.store} pageIndex={props.store.currentPage.value} onPlace={props.onPlaceAnnotation} />
                             </div>
                         );
                     })}
