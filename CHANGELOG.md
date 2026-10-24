@@ -1,9 +1,5 @@
 # Changelog
 
-## 1.0.3 - 2026-10-24
-
-- Single-page view now always shows the sharp page image instead of the medium-resolution one, so pages are no longer blurry at 1x zoom; the thumbnail and medium sizes are still used by thumbnails and the two-page spread loader.
-
 ## 1.0.2 - 2026-10-24
 
 - Native backend search, page-note and coordinate-annotation providers, including multiple note markers per page and host-owned persistence.

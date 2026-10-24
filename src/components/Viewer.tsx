@@ -119,7 +119,7 @@ export function Viewer(props: ViewerProps) {
                                 <img
                                     data-pdf-page={page.assetId.startsWith('pdf-page-') ? (page.sourcePageNumber ?? page.pageNumber) : undefined}
                                     class={computed(() => `bk-single-img page-content ${page.cropMode !== 'full' ? 'page-content--split page-content--' + page.cropMode : ''}`)}
-                                    src={page.normal || page.low}
+                                    src={props.store.zoomState.value.isActive ? page.normal : (page.low || page.normal)}
                                     alt={`Page ${props.store.currentPage.value + 1}`}
                                     style="opacity: 1; transition: opacity 0.3s; box-shadow: var(--flipbook-shadow);"
                                 />
