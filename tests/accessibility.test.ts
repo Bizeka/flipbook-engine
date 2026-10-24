@@ -30,5 +30,6 @@ test('viewer controls expose accessible names and keyboard thumbnail navigation'
   const viewer = document.querySelector('[role="region"]');
   assert.equal(viewer?.getAttribute('aria-label'), 'Flipbook viewer');
   assert.equal(document.querySelector('.bk-single-img')?.getAttribute('alt'), 'Page 2');
+  assert.equal(document.querySelector('.bk-single-img')?.getAttribute('src'), '2.png');
   engine.destroy();
 });
