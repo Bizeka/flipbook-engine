@@ -127,6 +127,13 @@ export type FlipbookLocaleMessages = PartialFlipbookMessages | Partial<Record<st
 type FlipbookEventHandler<T extends FlipbookEngineEventName> = (payload: FlipbookEngineEventMap[T]) => void;
 type AnyFlipbookEventHandler = (payload: FlipbookEngineEventMap[FlipbookEngineEventName]) => void;
 
+/** `crypto.randomUUID` is missing on Node 18 and in non-secure browser contexts, so fall back to a random id. */
+function createAnnotationId(): string {
+    const webCrypto = (globalThis as { crypto?: Crypto }).crypto;
+    if (typeof webCrypto?.randomUUID === 'function') return webCrypto.randomUUID();
+    return `note-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
 export class FlipbookEngine {
     private searchSequence = 0;
     private textLayerStop: (() => void) | null = null;
@@ -754,7 +761,7 @@ export class FlipbookEngine {
     public placeAnnotation(pageIndex: number, x: number, y: number): void {
         if (!this.store.placingNote.value || !Number.isInteger(pageIndex) || pageIndex < 0 || pageIndex >= this.store.totalPages.value || !Number.isFinite(x) || !Number.isFinite(y)) return;
         this.goToPage(pageIndex);
-        this.store.pendingAnnotation.value = { id: crypto.randomUUID(), pageIndex, x: Math.max(0, Math.min(1, x)), y: Math.max(0, Math.min(1, y)), text: '' };
+        this.store.pendingAnnotation.value = { id: createAnnotationId(), pageIndex, x: Math.max(0, Math.min(1, x)), y: Math.max(0, Math.min(1, y)), text: '' };
         this.store.placingNote.value = false;
     }
 
