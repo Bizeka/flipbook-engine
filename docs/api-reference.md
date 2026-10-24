@@ -223,6 +223,6 @@ The My notes panel includes existing page notes and coordinate notes, navigation
 
 When the viewer owns keyboard focus: arrows/PageUp/PageDown navigate, Home/End jump, +/- zoom,0 resets, N places a note, Shift+N opens My notes, / searches, I opens contents, T toggles thumbnails, F toggles fullscreen, and ? shows help. Text inputs and rich editors keep their own shortcuts. Toolbar arrows move focus among visible commands; Tab/Shift+Tab preserve native focus order. Closing panels returns focus. Pinch zoom and one-finger pan suppress page turning; only predominantly horizontal unzoomed single-page swipes turn pages. Ctrl/wheel zoom is scoped to the paper. Native touch behavior still requires real-device acceptance.
 
-## Backend text layer API (Unreleased)
+## Backend text layer API
 
 Optional `textLayerProvider`, `textSelection` and `setTextSelection(enabled)` add fixed-layout selectable text to image books. Public `FlipbookTextPage`, `FlipbookTextRun` and `FlipbookTextLayerProvider` types are exported from root and core entrypoints. See [schema, lifecycle, geometry and backend responsibilities](backend-text-layers.md). Existing search highlights remain independent. No backend, OCR engine or database is bundled.

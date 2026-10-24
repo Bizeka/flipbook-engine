@@ -125,7 +125,7 @@ export function App(props: AppProps) {
     return (
         <div
             class={computed(() => `bk-wrapper bk-theme-${props.store.themeMode.value} ${props.className || ''}`)}
-            tabIndex={0} role="region" aria-label="Flipbook"
+            tabIndex={0}
             ref={(element: HTMLElement) => ReaderShortcuts(element, props.store, props, props.signal)}
         >
             <div class="bk-main-area">

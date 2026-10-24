@@ -95,7 +95,6 @@ export function Viewer(props: ViewerProps) {
                                             data-src={page.normal}
                                             class={`page-content ${page.cropMode !== 'full' ? 'page-content--split page-content--' + page.cropMode : ''}`}
                                             alt={`Page ${index + 1}`}
-                                            loading="lazy"
                                         />
                                         <TextLayer store={props.store} pageIndex={index} signal={props.signal} />
                                         <SearchHighlightLayer store={props.store} pageIndex={index} />
@@ -124,10 +123,14 @@ export function Viewer(props: ViewerProps) {
                                     alt={`Page ${props.store.currentPage.value + 1}`}
                                     style="opacity: 1; transition: opacity 0.3s; box-shadow: var(--flipbook-shadow);"
                                 />
-                                <TextLayer store={props.store} pageIndex={props.store.currentPage.value} signal={props.signal} />
-                                <SearchHighlightLayer store={props.store} pageIndex={props.store.currentPage.value} />
-                                <HotspotLayer store={props.store} pageIndex={props.store.currentPage.value} onActivate={props.onHotspotActivate} onClose={props.onHotspotClose} onAnnotationActivate={props.onAnnotationActivate} onAnnotationClose={props.onAnnotationClose} />
-                                <NotePlacementLayer store={props.store} pageIndex={props.store.currentPage.value} onPlace={props.onPlaceAnnotation} />
+                                {computed(() => props.store.isSingleMode.value ? (
+                                    <>
+                                        <TextLayer store={props.store} pageIndex={props.store.currentPage.value} signal={props.signal} />
+                                        <SearchHighlightLayer store={props.store} pageIndex={props.store.currentPage.value} />
+                                        <HotspotLayer store={props.store} pageIndex={props.store.currentPage.value} onActivate={props.onHotspotActivate} onClose={props.onHotspotClose} onAnnotationActivate={props.onAnnotationActivate} onAnnotationClose={props.onAnnotationClose} />
+                                        <NotePlacementLayer store={props.store} pageIndex={props.store.currentPage.value} onPlace={props.onPlaceAnnotation} />
+                                    </>
+                                ) : null)}
                             </div>
                         );
                     })}

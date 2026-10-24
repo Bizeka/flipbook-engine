@@ -1,7 +1,7 @@
 # FlipbookEngine
 
-> **Release candidate:** `flipbookengine@1.0.0` is prepared as the first stable release and includes the localized Table of Contents API.
-> **Release scope:** Version 1.0.0 adds the plugin contract, independent feature entrypoints, TOC runtime/embed APIs, and the complete open-source reader surface.
+> **Current release:** `flipbookengine@1.0.2` includes the localized Table of Contents API, backend text layers and coordinate notes.
+> **1.0.0 scope:** Version 1.0.0 added the plugin contract, independent feature entrypoints, TOC runtime/embed APIs, and the complete open-source reader surface.
 
 [![NPM Version](https://img.shields.io/npm/v/flipbookengine?style=flat-square&color=blue)](https://www.npmjs.com/package/flipbookengine)
 [![License](https://img.shields.io/npm/l/flipbookengine?style=flat-square)](https://github.com/Bizeka/flipbook-engine/blob/main/LICENSE)
@@ -27,11 +27,11 @@ FlipbookEngine is a modern, lightweight, and embeddable HTML flipbook viewer for
 - **Client-Side PDF Search**: Extracts and searches PDF text on demand with localized snippets and normalized text-rectangle highlighting.
 - **Interactive Hotspots**: Adds normalized page overlays with accessible plain-text popups and optional links.
 
-## Backend text layers for image books (Unreleased)
+## Backend text layers for image books
 
 WebP/JPEG books can consume persistent text extracted by the host backend. Supply optional `textLayerProvider(pageIndex, signal)` alongside `searchProvider`. The reader loads at most the current page and its neighbors, validates normalized run coordinates, and overlays transparent selectable text without downloading the PDF. Enable **More actions > Select text**, or call `setTextSelection(true)`; Escape returns to navigation mode. Pointer selection is isolated from flip gestures and note long-press. Toolbar/keyboard page navigation stays available.
 
-Extraction, OCR, indexing, authorization and persistence belong to the host, not the browser. A text layer is fixed-layout accessibility/selection data, not EPUB reflow. See [backend text layer contract](docs/backend-text-layers.md) and [API reference](docs/api-reference.md). These APIs are unreleased source additions; npm 1.0.0 does not include them.
+Extraction, OCR, indexing, authorization and persistence belong to the host, not the browser. A text layer is fixed-layout accessibility/selection data, not EPUB reflow. See [backend text layer contract](docs/backend-text-layers.md) and [API reference](docs/api-reference.md). These APIs are available from npm 1.0.2.
 
 ## Installation
 
@@ -81,7 +81,7 @@ Passing `pages` remains optional. When omitted, FlipbookEngine creates the page 
 Use the ESM build with an import map for PDF.js. The worker must be served from a URL your site permits in its Content Security Policy.
 
 ```html
-<link rel="stylesheet" href="https://unpkg.com/flipbookengine@1.0.0/dist/flipbook-engine.css" />
+<link rel="stylesheet" href="https://unpkg.com/flipbookengine@1.0.2/dist/flipbook-engine.css" />
 <div id="viewer" style="width: 100%; height: 600px;"></div>
 
 <script type="importmap">
@@ -92,7 +92,7 @@ Use the ESM build with an import map for PDF.js. The worker must be served from 
 }
 </script>
 <script type="module">
-  import { FlipbookEngine } from 'https://unpkg.com/flipbookengine@1.0.0/dist/flipbook-engine.js';
+  import { FlipbookEngine } from 'https://unpkg.com/flipbookengine@1.0.2/dist/flipbook-engine.js';
 
   const engine = new FlipbookEngine('#viewer', {
     pdfWorkerSrc: 'https://unpkg.com/pdfjs-dist@5.4.530/build/pdf.worker.min.mjs'

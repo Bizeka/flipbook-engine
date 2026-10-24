@@ -29,3 +29,6 @@ development-notes/
 # Playwright output
 test-results/
 playwright-report/
+
+# Packed tarballs
+*.tgz

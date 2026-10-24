@@ -45,7 +45,7 @@ test('TOC toggle and entry navigation are localized and accessible', async () =>
   const nav = document.querySelector('.bk-toc') as HTMLElement;
   assert.equal(nav.style.display, 'flex');
   assert.equal(nav.getAttribute('aria-label'), 'İçindekiler');
-  const entries = nav.querySelectorAll('button');
+  const entries = nav.querySelectorAll('.bk-toc-entry');
   assert.equal(entries.length, 3);
 
   (entries[2] as HTMLButtonElement).click();

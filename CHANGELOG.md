@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.0.2 - 2026-10-24
 
 - Native backend search, page-note and coordinate-annotation providers, including multiple note markers per page and host-owned persistence.
 - Optional restricted rich-note editor factory and validated structured-note rendering; native note list, marker popups, edit/delete and failed-save draft retention.
@@ -10,7 +10,14 @@
 - Isolated page images from host padding/margins so normalized overlays align with the complete page viewport.
 - Select-text command in the native More actions menu; Escape exits selection without hijacking page flipping or note gestures.
 - Backend search highlights continue to work independently of a text layer. OCR, persistence and search indexing remain host responsibilities.
-- Existing native backend providers and coordinate/rich-note integration are also unreleased additions; no package publication is implied.
+- Muted toolbar and More-menu items no longer show a diagonal strike line; they are only dimmed.
+- Toolbar play/pause and sound icons now switch by rendering a single icon instead of toggling two hidden ones.
+- The bottom toolbar adapts its buttons to the available width.
+- PDF mode renders the previous, current and next pages ahead of time (and the facing page in two-page view), so flipping shows pages without a blank flash; zoom reuses the rendered page image.
+- Page overlays (text layer, search highlights, hotspots, note placement) are drawn only in single-page view where they belong; page images no longer use native lazy loading.
+- The note popover is more compact, with smaller action buttons on mouse devices and touch-sized buttons on touch devices.
+- Removed a duplicate region landmark around the viewer for cleaner screen-reader navigation.
+- Fixed a type error in PDF page rendering when a rendered page has no image data.
 
 ## 1.0.0 - 2026-09-14
 

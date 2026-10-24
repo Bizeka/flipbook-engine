@@ -1,8 +1,8 @@
-# Backend text layers (Unreleased)
+# Backend text layers
 
 ## Ownership and compatibility
 
-The viewer consumes host-generated text; it never uploads a PDF, runs OCR, writes a database or supplies authoritative extraction results. Existing image books and Direct PDF books work without a text provider. Published 1.0.0 is unchanged; this document describes the unreleased source API.
+The viewer consumes host-generated text; it never uploads a PDF, runs OCR, writes a database or supplies authoritative extraction results. Existing image books and Direct PDF books work without a text provider. The API is available from 1.0.2.
 
 ## Schema v1
 

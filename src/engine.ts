@@ -420,6 +420,16 @@ export class FlipbookEngine {
         if (this.pdfRenderedPages.has(pageNumber)) {
             const dataUrl = this.pdfRenderedSources.get(pageNumber);
             if (dataUrl) this.hydratePdfImages(pageNumber, dataUrl);
+            const pages = this.store.pages.value;
+            if (dataUrl) {
+                for (const page of pages) {
+                    if ((page.sourcePageNumber ?? page.pageNumber) === pageNumber) {
+                        page.normal = dataUrl;
+                        page.low = dataUrl;
+                        page.thumb = dataUrl;
+                    }
+                }
+            }
             return Promise.resolve(dataUrl || '');
         }
 
@@ -463,9 +473,20 @@ export class FlipbookEngine {
         this.pdfLazyStop = null;
         if (!this.pdfRenderer) return;
         this.pdfLazyStop = effect(() => {
-            const current = this.store.pages.value[this.store.currentPage.value];
-            const next = this.store.pages.value[this.store.currentPage.value + 1];
-            const sourcePages = new Set([current?.sourcePageNumber ?? current?.pageNumber, next?.sourcePageNumber ?? next?.pageNumber]);
+            const currentIdx = this.store.currentPage.value;
+            const pages = this.store.pages.value;
+            const isSingle = this.store.isSingleMode.value;
+            const targetIndices = isSingle
+                ? [currentIdx - 1, currentIdx, currentIdx + 1]
+                : [currentIdx - 1, currentIdx, currentIdx + 1, (currentIdx % 2 === 1 ? currentIdx + 2 : currentIdx + 1)];
+            const sourcePages = new Set<number>();
+            for (const idx of targetIndices) {
+                if (idx >= 0 && idx < pages.length) {
+                    const p = pages[idx];
+                    const sp = p?.sourcePageNumber ?? p?.pageNumber;
+                    if (sp) sourcePages.add(sp);
+                }
+            }
             sourcePages.forEach((sourcePage) => {
                 if (sourcePage) void this.renderPdfPage(sourcePage).catch(() => {});
             });

@@ -98,7 +98,7 @@ export function Toolbar(props: ToolbarProps) {
                 </button>
 
                 <button type="button"
-                    class={computed(() => `bk-btn bk-btn--single ${props.store.isSingleMode.value ? 'active' : ''}`)}
+                    class={computed(() => `bk-btn bk-btn--single bz-hide-mobile ${props.store.isSingleMode.value ? 'active' : ''}`)}
                     onClick={props.onToggleSingleMode}
                     aria-label={computed(() => messages.value.singlePageMode || 'Single Page')} aria-pressed={computed(() => props.store.isSingleMode.value ? 'true' : 'false')} title={computed(() => messages.value.singlePageMode || 'Single Page')}
                 >
@@ -110,9 +110,11 @@ export function Toolbar(props: ToolbarProps) {
                     onClick={props.onToggleAutoPlay}
                     aria-label={computed(() => props.store.isAutoPlaying.value ? (messages.value.pause || 'Pause') : (messages.value.play || 'Play'))} aria-pressed={computed(() => props.store.isAutoPlaying.value ? 'true' : 'false')} title={computed(() => props.store.isAutoPlaying.value ? (messages.value.pause || 'Pause') : (messages.value.play || 'Play'))}
                 >
-                    <svg style={{ display: computed(() => props.store.isAutoPlaying.value ? 'block' : 'none') as any }} xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
-
-                    <svg style={{ display: computed(() => !props.store.isAutoPlaying.value ? 'block' : 'none') as any }} xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                    {computed(() => props.store.isAutoPlaying.value ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+                    ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                    ))}
                 </button>
             </div>
 
@@ -188,9 +190,11 @@ export function Toolbar(props: ToolbarProps) {
                     onClick={props.onSoundToggle}
                     aria-label="Sound" aria-pressed={computed(() => props.store.soundEnabled.value ? 'true' : 'false')} title="Sound"
                 >
-                    <svg style={{ display: computed(() => props.store.soundEnabled.value ? 'block' : 'none') as any }} xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
-
-                    <svg style={{ display: computed(() => !props.store.soundEnabled.value ? 'block' : 'none') as any }} xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+                    {computed(() => props.store.soundEnabled.value ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
+                    ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+                    ))}
                 </button>
                 {renderPluginToolbarButtons({ registry: props.pluginRegistry, placement: 'end' })}
             </div>
