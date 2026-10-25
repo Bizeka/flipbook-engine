@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Optional `optimisticNotes` mode: page notes and coordinate notes appear immediately, are persisted in order in the background and roll back to the last saved state when the host rejects the save.
+
 ## 1.0.3 - 2026-10-24
 
 - Fixed placing coordinate notes on Node 18 and on pages served over plain HTTP, where the browser or runtime has no `crypto.randomUUID`; the viewer now falls back to a generated note id.
