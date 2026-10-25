@@ -229,7 +229,7 @@ const unsubscribe = engine.on('pageChange', ({ currentPage, totalPages, isSingle
 unsubscribe();
 ```
 
-Supported events: `init`, `progress`, `pageChange`, `zoomChange`, `singlePageModeChange`, `thumbsToggle`, `tocToggle`, `orientationChange`, `deepLinkChange`, `bookmarkChange`, `noteChange`, `searchChange`, `hotspotActivate`, `annotationActivate`, `error`, `destroy`.
+Supported events: `init`, `progress`, `pageChange`, `zoomChange`, `singlePageModeChange`, `thumbsToggle`, `tocToggle`, `orientationChange`, `deepLinkChange`, `bookmarkChange`, `noteChange`, `searchChange`, `searchProgress`, `hotspotActivate`, `annotationActivate`, `error`, `destroy`.
 
 | Option | Type | Default | Description |
 | :--- | :--- | :--- | :--- |

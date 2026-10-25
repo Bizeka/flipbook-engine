@@ -12,6 +12,7 @@ import { normalizeFlipbookToc, type FlipbookTocEntry } from '../model/toc';
 import type { FlipbookEngineOptions } from '../engine';
 import type { PartialFlipbookMessages } from '../i18n/service';
 import type { FlipbookSearchResult } from '../model/search';
+import type { FlipbookSearchProgress } from '../model/backend';
 import type { FlipbookHotspot } from '../model/hotspots';
 import type { FlipbookAnnotation } from '../model/annotations';
 import type { FlipbookNoteDocument, FlipbookNoteEditorFactory } from '../model/note-editor';
@@ -22,7 +23,7 @@ export interface ZoomState { isActive: boolean; translateX: number; translateY: 
 
 export interface FlipbookStore {
     textAvailable: Signal<boolean>; textPages: Signal<ReadonlyMap<number, FlipbookTextPage>>; textSelection: Signal<boolean>;
-    pageNoteDocuments: Signal<ReadonlyMap<number, FlipbookNoteDocument>>; noteEditor: Signal<FlipbookNoteEditorFactory | undefined>; canAnnotate: Signal<boolean>; placingNote: Signal<boolean>; pendingAnnotation: Signal<FlipbookAnnotation | null>; notesView: Signal<'page' | 'all'>; searchAvailable: Signal<boolean>; searchBusy: Signal<boolean>; searchFailed: Signal<boolean>; notesSaving: Signal<boolean>; notesFailed: Signal<boolean>;
+    pageNoteDocuments: Signal<ReadonlyMap<number, FlipbookNoteDocument>>; noteEditor: Signal<FlipbookNoteEditorFactory | undefined>; canAnnotate: Signal<boolean>; placingNote: Signal<boolean>; pendingAnnotation: Signal<FlipbookAnnotation | null>; notesView: Signal<'page' | 'all'>; searchAvailable: Signal<boolean>; searchBusy: Signal<boolean>; searchProgress: Signal<FlipbookSearchProgress | null>; searchFailed: Signal<boolean>; notesSaving: Signal<boolean>; notesFailed: Signal<boolean>;
     currentPage: Signal<number>; totalPages: Signal<number>; isSingleMode: Signal<boolean>;
     showThumbs: Signal<boolean>; showToc: Signal<boolean>; showNotes: Signal<boolean>; showSearch: Signal<boolean>; showArrows: Signal<boolean>; orientation: Signal<Orientation>;
     flipState: Signal<FlipState>; themeMode: Signal<FlipbookThemeMode>; allowDownload: Signal<boolean>; bookmarkedPages: Signal<ReadonlySet<number>>; pageNotes: Signal<ReadonlyMap<number, string>>;
@@ -44,7 +45,7 @@ export function createFlipbookStore(): FlipbookStore {
     const noteEditor = signal<FlipbookNoteEditorFactory | undefined>(undefined);
     const canAnnotate = signal(false), placingNote = signal(false), pendingAnnotation = signal<FlipbookAnnotation | null>(null);
     const notesView = signal<'page' | 'all'>('page');
-    const searchAvailable = signal(false), searchBusy = signal(false), searchFailed = signal(false), notesSaving = signal(false), notesFailed = signal(false);
+    const searchAvailable = signal(false), searchBusy = signal(false), searchProgress = signal<FlipbookSearchProgress | null>(null), searchFailed = signal(false), notesSaving = signal(false), notesFailed = signal(false);
     const currentPage = signal(0), totalPages = signal(0), isSingleMode = signal(false);
     const showThumbs = signal(false), showToc = signal(false), showNotes = signal(false), showSearch = signal(false), showArrows = signal(true), orientation = signal<Orientation>('landscape');
     const flipState = signal<FlipState>('read'), themeMode = signal<FlipbookThemeMode>('auto');
@@ -73,7 +74,7 @@ export function createFlipbookStore(): FlipbookStore {
         if (options.showThumbs !== undefined) showThumbs.value = options.showThumbs;
         if (options.showToc !== undefined) showToc.value = options.showToc;
         showNotes.value = false; notesView.value = 'page';
-        showSearch.value = false; searchBusy.value = false; searchFailed.value = false; notesSaving.value = false; notesFailed.value = false;
+        showSearch.value = false; searchBusy.value = false; searchProgress.value = null; searchFailed.value = false; notesSaving.value = false; notesFailed.value = false;
         searchQuery.value = '';
         searchResults.value = [];
         hotspots.value = options.hotspots ?? [];
@@ -103,7 +104,7 @@ export function createFlipbookStore(): FlipbookStore {
         showThumbs.value = false;
         showToc.value = false;
         showNotes.value = false; notesView.value = 'page';
-        showSearch.value = false; searchBusy.value = false; searchFailed.value = false; notesSaving.value = false; notesFailed.value = false;
+        showSearch.value = false; searchBusy.value = false; searchProgress.value = null; searchFailed.value = false; notesSaving.value = false; notesFailed.value = false;
         showArrows.value = true;
         orientation.value = 'landscape';
         flipState.value = 'read';
@@ -132,7 +133,7 @@ export function createFlipbookStore(): FlipbookStore {
         annotations.value = [];
         activeAnnotationId.value = null;
     };
-    return { textAvailable, textPages, textSelection, pageNoteDocuments, noteEditor, canAnnotate, placingNote, pendingAnnotation, notesView, searchAvailable, searchBusy, searchFailed, notesSaving, notesFailed, currentPage, totalPages, isSingleMode, showThumbs, showToc, showNotes, showSearch, showArrows, orientation, flipState, themeMode, allowDownload, bookmarkedPages, pageNotes, hasDownloadUrl, isPdfMode, primaryColor, whiteLabel, isZoomed, isAutoPlaying, autoPlayInterval, soundEnabled, searchQuery, searchResults, hotspots, activeHotspotId, annotations, activeAnnotationId, locale, messages, zoomState, pages, toc, isDoublePageLayout, isFrontCover, isBackCover, init, reset };
+    return { textAvailable, textPages, textSelection, pageNoteDocuments, noteEditor, canAnnotate, placingNote, pendingAnnotation, notesView, searchAvailable, searchBusy, searchProgress, searchFailed, notesSaving, notesFailed, currentPage, totalPages, isSingleMode, showThumbs, showToc, showNotes, showSearch, showArrows, orientation, flipState, themeMode, allowDownload, bookmarkedPages, pageNotes, hasDownloadUrl, isPdfMode, primaryColor, whiteLabel, isZoomed, isAutoPlaying, autoPlayInterval, soundEnabled, searchQuery, searchResults, hotspots, activeHotspotId, annotations, activeAnnotationId, locale, messages, zoomState, pages, toc, isDoublePageLayout, isFrontCover, isBackCover, init, reset };
 }
 
 // Compatibility exports for consumers of the former internal singleton module.

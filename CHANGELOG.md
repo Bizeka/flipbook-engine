@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Search providers can report indexing progress through an optional fourth `reportProgress({ completed, total })` argument; the engine emits a `searchProgress` event and the search panel shows a progress bar while the search runs.
+
 ## 1.0.3 - 2026-10-24
 
 - Fixed placing coordinate notes on Node 18 and on pages served over plain HTTP, where the browser or runtime has no `crypto.randomUUID`; the viewer now falls back to a generated note id.

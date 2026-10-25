@@ -1239,6 +1239,7 @@
 .bk-search-result-page,.bk-search-result-count { color:var(--flipbook-text-muted); font-size:.75rem; font-weight:700; }
 .bk-search-result-text { min-width:0; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
 .bk-search-empty { color:var(--flipbook-text-muted); font-size:.8rem; }
+.bk-search-progress { display:block; width:100%; height:6px; margin-top:6px; accent-color:var(--flipbook-accent); }
 .bk-search-highlight-layer { position:absolute; inset:0; pointer-events:none; z-index:6; }
 .bk-search-text-highlight {
   position:absolute;

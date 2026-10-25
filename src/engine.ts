@@ -16,7 +16,7 @@ import type { FlipbookTextLayerProvider } from './model/text-layer';
  */
 import * as pdfjsLib from 'pdfjs-dist';
 import { effect } from '@preact/signals-core';
-import type { FlipbookSearchProvider, FlipbookNoteProvider, FlipbookAnnotationProvider } from './model/backend';
+import type { FlipbookSearchProvider, FlipbookNoteProvider, FlipbookAnnotationProvider, FlipbookSearchProgress } from './model/backend';
 import type { FlipbookNoteDocument, FlipbookNoteEditorFactory } from './model/note-editor';
 import { App } from './components/App';
 import { PageFlipAdapter } from './adapters/PageFlipAdapter';
@@ -116,6 +116,7 @@ export interface FlipbookEngineEventMap {
     bookmarkChange: { pageIndex: number; pageNumber: number; bookmarked: boolean };
     noteChange: { pageIndex: number; pageNumber: number; note: string | null };
     searchChange: { query: string; results: FlipbookSearchResult[] };
+    searchProgress: { query: string; completed: number; total: number };
     hotspotActivate: { hotspot: FlipbookHotspot; pageIndex: number };
     annotationActivate: { annotation: FlipbookAnnotation; pageIndex: number };
     annotationChange: { annotation: FlipbookAnnotation; action: 'save' | 'delete' };
@@ -627,9 +628,18 @@ export class FlipbookEngine {
             this.store.searchQuery.value = normalizedQuery;
             this.store.searchResults.value = [];
             this.store.searchBusy.value = true;
+            this.store.searchProgress.value = null;
             const signal = this.initAbortController?.signal ?? new AbortController().signal;
+            const reportProgress = (progress: FlipbookSearchProgress) => {
+                if (signal.aborted || sequence !== this.searchSequence) return;
+                const total = Number.isFinite(progress?.total) ? Math.max(0, Math.trunc(progress.total)) : 0;
+                const completed = Number.isFinite(progress?.completed) ? Math.max(0, Math.trunc(progress.completed)) : 0;
+                const bounded = { completed: total ? Math.min(completed, total) : completed, total };
+                this.store.searchProgress.value = bounded;
+                this.emit('searchProgress', { query: normalizedQuery, ...bounded });
+            };
             try {
-                const results = await this.options.searchProvider(normalizedQuery, options, signal);
+                const results = await this.options.searchProvider(normalizedQuery, options, signal, reportProgress);
                 if (signal.aborted || sequence !== this.searchSequence) return [];
                 const max = Number.isFinite(options.maxResults) ? Math.max(1, Math.trunc(options.maxResults!)) : 100;
                 this.store.searchResults.value = results.filter(result => Number.isInteger(result.pageIndex) && result.pageIndex >= 0 && result.pageIndex < this.store.totalPages.value).slice(0, max);
@@ -638,7 +648,7 @@ export class FlipbookEngine {
             } catch (error) {
                 if (!signal.aborted && sequence === this.searchSequence) this.store.searchFailed.value = true;
                 throw error;
-            } finally { if (sequence === this.searchSequence) this.store.searchBusy.value = false; }
+            } finally { if (sequence === this.searchSequence) { this.store.searchBusy.value = false; this.store.searchProgress.value = null; } }
         }
         if (!normalizedQuery || !this.pdfRenderer || !this.store.isPdfMode.value) {
             this.store.searchQuery.value = normalizedQuery;
