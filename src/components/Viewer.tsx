@@ -21,6 +21,7 @@ import { HotspotLayer } from './HotspotLayer';
 import type { FlipbookHotspot } from '../model/hotspots';
 import type { FlipbookAnnotation } from '../model/annotations';
 import { NotePlacementLayer, bindNoteGestures } from './NotePlacementLayer';
+import { findTextHighlights } from '../model/text-layer';
 
 interface ViewerProps {
     store: FlipbookStore;
@@ -37,9 +38,14 @@ interface ViewerProps {
 
 
 function SearchHighlightLayer(props: { store: FlipbookStore; pageIndex: number }) {
-    const highlights = computed(() => props.store.searchResults.value
-        .filter((result) => result.pageIndex === props.pageIndex)
-        .flatMap((result) => result.highlights ?? []));
+    const highlights = computed(() => {
+        const results = props.store.searchResults.value.filter((result) => result.pageIndex === props.pageIndex);
+        const provided = results.flatMap((result) => result.highlights ?? []);
+        if (provided.length || !results.length) return provided;
+        // The provider returned only snippets: derive run-level rectangles from the loaded text layer.
+        const text = props.store.textPages.value.get(props.pageIndex);
+        return text ? findTextHighlights(text, props.store.searchQuery.value) : [];
+    });
     return (
         <div class="bk-search-highlight-layer" aria-hidden="true">
             {computed(() => (

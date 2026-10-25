@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Search results that carry no highlight rectangles are now highlighted from the loaded backend text layer (single-page and double-page views).
+
 ## 1.0.3 - 2026-10-24
 
 - Fixed placing coordinate notes on Node 18 and on pages served over plain HTTP, where the browser or runtime has no `crypto.randomUUID`; the viewer now falls back to a generated note id.

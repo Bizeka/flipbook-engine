@@ -36,3 +36,29 @@ export function validateTextPage(page: FlipbookTextPage, index: number): Flipboo
     }
     return { ...page, runs: page.runs.map(run => ({ ...run })) };
 }
+
+/**
+ * Normalized rectangles for every case-insensitive occurrence of `query` in a page's text, one rectangle per
+ * overlapped run. Offsets inside a run are interpolated linearly, so highlights are run-accurate, not glyph-exact.
+ */
+export function findTextHighlights(page: FlipbookTextPage, query: string, limit = 200): Array<{ x: number; y: number; width: number; height: number }> {
+    const needle = query.trim().toLocaleLowerCase();
+    if (!needle || needle.length > 200) return [];
+    const haystack = page.text.toLocaleLowerCase();
+    // Lowercasing can change the length for a few scripts; offsets would no longer match the runs.
+    if (haystack.length !== page.text.length) return [];
+    const rectangles: Array<{ x: number; y: number; width: number; height: number }> = [];
+    for (let at = haystack.indexOf(needle); at !== -1 && rectangles.length < limit; at = haystack.indexOf(needle, at + needle.length)) {
+        const end = at + needle.length;
+        for (const run of page.runs) {
+            const runEnd = run.start + run.text.length;
+            if (runEnd <= at) continue;
+            if (run.start >= end) break;
+            const from = (Math.max(at, run.start) - run.start) / run.text.length;
+            const to = (Math.min(end, runEnd) - run.start) / run.text.length;
+            const span = run.direction === 'rtl' ? [1 - to, 1 - from] : [from, to];
+            rectangles.push({ x: run.x + run.width * span[0], y: run.y, width: run.width * (span[1] - span[0]), height: run.height });
+        }
+    }
+    return rectangles;
+}

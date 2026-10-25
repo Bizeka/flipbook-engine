@@ -20,6 +20,10 @@ Coordinates use top-left origin in the **displayed logical page**, after PDF Cro
 
 At most three pages are retained: current and immediate neighbors. Navigating away aborts pending calls. Destroy and reinitialization abort the session and reject stale completions. null/error pages are retried after leaving their visible range or reinitializing. This API is independent of image resolution and optional backend search.
 
+## Search highlights from the text layer
+
+A search result may carry normalized `highlights`; those always win. When a result has none and the page's text layer is loaded, the viewer highlights every case-insensitive occurrence of the query in the page text, one rectangle per overlapped run (offsets inside a run are interpolated, so rectangles are run-accurate rather than glyph-exact). This works in single-page and double-page views; both pages of a spread are inside the three-page text window.
+
 ## Example
 
 ```ts
