@@ -211,6 +211,8 @@ The native search panel also works with pre-rendered page images. Supply `search
 
 Supply initial `notes` and `noteProvider(pageIndex, note, signal)` to persist the native note editor. A cleared note is `null`. The editor awaits the provider before changing the saved note or emitting `noteChange`. On failure it retains the draft and offers another save. `saveNote(pageIndex, note)` exposes the same asynchronous workflow; `setNote` remains a synchronous programmatic update for compatibility.
 
+`optimisticNotes: true` (default `false`) makes `saveNote` and `saveAnnotation` apply the edit and resolve `true` at once, then persist in the background in order. If the provider rejects, the newest edit of that note rolls back to the last persisted state, `noteChange`/`annotationChange` fire again for the rollback, and the panel shows the save-failed message; an editor that already closed does not keep its draft, so use the default mode when drafts must survive failures.
+
 Contents, search and notes are mutually exclusive panels. Canvas arrows hide while a panel is open; the pager remains available. Contents has a close control. Secondary toolbar commands are in the accessible More actions menu; mobile navigation and primary controls occupy two rows.
 
 ## Personal coordinate notes
