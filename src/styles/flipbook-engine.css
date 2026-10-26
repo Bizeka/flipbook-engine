@@ -188,6 +188,7 @@
   overflow: hidden;
   font-family: var(--flipbook-font-family);
   border-radius: var(--flipbook-radius-md);
+  min-height: var(--flipbook-min-height, 390px);
   flex: 1;
   align-self: stretch;
 }
