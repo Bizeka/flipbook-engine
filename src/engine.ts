@@ -148,6 +148,8 @@ function createAnnotationId(): string {
     return `note-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
+const MIN_VIEWER_HEIGHT = 390;
+
 export class FlipbookEngine {
     private searchSequence = 0;
     private textLayerStop: (() => void) | null = null;
@@ -352,6 +354,7 @@ export class FlipbookEngine {
         });
 
         this.container.appendChild(appNode as unknown as Node);
+        this.fillCollapsedHost();
         this.setupQualityLoading();
 
         // 4. Initialize Core Managers
@@ -891,6 +894,17 @@ export class FlipbookEngine {
 
     public nextPage() {
         if (this.pageFlipAdapter) this.pageFlipAdapter.turnToNextPage();
+    }
+
+    /** A host without a definite height collapses the viewer; fall back to most of the viewport, never below the minimum. */
+    private fillCollapsedHost() {
+        const wrapper = this.container?.querySelector<HTMLElement>('.bk-wrapper');
+        if (!wrapper) return;
+        wrapper.style.minHeight = '0';
+        const collapsed = wrapper.clientHeight < MIN_VIEWER_HEIGHT;
+        wrapper.style.minHeight = '';
+        if (!collapsed) return;
+        wrapper.style.height = `max(${MIN_VIEWER_HEIGHT}px, 80dvh)`;
     }
 
     public toggleFullscreen() {
