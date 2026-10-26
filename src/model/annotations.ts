@@ -13,4 +13,32 @@ export interface FlipbookAnnotation {
   y: number;
   text: string;
   color?: string;
+  groupKey?: string;
 }
+
+/** A selectable pin colour; `value` is any CSS colour. */
+export interface FlipbookNoteColor { value: string; label?: string }
+/** A note group the student can file a coordinate note under. */
+export interface FlipbookNoteGroup { key: string; label: string; description?: string; color?: string }
+export type FlipbookNoteGroupProvider = (signal: AbortSignal) => Promise<FlipbookNoteGroup[]> | FlipbookNoteGroup[];
+export type FlipbookSearchHighlightStyle = 'underline' | 'bubble';
+
+export const DEFAULT_NOTE_COLORS: FlipbookNoteColor[] = [
+  { value: '#e5484d', label: 'Red' }, { value: '#f5a524', label: 'Amber' }, { value: '#30a46c', label: 'Green' },
+  { value: '#0091ff', label: 'Blue' }, { value: '#8e4ec6', label: 'Purple' }
+];
+
+export function normalizeNoteColors(input: FlipbookNoteColor[] | string[] | true | undefined): FlipbookNoteColor[] {
+  if (!input) return [];
+  if (input === true) return DEFAULT_NOTE_COLORS;
+  return input.map(item => typeof item === 'string' ? { value: item } : item).filter(item => item && typeof item.value === 'string' && item.value.trim());
+}
+
+export function normalizeNoteGroups(input: FlipbookNoteGroup[] | undefined): FlipbookNoteGroup[] {
+  const seen = new Set<string>();
+  return (input ?? []).filter(group => group && group.key && !seen.has(group.key) && seen.add(group.key));
+}
+
+const CSS_COLOR = /^(#[0-9a-f]{3,8}|[a-z]+|(?:rgb|hsl)a?\([0-9a-z%.,\s\/-]+\))$/i;
+/** Returns the colour when it is a plain CSS colour that is safe inside a style attribute. */
+export const safeCssColor = (value: string | undefined): string | undefined => value && CSS_COLOR.test(value) ? value : undefined;

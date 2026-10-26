@@ -48,5 +48,6 @@ export const trMessages = {
   privateNotes: 'Bu belge için kişisel notlarınız.', noNotes: 'Henüz not yok. İlk notunuz için sayfada bir yer seçin.',
   addNote: 'Konuma not ekle', pageHasNote: 'Bu sayfada not var', page: 'Sayfa', noteSaved: 'Kaydedildi',
   confirmDeleteNote: 'Bu not silinsin mi?', cancel: 'Vazgeç', placeNote: 'Not eklemek için sayfada bir yere tıklayın veya dokunun.',
-  keyboardShortcuts: 'Klavye kısayolları', textSelection: 'Metin seçimi', resetZoom: 'Sayfaya sığdır'
+  keyboardShortcuts: 'Klavye kısayolları', textSelection: 'Metin seçimi', resetZoom: 'Sayfaya sığdır',
+  noteColor: 'Not rengi', noteGroup: 'Not grubu', noGroup: 'Grupsuz', allGroups: 'Tüm gruplar'
 } as const;

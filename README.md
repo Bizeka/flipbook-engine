@@ -1,6 +1,6 @@
 # FlipbookEngine
 
-> **Current release:** `flipbookengine@1.0.3` includes the localized Table of Contents API, backend text layers and coordinate notes.
+> **Current release:** `flipbookengine@1.1.0` includes the localized Table of Contents API, backend text layers and coordinate notes.
 > **1.0.0 scope:** Version 1.0.0 added the plugin contract, independent feature entrypoints, TOC runtime/embed APIs, and the complete open-source reader surface.
 
 [![NPM Version](https://img.shields.io/npm/v/flipbookengine?style=flat-square&color=blue)](https://www.npmjs.com/package/flipbookengine)
@@ -81,7 +81,7 @@ Passing `pages` remains optional. When omitted, FlipbookEngine creates the page 
 Use the ESM build with an import map for PDF.js. The worker must be served from a URL your site permits in its Content Security Policy.
 
 ```html
-<link rel="stylesheet" href="https://unpkg.com/flipbookengine@1.0.3/dist/flipbook-engine.css" />
+<link rel="stylesheet" href="https://unpkg.com/flipbookengine@1.1.0/dist/flipbook-engine.css" />
 <div id="viewer" style="width: 100%; height: 600px;"></div>
 
 <script type="importmap">
@@ -92,7 +92,7 @@ Use the ESM build with an import map for PDF.js. The worker must be served from 
 }
 </script>
 <script type="module">
-  import { FlipbookEngine } from 'https://unpkg.com/flipbookengine@1.0.3/dist/flipbook-engine.js';
+  import { FlipbookEngine } from 'https://unpkg.com/flipbookengine@1.1.0/dist/flipbook-engine.js';
 
   const engine = new FlipbookEngine('#viewer', {
     pdfWorkerSrc: 'https://unpkg.com/pdfjs-dist@5.4.530/build/pdf.worker.min.mjs'
@@ -229,7 +229,7 @@ const unsubscribe = engine.on('pageChange', ({ currentPage, totalPages, isSingle
 unsubscribe();
 ```
 
-Supported events: `init`, `progress`, `pageChange`, `zoomChange`, `singlePageModeChange`, `thumbsToggle`, `tocToggle`, `orientationChange`, `deepLinkChange`, `bookmarkChange`, `noteChange`, `searchChange`, `hotspotActivate`, `annotationActivate`, `error`, `destroy`.
+Supported events: `init`, `progress`, `pageChange`, `zoomChange`, `singlePageModeChange`, `thumbsToggle`, `tocToggle`, `orientationChange`, `deepLinkChange`, `bookmarkChange`, `noteChange`, `searchChange`, `searchProgress`, `hotspotActivate`, `annotationActivate`, `error`, `destroy`.
 
 | Option | Type | Default | Description |
 | :--- | :--- | :--- | :--- |

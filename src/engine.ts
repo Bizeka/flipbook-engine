@@ -16,7 +16,7 @@ import type { FlipbookTextLayerProvider } from './model/text-layer';
  */
 import * as pdfjsLib from 'pdfjs-dist';
 import { effect } from '@preact/signals-core';
-import type { FlipbookSearchProvider, FlipbookNoteProvider, FlipbookAnnotationProvider } from './model/backend';
+import type { FlipbookSearchProvider, FlipbookNoteProvider, FlipbookAnnotationProvider, FlipbookSearchProgress } from './model/backend';
 import type { FlipbookNoteDocument, FlipbookNoteEditorFactory } from './model/note-editor';
 import { App } from './components/App';
 import { PageFlipAdapter } from './adapters/PageFlipAdapter';
@@ -30,7 +30,8 @@ import { PdfRenderer, type PdfPageLayout, type PdfPageMode } from './core/PdfRen
 import { normalizeFlipbookToc, type FlipbookTocEntry } from './model/toc';
 import type { FlipbookSearchHighlight, FlipbookSearchOptions, FlipbookSearchResult } from './model/search';
 import type { FlipbookHotspot } from './model/hotspots';
-import type { FlipbookAnnotation } from './model/annotations';
+import type { FlipbookAnnotation, FlipbookNoteColor, FlipbookNoteGroup, FlipbookNoteGroupProvider, FlipbookSearchHighlightStyle } from './model/annotations';
+import { normalizeNoteColors, normalizeNoteGroups } from './model/annotations';
 import './styles/flipbook-engine.css';
 import { FlipbookEmbedBridge, type FlipbookEmbedOptions } from './embed';
 import { FlipbookPluginRegistry, type FlipbookPlugin } from './plugins';
@@ -42,7 +43,19 @@ export interface FlipbookEngineOptions {
     searchProvider?: FlipbookSearchProvider;
     noteProvider?: FlipbookNoteProvider;
     annotationProvider?: FlipbookAnnotationProvider;
+    /** Apply note and coordinate-note edits locally at once and persist in the background; a failed save rolls the edit back. Default false. */
+    optimisticNotes?: boolean;
     noteEditor?: FlipbookNoteEditorFactory;
+    /** Pin colours offered in the note editor; `true` uses five defaults. Colours are off when absent. */
+    noteColors?: FlipbookNoteColor[] | string[] | true;
+    /** Static note groups (colour groups with a label and description). */
+    noteGroups?: FlipbookNoteGroup[];
+    /** Loads note groups from the host when the notes UI first needs them; replaces `noteGroups` when it resolves. */
+    noteGroupProvider?: FlipbookNoteGroupProvider;
+    /** Search hit style: a red underline (default) or a transparent rounded bubble. */
+    searchHighlightStyle?: FlipbookSearchHighlightStyle;
+    /** Diameter in px of coordinate-note pins. Default 14. */
+    notePinSize?: number;
     noteDocuments?: Record<number, FlipbookNoteDocument>;
     allowDownload?: boolean;
     showThumbs?: boolean;
@@ -116,6 +129,7 @@ export interface FlipbookEngineEventMap {
     bookmarkChange: { pageIndex: number; pageNumber: number; bookmarked: boolean };
     noteChange: { pageIndex: number; pageNumber: number; note: string | null };
     searchChange: { query: string; results: FlipbookSearchResult[] };
+    searchProgress: { query: string; completed: number; total: number };
     hotspotActivate: { hotspot: FlipbookHotspot; pageIndex: number };
     annotationActivate: { annotation: FlipbookAnnotation; pageIndex: number };
     annotationChange: { annotation: FlipbookAnnotation; action: 'save' | 'delete' };
@@ -148,6 +162,8 @@ export class FlipbookEngine {
     private interactionManager: InteractionManager | null = null;
 
     private pdfRenderer: PdfRenderer | null = null;
+    private optimisticQueue: Promise<void> = Promise.resolve();
+    private readonly optimisticEntries = new Map<string, { version: number; pending: number; restore: () => void }>();
     private listeners: Partial<Record<FlipbookEngineEventName, Set<AnyFlipbookEventHandler>>> = {};
     private initializationTimer: ReturnType<typeof setTimeout> | null = null;
     private initGeneration = 0;
@@ -267,6 +283,12 @@ export class FlipbookEngine {
         // 1. Initialize State
         this.store.init(this.options, resolvedPages.length, resolvedPages, !!pdfUrl, !imageList?.length && !!pdfUrl);
         this.applyInitialDeepLink();
+        if (this.options.noteGroupProvider) {
+            const provider = this.options.noteGroupProvider;
+            void Promise.resolve().then(() => provider(abortController.signal)).then(groups => {
+                if (!abortController.signal.aborted) this.store.noteGroups.value = normalizeNoteGroups(groups);
+            }).catch(() => {});
+        }
         if (this.options.textLayerProvider) this.textLayerStop = loadTextLayers(this.store, this.options.textLayerProvider, abortController.signal);
 
         // 2. Setup DOM container
@@ -627,9 +649,18 @@ export class FlipbookEngine {
             this.store.searchQuery.value = normalizedQuery;
             this.store.searchResults.value = [];
             this.store.searchBusy.value = true;
+            this.store.searchProgress.value = null;
             const signal = this.initAbortController?.signal ?? new AbortController().signal;
+            const reportProgress = (progress: FlipbookSearchProgress) => {
+                if (signal.aborted || sequence !== this.searchSequence) return;
+                const total = Number.isFinite(progress?.total) ? Math.max(0, Math.trunc(progress.total)) : 0;
+                const completed = Number.isFinite(progress?.completed) ? Math.max(0, Math.trunc(progress.completed)) : 0;
+                const bounded = { completed: total ? Math.min(completed, total) : completed, total };
+                this.store.searchProgress.value = bounded;
+                this.emit('searchProgress', { query: normalizedQuery, ...bounded });
+            };
             try {
-                const results = await this.options.searchProvider(normalizedQuery, options, signal);
+                const results = await this.options.searchProvider(normalizedQuery, options, signal, reportProgress);
                 if (signal.aborted || sequence !== this.searchSequence) return [];
                 const max = Number.isFinite(options.maxResults) ? Math.max(1, Math.trunc(options.maxResults!)) : 100;
                 this.store.searchResults.value = results.filter(result => Number.isInteger(result.pageIndex) && result.pageIndex >= 0 && result.pageIndex < this.store.totalPages.value).slice(0, max);
@@ -638,7 +669,7 @@ export class FlipbookEngine {
             } catch (error) {
                 if (!signal.aborted && sequence === this.searchSequence) this.store.searchFailed.value = true;
                 throw error;
-            } finally { if (sequence === this.searchSequence) this.store.searchBusy.value = false; }
+            } finally { if (sequence === this.searchSequence) { this.store.searchBusy.value = false; this.store.searchProgress.value = null; } }
         }
         if (!normalizedQuery || !this.pdfRenderer || !this.store.isPdfMode.value) {
             this.store.searchQuery.value = normalizedQuery;
@@ -697,20 +728,60 @@ export class FlipbookEngine {
         if (this.store.notesSaving.value || !Number.isInteger(pageIndex) || pageIndex < 0 || pageIndex >= this.store.totalPages.value) return false;
         const signal = this.initAbortController?.signal ?? new AbortController().signal;
         const normalized = note?.trim() || null;
+        if (this.options.optimisticNotes) {
+            return this.persistOptimistically(`note:${pageIndex}`, signal,
+                () => {
+                    const previousNote = this.store.pageNotes.value.get(pageIndex) ?? null;
+                    const previousDocument = this.store.pageNoteDocuments.value.get(pageIndex);
+                    return () => this.applyNote(pageIndex, previousNote, previousDocument);
+                },
+                () => this.applyNote(pageIndex, normalized, document),
+                () => this.options.noteProvider?.(pageIndex, normalized, signal, document) ?? Promise.resolve());
+        }
         this.store.notesSaving.value = true;
         this.store.notesFailed.value = false;
         try {
             await this.options.noteProvider?.(pageIndex, normalized, signal, document);
             if (signal.aborted) return false;
-            this.setNote(pageIndex, normalized ?? '');
-            const documents = new Map(this.store.pageNoteDocuments.value);
-            if (document && normalized) documents.set(pageIndex, document); else documents.delete(pageIndex);
-            this.store.pageNoteDocuments.value = documents;
+            this.applyNote(pageIndex, normalized, document);
             return true;
         } catch {
             if (!signal.aborted) this.store.notesFailed.value = true;
             return false;
         } finally { this.store.notesSaving.value = false; }
+    }
+
+    private applyNote(pageIndex: number, note: string | null, document?: FlipbookNoteDocument): void {
+        this.setNote(pageIndex, note ?? '');
+        const documents = new Map(this.store.pageNoteDocuments.value);
+        if (document && note) documents.set(pageIndex, document); else documents.delete(pageIndex);
+        this.store.pageNoteDocuments.value = documents;
+    }
+
+    /**
+     * Applies an edit at once and persists it in order. Each key remembers the last persisted state, and only the
+     * newest edit of a key rolls back, so an older failure never overwrites a newer edit.
+     */
+    private persistOptimistically(key: string, signal: AbortSignal, capture: () => () => void, apply: () => void, persist: () => Promise<void>): true {
+        const entry = this.optimisticEntries.get(key) ?? { version: 0, pending: 0, restore: () => {} };
+        if (entry.pending === 0) entry.restore = capture();
+        const version = ++entry.version;
+        entry.pending++;
+        this.optimisticEntries.set(key, entry);
+        apply();
+        this.store.notesFailed.value = false;
+        this.optimisticQueue = this.optimisticQueue.then(async () => {
+            try {
+                if (signal.aborted) return;
+                await persist();
+                entry.restore = apply;
+            } catch {
+                if (signal.aborted) return;
+                if (entry.version === version) entry.restore();
+                this.store.notesFailed.value = true;
+            } finally { entry.pending--; }
+        });
+        return true;
     }
 
     public getHotspots(pageIndex = this.getCurrentPage()): FlipbookHotspot[] {
@@ -765,6 +836,14 @@ export class FlipbookEngine {
         this.store.placingNote.value = false;
     }
 
+    private applyAnnotation(saved: FlipbookAnnotation, action: 'save' | 'delete'): void {
+        const remaining = this.store.annotations.value.filter(note => note.id !== saved.id);
+        this.store.annotations.value = action === 'delete' ? remaining : [...remaining, saved];
+        this.store.pendingAnnotation.value = null;
+        this.store.activeAnnotationId.value = action === 'delete' ? null : saved.id;
+        this.emit('annotationChange', { annotation: saved, action });
+    }
+
     public async saveAnnotation(annotation: FlipbookAnnotation, action: 'save' | 'delete' = 'save'): Promise<boolean> {
         if (!this.options.annotationProvider || this.store.notesSaving.value || !annotation.id ||
             !Number.isInteger(annotation.pageIndex) || annotation.pageIndex < 0 || annotation.pageIndex >= this.store.totalPages.value ||
@@ -772,16 +851,21 @@ export class FlipbookEngine {
             (action === 'save' && (!annotation.text.trim() || annotation.text.length > 4000))) return false;
         const signal = this.initAbortController?.signal ?? new AbortController().signal;
         const saved = { ...annotation, text: annotation.text.trim() };
+        if (this.options.optimisticNotes) {
+            return this.persistOptimistically(`annotation:${saved.id}`, signal,
+                () => {
+                    const previous = this.store.annotations.value.find(note => note.id === saved.id);
+                    return previous ? () => this.applyAnnotation(previous, 'save') : () => this.applyAnnotation(saved, 'delete');
+                },
+                () => this.applyAnnotation(saved, action),
+                () => this.options.annotationProvider!(saved, action, signal));
+        }
         this.store.notesSaving.value = true;
         this.store.notesFailed.value = false;
         try {
             await this.options.annotationProvider(saved, action, signal);
             if (signal.aborted) return false;
-            const remaining = this.store.annotations.value.filter(note => note.id !== saved.id);
-            this.store.annotations.value = action === 'delete' ? remaining : [...remaining, saved];
-            this.store.pendingAnnotation.value = null;
-            this.store.activeAnnotationId.value = action === 'delete' ? null : saved.id;
-            this.emit('annotationChange', { annotation: saved, action });
+            this.applyAnnotation(saved, action);
             return true;
         } catch {
             if (!signal.aborted) this.store.notesFailed.value = true;
@@ -871,6 +955,9 @@ export class FlipbookEngine {
         if (options.notes !== undefined) this.store.pageNotes.value = new Map(Object.entries(options.notes).map(([page, note]) => [Math.trunc(Number(page)), String(note).trim()] as const).filter(([page, note]) => Number.isInteger(page) && page >= 0 && page < this.store.totalPages.value && note.length > 0));
         if (options.hotspots !== undefined) this.store.hotspots.value = options.hotspots;
         if (options.annotations !== undefined) this.store.annotations.value = options.annotations;
+        if ('noteColors' in options) this.store.noteColors.value = normalizeNoteColors(options.noteColors);
+        if ('noteGroups' in options) this.store.noteGroups.value = normalizeNoteGroups(options.noteGroups);
+        if (options.searchHighlightStyle !== undefined) this.store.searchHighlightStyle.value = options.searchHighlightStyle === 'bubble' ? 'bubble' : 'underline';
 
         if (this.container) {
             applyThemeConfiguration(this.container, this.options);
@@ -1083,6 +1170,7 @@ export class FlipbookEngine {
         this.textLayerStop?.(); this.textLayerStop = null;
         const hadSession = this.hasActiveSession || !!this.initAbortController || !!this.pageFlipAdapter || !!this.layoutManager || !!this.interactionManager || !!this.pdfRenderer;
         this.initGeneration++;
+        this.optimisticEntries.clear();
         this.teardownDeepLinkListener();
         this.initAbortController?.abort();
         this.initAbortController = null;

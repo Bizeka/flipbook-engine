@@ -40,7 +40,7 @@ export function bindNoteGestures(element: HTMLElement, store: FlipbookStore, pla
         if (event.button === 2) { event.stopPropagation(); return; }
         if (event.pointerType === 'mouse' || !event.isPrimary) return;
         startX = event.clientX; startY = event.clientY; held = false;
-        timer = setTimeout(() => { held = true; blockedClickUntil = Date.now() + 1000; pick(event.target, startX, startY); }, 550);
+        timer = setTimeout(() => { held = true; blockedClickUntil = Date.now() + 1000; try { navigator.vibrate?.(15); } catch { /* vibration is optional */ } pick(event.target, startX, startY); }, 550);
     }, { capture: true, signal });
     element.addEventListener('pointermove', event => { if (Math.hypot(event.clientX - startX, event.clientY - startY) > 10) cancel(); }, { capture: true, signal });
     element.addEventListener('pointerup', event => {

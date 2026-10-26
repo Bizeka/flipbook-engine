@@ -38,7 +38,10 @@ export function SearchPanel(props: SearchPanelProps) {
       <div class="bk-search-results" aria-live="polite">
         {computed(() => {
           const results = props.store.searchResults.value;
-          if (props.store.searchBusy.value) return <div role="status">{messages.value.searching}</div>;
+          if (props.store.searchBusy.value) {
+            const progress = props.store.searchProgress.value;
+            return <div role="status">{messages.value.searching}{progress?.total ? <progress class="bk-search-progress" max={progress.total} value={progress.completed} /> : null}</div>;
+          }
           if (props.store.searchFailed.value) return <div role="alert">{messages.value.searchFailed}</div>;
           if (!props.store.searchQuery.value) return null;
           if (!results.length) return <div class="bk-search-empty">{messages.value.noSearchResults || 'No results'}</div>;
