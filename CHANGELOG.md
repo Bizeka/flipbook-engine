@@ -1,6 +1,10 @@
 # Changelog
 
-## 1.1.0 - 2026-10-26
+## 1.1.1 - 2026-10-26
+
+- The 1.1.0 npm tarball was published with a stale `dist` that lacked the 1.1.0 code and types. 1.1.1 ships the same features rebuilt: `prepublishOnly` now cleans and rebuilds `dist` and runs `check:dist`, which fails the publish when the build is missing, older than the sources or lacks the new public names. Screenshots under `docs/screenshots` are no longer packed.
+
+## 1.1.0 - 2026-10-26 (use 1.1.1; its npm package had a stale build)
 
 - Search providers can report indexing progress through an optional fourth `reportProgress({ completed, total })` argument; the engine emits a `searchProgress` event and the search panel shows a progress bar while the search runs.
 - Optional `optimisticNotes` mode: page notes and coordinate notes appear immediately, are persisted in order in the background and roll back to the last saved state when the host rejects the save.
