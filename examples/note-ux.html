@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FlipbookEngine - Note UX demo</title>
+<link rel="stylesheet" href="../dist/flipbook-engine.css">
+<style>body{margin:0;padding:16px;font-family:system-ui,sans-serif}#v{width:100%;max-width:1000px;height:600px;margin:0 auto}</style>
+</head>
+<body>
+<div id="v"></div>
+<script type="importmap">{"imports":{"pdfjs-dist":"data:text/javascript,export const GlobalWorkerOptions={};export const getDocument=()=>{throw new Error(%27no pdf%27)};"}}</script>
+<script type="module">
+import { FlipbookEngine } from "../dist/flipbook-engine.js";
+const theme = new URLSearchParams(location.search).get('theme') || 'light';
+document.body.style.background = theme === 'dark' ? '#0f172a' : '#f1f5f9';
+const page = n => 'data:image/svg+xml,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800"><rect width="600" height="800" fill="#fffdf7"/><text x="50" y="100" font-size="34" font-family="serif" fill="#222">Chapter ${n}</text><text x="50" y="170" font-size="22" font-family="serif" fill="#333">The mitochondria is the powerhouse</text><text x="50" y="210" font-size="22" font-family="serif" fill="#333">of the cell and drives energy.</text></svg>`);
+const pages = [1,2,3,4].map(n => ({ pageNumber: n, normal: page(n), low: page(n), thumb: page(n) }));
+const hit = (x, w) => ({ x, y: .195, width: w, height: .04 });
+const engine = new FlipbookEngine('#v', {
+  theme, soundEnabled: false, showThumbs: false,
+  searchProvider: async () => [{ pageIndex: 1, pageNumber: 2, matches: 1, snippet: 'mitochondria is the powerhouse', highlights: [hit(.083, .34)] }],
+  annotationProvider: async () => {},
+  noteColors: true,
+  noteGroups: [{ key: 'exam', label: 'Exam', description: 'Likely exam topics' }, { key: 'idea', label: 'Ideas', description: 'My own thoughts' }],
+  searchHighlightStyle: new URLSearchParams(location.search).get('hl') || 'underline',
+  annotations: [
+    { id: 'a', pageIndex: 1, x: .75, y: .2, text: 'Compare with lecture 3 diagram.', color: '#e5484d', groupKey: 'exam' },
+    { id: 'b', pageIndex: 1, x: .3, y: .6, text: 'Idea: build a model.', color: '#30a46c', groupKey: 'idea' }
+  ]
+});
+engine.init('', pages).then(() => { engine.goToPage(1); window.engine = engine; });
+</script>
+</body>
+</html>

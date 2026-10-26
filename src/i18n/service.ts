@@ -62,6 +62,10 @@ export interface FlipbookMessages {
   placeNote: string;
   keyboardShortcuts: string;
   resetZoom: string;
+  noteColor: string;
+  noteGroup: string;
+  noGroup: string;
+  allGroups: string;
 }
 
 export const builtInMessages = {

@@ -24,6 +24,8 @@ export interface ThemeConfiguration {
   theme?: FlipbookThemeMode;
   primaryColor?: string;
   cssVariables?: Record<string, string>;
+  /** Diameter in px of coordinate-note pins. Default 14. */
+  notePinSize?: number;
   background?: FlipbookBackgrounds | null;
   /** @deprecated Use background.light/dark instead. */
   backgroundColor?: string;
@@ -45,6 +47,9 @@ export function applyThemeConfiguration(container: HTMLElement, config: ThemeCon
   if (config.primaryColor) {
     container.style.setProperty('--flipbook-accent', config.primaryColor);
   }
+
+  if (typeof config.notePinSize === 'number' && config.notePinSize > 0) container.style.setProperty('--flipbook-note-pin-size', Math.min(48, config.notePinSize) + 'px');
+  else container.style.removeProperty('--flipbook-note-pin-size');
 
   const background = config.background ?? {};
   const legacyLight = config.backgroundColor || config.backgroundImage

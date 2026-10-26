@@ -30,7 +30,8 @@ import { PdfRenderer, type PdfPageLayout, type PdfPageMode } from './core/PdfRen
 import { normalizeFlipbookToc, type FlipbookTocEntry } from './model/toc';
 import type { FlipbookSearchHighlight, FlipbookSearchOptions, FlipbookSearchResult } from './model/search';
 import type { FlipbookHotspot } from './model/hotspots';
-import type { FlipbookAnnotation } from './model/annotations';
+import type { FlipbookAnnotation, FlipbookNoteColor, FlipbookNoteGroup, FlipbookNoteGroupProvider, FlipbookSearchHighlightStyle } from './model/annotations';
+import { normalizeNoteColors, normalizeNoteGroups } from './model/annotations';
 import './styles/flipbook-engine.css';
 import { FlipbookEmbedBridge, type FlipbookEmbedOptions } from './embed';
 import { FlipbookPluginRegistry, type FlipbookPlugin } from './plugins';
@@ -45,6 +46,16 @@ export interface FlipbookEngineOptions {
     /** Apply note and coordinate-note edits locally at once and persist in the background; a failed save rolls the edit back. Default false. */
     optimisticNotes?: boolean;
     noteEditor?: FlipbookNoteEditorFactory;
+    /** Pin colours offered in the note editor; `true` uses five defaults. Colours are off when absent. */
+    noteColors?: FlipbookNoteColor[] | string[] | true;
+    /** Static note groups (colour groups with a label and description). */
+    noteGroups?: FlipbookNoteGroup[];
+    /** Loads note groups from the host when the notes UI first needs them; replaces `noteGroups` when it resolves. */
+    noteGroupProvider?: FlipbookNoteGroupProvider;
+    /** Search hit style: a red underline (default) or a transparent rounded bubble. */
+    searchHighlightStyle?: FlipbookSearchHighlightStyle;
+    /** Diameter in px of coordinate-note pins. Default 14. */
+    notePinSize?: number;
     noteDocuments?: Record<number, FlipbookNoteDocument>;
     allowDownload?: boolean;
     showThumbs?: boolean;
@@ -272,6 +283,12 @@ export class FlipbookEngine {
         // 1. Initialize State
         this.store.init(this.options, resolvedPages.length, resolvedPages, !!pdfUrl, !imageList?.length && !!pdfUrl);
         this.applyInitialDeepLink();
+        if (this.options.noteGroupProvider) {
+            const provider = this.options.noteGroupProvider;
+            void Promise.resolve().then(() => provider(abortController.signal)).then(groups => {
+                if (!abortController.signal.aborted) this.store.noteGroups.value = normalizeNoteGroups(groups);
+            }).catch(() => {});
+        }
         if (this.options.textLayerProvider) this.textLayerStop = loadTextLayers(this.store, this.options.textLayerProvider, abortController.signal);
 
         // 2. Setup DOM container
@@ -938,6 +955,9 @@ export class FlipbookEngine {
         if (options.notes !== undefined) this.store.pageNotes.value = new Map(Object.entries(options.notes).map(([page, note]) => [Math.trunc(Number(page)), String(note).trim()] as const).filter(([page, note]) => Number.isInteger(page) && page >= 0 && page < this.store.totalPages.value && note.length > 0));
         if (options.hotspots !== undefined) this.store.hotspots.value = options.hotspots;
         if (options.annotations !== undefined) this.store.annotations.value = options.annotations;
+        if ('noteColors' in options) this.store.noteColors.value = normalizeNoteColors(options.noteColors);
+        if ('noteGroups' in options) this.store.noteGroups.value = normalizeNoteGroups(options.noteGroups);
+        if (options.searchHighlightStyle !== undefined) this.store.searchHighlightStyle.value = options.searchHighlightStyle === 'bubble' ? 'bubble' : 'underline';
 
         if (this.container) {
             applyThemeConfiguration(this.container, this.options);

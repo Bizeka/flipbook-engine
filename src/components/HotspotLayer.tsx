@@ -7,8 +7,10 @@
 import { computed, signal } from '@preact/signals-core';
 import { resolveMessages } from '../i18n/service';
 import type { FlipbookHotspot, FlipbookHotspotMedia } from '../model/hotspots';
-import type { FlipbookAnnotation } from '../model/annotations';
+import { safeCssColor, type FlipbookAnnotation } from '../model/annotations';
 import type { FlipbookStore } from '../state/store';
+import { renderNoteDocument } from '../model/note-editor';
+
 
 interface HotspotLayerProps {
   store: FlipbookStore;
@@ -52,9 +54,37 @@ export function HotspotLayer(props: HotspotLayerProps) {
           <span class="bk-hotspot-label">{hotspot.label}</span>
         </button>
       ))}
-      {computed(() => <div class="bk-annotation-markers">{annotations.value.map((annotation) => (
-        <button type="button" data-annotation-id={annotation.id} class={computed(() => 'bk-annotation-marker' + (props.store.activeAnnotationId.value === annotation.id ? ' active' : ''))} style={'left:' + Math.max(0, Math.min(1, annotation.x)) * 100 + '%;top:' + Math.max(0, Math.min(1, annotation.y)) * 100 + '%;'} aria-label={annotation.text} onPointerDown={stopPageFlipInteraction} onTouchStart={stopPageFlipInteraction} onMouseDown={stopPageFlipInteraction} onClick={(event: Event) => { event.stopPropagation(); props.onAnnotationActivate(annotation); }}>●</button>
-      ))}</div>)}
+      {computed(() => <div class="bk-annotation-markers">{annotations.value.map((annotation) => {
+        const color = annotation.color ?? props.store.noteGroups.value.find((group) => group.key === annotation.groupKey)?.color;
+        const show = () => { props.store.hoverAnnotationId.value = annotation.id; };
+        const hide = () => { if (props.store.hoverAnnotationId.value === annotation.id) props.store.hoverAnnotationId.value = null; };
+        let touched = false;
+        return <button type="button" data-annotation-id={annotation.id} class={computed(() => 'bk-annotation-marker' + (props.store.activeAnnotationId.value === annotation.id ? ' active' : ''))}
+          style={'left:' + Math.max(0, Math.min(1, annotation.x)) * 100 + '%;top:' + Math.max(0, Math.min(1, annotation.y)) * 100 + '%;' + (safeCssColor(color) ? '--bk-pin:' + color + ';' : '')}
+          aria-label={annotation.text} aria-describedby={computed(() => props.store.hoverAnnotationId.value === annotation.id ? 'bk-note-bubble-' + annotation.id : undefined)}
+          onPointerDown={(event: PointerEvent) => { touched = event.pointerType === 'touch' || event.pointerType === 'pen'; stopPageFlipInteraction(event); }} onTouchStart={stopPageFlipInteraction} onMouseDown={stopPageFlipInteraction}
+          onPointerEnter={(event: PointerEvent) => { if (event.pointerType === 'mouse') show(); }} onPointerLeave={(event: PointerEvent) => { if (event.pointerType === 'mouse') hide(); }}
+          onFocus={show} onBlur={hide}
+          onKeyDown={(event: KeyboardEvent) => { if (event.key === 'Escape' && props.store.hoverAnnotationId.value === annotation.id) { event.stopPropagation(); hide(); } }}
+          onClick={(event: Event) => {
+            event.stopPropagation();
+            // First touch tap previews the note; a second tap opens it.
+            if (touched && props.store.hoverAnnotationId.value !== annotation.id) { touched = false; show(); return; }
+            touched = false; props.onAnnotationActivate(annotation);
+          }} />;
+      })}</div>)}
+      {computed(() => {
+        const note = annotations.value.find((item) => item.id === props.store.hoverAnnotationId.value);
+        if (!note || props.store.activeAnnotationId.value === note.id) return null;
+        const group = props.store.noteGroups.value.find((item) => item.key === note.groupKey);
+        const side = note.x < .3 ? ' is-start' : note.x > .55 ? ' is-end' : '', below = note.y < .3 ? ' is-below' : '';
+        return <div id={'bk-note-bubble-' + note.id} role="tooltip" ref={(element: HTMLElement) => { const doc = element.ownerDocument; const close = (event: KeyboardEvent) => { if (event.key === 'Escape') { props.store.hoverAnnotationId.value = null; doc.removeEventListener('keydown', close); } }; doc.addEventListener('keydown', close); }} class={'bk-note-bubble' + side + below}
+          style={'left:' + Math.max(0, Math.min(1, note.x)) * 100 + '%;top:' + Math.max(0, Math.min(1, note.y)) * 100 + '%;'}
+          onPointerDown={stopPageFlipInteraction} onTouchStart={stopPageFlipInteraction} onMouseDown={stopPageFlipInteraction}>
+          {group ? <span class="bk-note-bubble-group">{group.label}</span> : null}
+          <div class="bk-note-bubble-body">{renderNoteDocument(note.document, note.text)}</div>
+        </div>;
+      })}
       {computed(() => {
         const active = props.store.hotspots.value.find((item) => item.id === props.store.activeHotspotId.value && item.pageIndex === props.pageIndex);
         if (!active) return null;

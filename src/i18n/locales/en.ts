@@ -48,5 +48,6 @@ export const enMessages = {
   privateNotes: 'Your personal notes for this document.', noNotes: 'No notes yet. Select a place on the page to add your first note.',
   addNote: 'Place a note', pageHasNote: 'This page has a note', page: 'Page', noteSaved: 'Saved',
   confirmDeleteNote: 'Delete this note?', cancel: 'Cancel', placeNote: 'Click or tap a place on the page for your note.',
-  keyboardShortcuts: 'Keyboard shortcuts', textSelection: 'Select text', resetZoom: 'Fit page'
+  keyboardShortcuts: 'Keyboard shortcuts', textSelection: 'Select text', resetZoom: 'Fit page',
+  noteColor: 'Note colour', noteGroup: 'Note group', noGroup: 'No group', allGroups: 'All groups'
 } as const;

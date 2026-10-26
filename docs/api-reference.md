@@ -228,3 +228,10 @@ When the viewer owns keyboard focus: arrows/PageUp/PageDown navigate, Home/End j
 ## Backend text layer API
 
 Optional `textLayerProvider`, `textSelection` and `setTextSelection(enabled)` add fixed-layout selectable text to image books. Public `FlipbookTextPage`, `FlipbookTextRun` and `FlipbookTextLayerProvider` types are exported from root and core entrypoints. See [schema, lifecycle, geometry and backend responsibilities](backend-text-layers.md). Existing search highlights remain independent. No backend, OCR engine or database is bundled.
+
+## Note pins, search highlights, colours and groups
+
+- `notePinSize` (px, default 14) or the CSS variable `--flipbook-note-pin-size` sizes coordinate-note pins.
+- `searchHighlightStyle`: `'underline'` (default, red underline) or `'bubble'` (transparent rounded bubble).
+- Pins show the note in a speech-bubble on hover and keyboard focus; on touch the first tap previews, the second opens the note. Escape closes the bubble.
+- `noteColors`: `true` (five defaults, `DEFAULT_NOTE_COLORS`), or `{ value, label? }[]` / CSS colour strings. `noteGroups`: `{ key, label, description?, color? }[]`. `noteGroupProvider(signal)` returns groups from the host and replaces `noteGroups`. Annotations gain optional `color` and `groupKey`; the host persists them through `annotationProvider`. The editor shows a palette and group picker (with the group description); the notes panel shows the group label and a group filter. Without these options nothing changes.

@@ -4,6 +4,10 @@
 
 - Search providers can report indexing progress through an optional fourth `reportProgress({ completed, total })` argument; the engine emits a `searchProgress` event and the search panel shows a progress bar while the search runs.
 - Optional `optimisticNotes` mode: page notes and coordinate notes appear immediately, are persisted in order in the background and roll back to the last saved state when the host rejects the save.
+- Coordinate-note pins are smaller (14px by default) and sized with the `notePinSize` option or the `--flipbook-note-pin-size` CSS variable.
+- Search hits draw one clean mark instead of a strike plus a bubble; `searchHighlightStyle: 'underline' | 'bubble'` (default `underline`).
+- Hovering, focusing (or tapping, on touch) a note pin shows the note in a speech-bubble popover; Escape closes it.
+- Note colours and groups: `noteColors` (`true` for five defaults), `noteGroups`, `noteGroupProvider`; annotations carry `color` and `groupKey`; palette and group picker in the note editor, group label and filter in the notes panel. Everything stays off when the options are absent.
 
 ## 1.0.3 - 2026-10-24
 
