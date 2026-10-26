@@ -7,7 +7,7 @@ import type { FlipbookStore } from '../state/store';
 export function attachToolbarMore(toolbar: HTMLElement, messages: ReadonlySignal<FlipbookMessages>, store: FlipbookStore) {
     const menu = <div class="bk-more-menu"></div> as HTMLElement;
     const commands = [
-        ['.bk-btn--autoplay', 'play'], ['.bk-btn--single', 'singlePageMode'],
+        ['.bk-btn--autoplay', 'play'],
         ['.bk-btn--share', 'share'], ['.bk-btn--bookmark', 'bookmark'], ['.bk-btn--download', 'downloadCatalog'], ['.bk-btn--sound', 'sound']
     ] as const;
     for (const [selector, key] of commands) {
