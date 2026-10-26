@@ -151,16 +151,16 @@ export class PageFlipAdapter {
         // Watch for singleMode changes from DOMWise UI to trigger layout updates
         this.unsubs.push(
             effect(() => {
-                this.store.isSingleMode.value;
+                const single = this.store.isSingleMode.value;
                 if (!this.pageFlip) return;
+                // The hidden book measured zero width and fell back to portrait; widen the sizer before relayout.
+                if (!single && this.store.orientation.peek() !== 'landscape') this.store.orientation.value = 'landscape';
 
                 // We use setTimeout to wait for LayoutManager to update the container dimensions first
                 if (this.layoutUpdateTimer) clearTimeout(this.layoutUpdateTimer);
                 this.layoutUpdateTimer = setTimeout(() => {
                     this.layoutUpdateTimer = null;
-                    if (this.pageFlip) {
-                        this.pageFlip.update();
-                    }
+                    this.update();
                     window.dispatchEvent(new Event('resize'));
                 }, 50);
             })
@@ -192,6 +192,15 @@ export class PageFlipAdapter {
                 }
             })
         );
+    }
+
+    /** Re-applies the reader's page after a library relayout, which may reset it to the cover. */
+    private restorePage(page: number) {
+        if (this.store.isSingleMode.peek() || this.store.flipState.peek() !== 'read') return;
+        if (this.store.currentPage.peek() !== page) this.store.currentPage.value = page;
+        if (this.pageFlip.getCurrentPageIndex() === page) return;
+        this.isLibraryFlipping = true;
+        try { this.pageFlip.turnToPage(page); } finally { this.isLibraryFlipping = false; }
     }
 
     public turnToNextPage() {
@@ -229,8 +238,10 @@ export class PageFlipAdapter {
     }
 
     public update() {
-        if (this.pageFlip) {
+        if (this.pageFlip && this.bookContainer.clientWidth > 0 && this.bookContainer.clientHeight > 0) {
+            const keep = this.store.currentPage.peek();
             this.pageFlip.update();
+            this.restorePage(keep);
         }
         if (this.layoutUpdateTimer) {
             clearTimeout(this.layoutUpdateTimer);
