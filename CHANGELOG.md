@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.1.0 - 2026-10-26
 
 - Search providers can report indexing progress through an optional fourth `reportProgress({ completed, total })` argument; the engine emits a `searchProgress` event and the search panel shows a progress bar while the search runs.
 - Optional `optimisticNotes` mode: page notes and coordinate notes appear immediately, are persisted in order in the background and roll back to the last saved state when the host rejects the save.
