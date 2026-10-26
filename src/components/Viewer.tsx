@@ -41,7 +41,7 @@ function SearchHighlightLayer(props: { store: FlipbookStore; pageIndex: number }
         .filter((result) => result.pageIndex === props.pageIndex)
         .flatMap((result) => result.highlights ?? []));
     return (
-        <div class="bk-search-highlight-layer" aria-hidden="true">
+        <div class={computed(() => 'bk-search-highlight-layer is-' + props.store.searchHighlightStyle.value)} aria-hidden="true">
             {computed(() => (
                 <div class="bk-search-highlight-items">
                     {highlights.value.map((highlight) => (

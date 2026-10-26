@@ -108,6 +108,7 @@ export class InteractionManager {
 
     private bindTouch() {
         let startY = 0, startTx = 0, startTy = 0, pinchDistance = 0, pinchScale = 1;
+        let lastTapTime = 0, lastTapX = 0, lastTapY = 0;
         let pinchX = 0, pinchY = 0, pinchCenterX = 0, pinchCenterY = 0, wasPinch = false;
         const signal = this.listenerAbortController.signal;
         const interactive = (target: EventTarget | null) => (target as Element)?.closest('button,a,input,textarea,select,[contenteditable="true"]');
@@ -136,9 +137,10 @@ export class InteractionManager {
                 const [a, b] = Array.from(event.touches);
                 const scale = Math.max(1, Math.min(5, pinchScale * Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) / pinchDistance));
                 const ratio = scale / pinchScale;
-                this.store.zoomState.value = { ...this.store.zoomState.value, scale, isActive: scale > 1,
-                    translateX: startTx + (pinchX - pinchCenterX) * (1 - ratio) + (a.clientX + b.clientX) / 2 - pinchX,
-                    translateY: startTy + (pinchY - pinchCenterY) * (1 - ratio) + (a.clientY + b.clientY) / 2 - pinchY };
+                const pan = scale > 1 ? this.clampPan(
+                    startTx + (pinchX - pinchCenterX) * (1 - ratio) + (a.clientX + b.clientX) / 2 - pinchX,
+                    startTy + (pinchY - pinchCenterY) * (1 - ratio) + (a.clientY + b.clientY) / 2 - pinchY, scale) : { x: 0, y: 0 };
+                this.store.zoomState.value = { ...this.store.zoomState.value, scale, isActive: scale > 1, translateX: pan.x, translateY: pan.y };
                 event.stopPropagation(); if (event.cancelable) event.preventDefault();
             } else if (!wasPinch && this.store.zoomState.value.isActive && this.touchStartX !== null && event.touches.length === 1) {
                 this.updateZoomPan(startTx + event.touches[0].clientX - this.touchStartX, startTy + event.touches[0].clientY - startY);
@@ -150,9 +152,25 @@ export class InteractionManager {
                 const dx = event.changedTouches[0].clientX - this.touchStartX, dy = event.changedTouches[0].clientY - startY;
                 if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.4) dx > 0 ? this.pageFlipAdapter.turnToPrevPage() : this.pageFlipAdapter.turnToNextPage();
             }
+            const tap = event.changedTouches[0];
+            if (!wasPinch && tap && !event.touches.length && this.touchStartX !== null && !interactive(event.target) && !this.store.placingNote.value && !this.store.pendingAnnotation.value && !this.store.activeAnnotationId.value && !this.store.textSelection.value
+                && Math.hypot(tap.clientX - this.touchStartX, tap.clientY - startY) < 10) {
+                const now = Date.now();
+                if (now - lastTapTime < 300 && Math.hypot(tap.clientX - lastTapX, tap.clientY - lastTapY) < 30) { lastTapTime = 0; this.toggleZoomAt(tap.clientX, tap.clientY); event.stopPropagation(); }
+                else { lastTapTime = now; lastTapX = tap.clientX; lastTapY = tap.clientY; }
+            }
             if (wasPinch || this.store.zoomState.value.isActive) event.stopPropagation();
             this.touchStartX = null; if (!event.touches.length) { wasPinch = false; pinchDistance = 0; }
         };
+        // Safari reports trackpad and some touch pinches only as gesture events.
+        let gestureStart = 1;
+        this.container.addEventListener('gesturestart', event => { gestureStart = this.store.zoomState.value.scale; event.preventDefault(); }, { signal });
+        this.container.addEventListener('gesturechange', event => {
+            event.preventDefault();
+            const scale = Math.max(1, Math.min(5, gestureStart * ((event as Event & { scale?: number }).scale ?? 1)));
+            const pan = scale > 1 ? this.clampPan(this.store.zoomState.value.translateX, this.store.zoomState.value.translateY, scale) : { x: 0, y: 0 };
+            this.store.zoomState.value = { ...this.store.zoomState.value, scale, isActive: scale > 1, translateX: pan.x, translateY: pan.y };
+        }, { signal });
         this.container.addEventListener('touchend', finish, { capture: true, passive: true, signal });
         this.container.addEventListener('touchcancel', () => { this.touchStartX = null; wasPinch = false; pinchDistance = 0; }, { capture: true, signal });
     }
@@ -177,16 +195,44 @@ export class InteractionManager {
             this.store.zoomState.value = { ...this.store.zoomState.value, isActive: false, translateX: 0, translateY: 0, scale: 1 };
             this.container.style.cursor = '';
         } else {
-            this.store.zoomState.value = { ...this.store.zoomState.value, isActive: true, scale: newScale };
+            const pan = this.clampPan(this.store.zoomState.value.translateX, this.store.zoomState.value.translateY, newScale);
+            this.store.zoomState.value = { ...this.store.zoomState.value, isActive: true, scale: newScale, translateX: pan.x, translateY: pan.y };
         }
     }
 
+    /** Keeps the zoomed page overlapping the viewport; skipped while the container has no size. */
+    private clampPan(x: number, y: number, scale: number): { x: number; y: number } {
+        const width = this.container.offsetWidth, height = this.container.offsetHeight;
+        if (!width || !height) return { x, y };
+        const limitX = (scale - 1) * width / 2, limitY = (scale - 1) * height / 2;
+        return { x: Math.max(-limitX, Math.min(limitX, x)), y: Math.max(-limitY, Math.min(limitY, y)) };
+    }
+
     private updateZoomPan(x: number, y: number) {
+        const pan = this.clampPan(x, y, this.store.zoomState.value.scale);
         this.store.zoomState.value = {
             ...this.store.zoomState.value,
-            translateX: x,
-            translateY: y
+            translateX: pan.x,
+            translateY: pan.y
         };
+    }
+
+    /** Moves the zoomed page by a pixel offset; ignored when not zoomed. */
+    public panBy(dx: number, dy: number) {
+        const zoom = this.store.zoomState.value;
+        if (zoom.isActive) this.updateZoomPan(zoom.translateX + dx, zoom.translateY + dy);
+    }
+
+    /** Zooms to 2.5x around a viewport point, or back to fit when already zoomed. */
+    private toggleZoomAt(clientX: number, clientY: number) {
+        if (this.store.zoomState.value.isActive) {
+            this.store.zoomState.value = { ...this.store.zoomState.value, isActive: false, translateX: 0, translateY: 0, scale: 1 };
+            return;
+        }
+        const box = (this.container.parentElement ?? this.container).getBoundingClientRect();
+        const scale = 2.5;
+        const pan = this.clampPan((box.left + box.width / 2 - clientX) * (scale - 1), (box.top + box.height / 2 - clientY) * (scale - 1), scale);
+        this.store.zoomState.value = { ...this.store.zoomState.value, isActive: true, scale, translateX: pan.x, translateY: pan.y };
     }
 
     public destroy() {

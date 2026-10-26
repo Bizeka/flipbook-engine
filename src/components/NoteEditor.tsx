@@ -24,7 +24,14 @@ export function NoteEditor(props: { value: FlipbookNoteValue; factory?: Flipbook
         props.view.current = view!; props.onReady(true);
         observer = new root.ownerDocument.defaultView!.MutationObserver(() => { if (!root.isConnected) cleanup(); });
         observer.observe(root.ownerDocument.body, { childList: true, subtree: true });
-        root.querySelector<HTMLElement>('[contenteditable="true"],textarea')?.focus();
+        const field = root.querySelector<HTMLElement>('[contenteditable="true"],textarea');
+        field?.focus();
+        // An on-screen keyboard shrinks the visual viewport; keep the field above it.
+        const viewport = root.ownerDocument.defaultView?.visualViewport;
+        if (viewport && field) {
+            const reveal = () => { if (root.isConnected) field.scrollIntoView({ block: 'nearest' }); };
+            viewport.addEventListener('resize', reveal, { signal: props.signal });
+        }
     });
     return root;
 }

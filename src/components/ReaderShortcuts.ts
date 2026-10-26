@@ -10,7 +10,7 @@ export function ReaderShortcuts(root: HTMLElement, store: FlipbookStore, command
     onBeginAnnotation: () => void; onToggleNotes: () => void; onToggleFullscreen: () => void; onAnnotationClose: () => void;
 }, signal: AbortSignal) {
     signal = domSignal(root, signal);
-    root.setAttribute('aria-keyshortcuts', 'ArrowLeft ArrowRight Home End + - 0 n Shift+n / i t f Escape');
+    root.setAttribute('aria-keyshortcuts', 'ArrowLeft ArrowRight ArrowUp ArrowDown PageUp PageDown Home End + - 0 n Shift+n / i t f Escape');
     let previousFocus: HTMLElement | null = null, wasOpen = false;
     const stop = effect(() => {
         const open = store.showNotes.value || store.showSearch.value || store.showToc.value || !!store.pendingAnnotation.value || !!store.activeAnnotationId.value;
@@ -30,7 +30,16 @@ export function ReaderShortcuts(root: HTMLElement, store: FlipbookStore, command
         if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return;
         if ((event.target as Element).closest('dialog')) return;
         if (event.key === 'Escape') {
-            event.preventDefault(); store.textSelection.value = false; store.placingNote.value = false; store.showNotes.value = false; store.showSearch.value = false; store.showToc.value = false; commands.onAnnotationClose(); root.querySelector<HTMLElement>('.bk-btn--notes')?.focus(); return;
+            event.preventDefault();
+            // Each press closes only the top-most layer.
+            if (store.placingNote.value) store.placingNote.value = false;
+            else if (store.pendingAnnotation.value || store.activeAnnotationId.value) commands.onAnnotationClose();
+            else if (store.showSearch.value) store.showSearch.value = false;
+            else if (store.showNotes.value) store.showNotes.value = false;
+            else if (store.showToc.value) store.showToc.value = false;
+            else store.textSelection.value = false;
+            if (!store.showNotes.value && !store.showSearch.value && !store.showToc.value) root.querySelector<HTMLElement>('.bk-btn--notes')?.focus();
+            return;
         }
         if ((event.target as Element).closest('input,textarea,select,[contenteditable="true"],dialog')) return;
         if (event.key === '?') { event.preventDefault(); showReaderHelp(root, store); return; }
@@ -45,6 +54,8 @@ export function ReaderShortcuts(root: HTMLElement, store: FlipbookStore, command
         if (store.textSelection.value && event.shiftKey && ['arrowleft', 'arrowright', 'arrowup', 'arrowdown', 'home', 'end'].includes(key)) return;
         if (key === 'n') { event.preventDefault(); if (event.shiftKey || !store.canAnnotate.value) commands.onToggleNotes(); else commands.onBeginAnnotation(); return; }
         if (panel || store.placingNote.value) return;
+        const pan = { arrowleft: [80, 0], arrowright: [-80, 0], arrowup: [0, 80], arrowdown: [0, -80] }[key];
+        if (pan && store.zoomState.value.isActive) { commands.interactionManagerRef.current?.panBy(pan[0], pan[1]); event.preventDefault(); return; }
         switch (key) {
             case 'arrowleft': case 'pageup': commands.pageFlipAdapterRef.current?.turnToPrevPage(); break;
             case 'arrowright': case 'pagedown': commands.pageFlipAdapterRef.current?.turnToNextPage(); break;
