@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.1 - unreleased
+
+- Fixed returning from single-page to two-page mode inside hosts whose own stylesheet has a `.bk-book` rule (SmartLearn shelf cards): switching hid the book by rewriting its style attribute, which dropped the inline width page-flip had set, so the host rule shrank the book and page-flip fell back to one small portrait page. The book is now hidden by a class, and its sizing rule is scoped under the sizer.
+- Phone toolbar: every command shares the second row in equal widths (40px high), so the row never overflows and the overflow menu (…) stays on screen; with the single-page toggle back in the toolbar the fixed eight-column grid pushed the menu to a hidden third row.
+
 ## 1.2.0 - 2026-10-27
 
 1.1.2 was never published; its changes ship in 1.2.0.

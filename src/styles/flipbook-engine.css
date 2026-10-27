@@ -260,10 +260,18 @@
   background-color: rgba(0, 0, 0, 0.5); /* Acts as a dark spine for subpixel gaps */
 }
 
-.bk-book {
+/* Scoped under the sizer so a host stylesheet with its own .bk-book rule cannot resize the book. */
+.bk-book-sizer > .bk-book {
+  display: block;
   width: 100%;
   height: 100%;
+  min-height: 0;
   position: relative;
+}
+
+/* page-flip writes display:block inline, so single-page mode hides the book with !important. */
+.bk-book-sizer > .bk-book.is-hidden {
+  display: none !important;
 }
 
 /* Leaf edges beside the spread; hide with .bk-page-stack { display: none; }. */
@@ -1318,12 +1326,15 @@
 .bk-more-menu { position: absolute; z-index: 50; right: 0; bottom: calc(100% + 8px); width: 220px; max-height: 60dvh; overflow: auto; padding: 8px; box-sizing: border-box; border: 1px solid var(--flipbook-border); border-radius: var(--flipbook-radius-md); background: var(--flipbook-bg-panel); color: var(--flipbook-toolbar-text); box-shadow: 0 8px 24px var(--flipbook-shadow); }
 .bk-more-menu .bk-btn { display: flex; width: 100%; min-height: 44px; justify-content: flex-start; gap: 12px; padding: 8px; text-align: left; border-radius: var(--flipbook-radius-sm); }
 .bk-more-menu svg { flex: 0 0 18px; }
+/* Phones: page navigation on the first row, every other command shares the second row in equal widths, so the row
+   never overflows however many commands are visible (the overflow menu included). */
 @media (max-width: 767px) {
-  .bk-toolbar { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); height: auto; min-height: 96px; padding: 4px; gap: 0; }
+  .bk-toolbar { display: flex; flex-wrap: wrap; align-items: center; height: auto; min-height: calc(90px + env(safe-area-inset-bottom)); padding: 4px 4px env(safe-area-inset-bottom); gap: 2px 0; box-sizing: border-box; }
   .bk-toolbar > .bk-btn-group { display: contents; }
-  .bk-toolbar > .bk-btn-group--center { display: flex; grid-column: 1 / -1; grid-row: 1; justify-content: center; }
-  .bk-toolbar .bk-btn { min-width: 0; width: 100%; height: 44px; }
-  .bk-toolbar .bk-btn-group--center .bk-btn { width: 44px; }
+  .bk-toolbar > .bk-btn-group--center { display: flex; flex: 0 0 100%; order: -1; justify-content: center; }
+  .bk-toolbar > .bk-btn-group > .bk-btn, .bk-toolbar > .bk-btn-group > .bk-more { flex: 1 1 0; min-width: 0; width: auto; height: 40px; padding: 0; }
+  .bk-toolbar > .bk-btn-group > .bk-more > summary { width: 100%; height: 40px; min-width: 0; padding: 0; box-sizing: border-box; }
+  .bk-toolbar .bk-btn-group--center .bk-btn { flex: 0 0 40px; width: 40px; height: 40px; }
 }
 
 /* Personal note navigation and coordinate placement. */
