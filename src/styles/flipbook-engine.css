@@ -1094,10 +1094,13 @@
 }
 
 .bk-notes-input:focus,
-.bk-search-input:focus {
+.bk-search-input:focus,
+.bk-wrapper input:focus-visible,
+.bk-wrapper textarea:focus-visible,
+.bk-wrapper select:focus-visible {
   outline: none;
   border-color: var(--flipbook-accent);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--flipbook-accent) 58%, transparent);
+  box-shadow: inset 0 0 0 1px var(--flipbook-accent);
 }
 
 .bk-notes-actions {
