@@ -197,10 +197,12 @@ export class PageFlipAdapter {
     /** Re-applies the reader's page after a library relayout, which may reset it to the cover. */
     private restorePage(page: number) {
         if (this.store.isSingleMode.peek() || this.store.flipState.peek() !== 'read') return;
-        if (this.store.currentPage.peek() !== page) this.store.currentPage.value = page;
-        if (this.pageFlip.getCurrentPageIndex() === page) return;
+        // Guard the store write too, or the sync effect starts an extra animated flip from the reset page.
         this.isLibraryFlipping = true;
-        try { this.pageFlip.turnToPage(page); } finally { this.isLibraryFlipping = false; }
+        try {
+            if (this.store.currentPage.peek() !== page) this.store.currentPage.value = page;
+            if (this.pageFlip.getCurrentPageIndex() !== page) this.pageFlip.turnToPage(page);
+        } finally { this.isLibraryFlipping = false; }
     }
 
     public turnToNextPage() {

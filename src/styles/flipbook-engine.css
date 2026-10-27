@@ -1094,10 +1094,12 @@
 }
 
 .bk-notes-input:focus,
-.bk-search-input:focus {
+.bk-search-input:focus,
+.bk-note-group-select:focus,
+.bk-note-group-filter:focus {
   outline: none;
   border-color: var(--flipbook-accent);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--flipbook-accent) 58%, transparent);
+  box-shadow: none;
 }
 
 .bk-notes-actions {
@@ -1317,6 +1319,8 @@
 .bk-note-placement-hint { position: absolute; z-index: 80; top: 8px; left: 8px; right: 8px; gap: 12px; align-items: center; justify-content: space-between; padding: 12px; border-radius: var(--flipbook-radius-md); background: var(--flipbook-bg-panel); color: var(--flipbook-toolbar-text); box-shadow: 0 4px 12px var(--flipbook-shadow); font-size: .875rem; pointer-events: none; }
 .bk-note-placement-hint button { pointer-events: auto; min-height: 44px; padding: 8px; border: 1px solid var(--flipbook-border); border-radius: var(--flipbook-radius-sm); background: transparent; color: inherit; font: inherit; }
 .bk-wrapper :focus-visible { outline: 2px solid var(--flipbook-accent); outline-offset: 3px; }
+/* Form fields show focus with their own thin accent border, not an outer ring. */
+.bk-wrapper input:focus-visible, .bk-wrapper textarea:focus-visible, .bk-wrapper select:focus-visible { outline: none; }
 @media (prefers-reduced-motion:reduce) { .bk-wrapper *, .bk-wrapper *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; } }
 .bk-shortcuts-dialog { width: min(440px,calc(100vw - 32px)); max-height: 80dvh; overflow: auto; padding: 20px; border: 1px solid var(--flipbook-border); border-radius: var(--flipbook-radius-md); background: var(--flipbook-bg-surface); color: var(--flipbook-text-main); box-sizing: border-box; }
 .bk-shortcuts-dialog::backdrop { background: #0008; }

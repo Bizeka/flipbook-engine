@@ -498,6 +498,8 @@ export class FlipbookEngine {
             if (image.dataset.pdfPage !== String(pageNumber)) return;
             image.src = dataUrl;
             delete image.dataset.pdfPage;
+            // The placeholder left in data-src would overwrite the rendered page once it scrolls into view.
+            delete image.dataset.src;
         });
     }
     private setupPdfLazyLoading() {
