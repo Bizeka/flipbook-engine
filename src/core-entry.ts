@@ -31,3 +31,4 @@ export type { FlipbookHotspot, FlipbookHotspotKind, FlipbookHotspotMedia, Flipbo
 export { resolveEmbedUrl } from './model/hotspots';
 
 export type { FlipbookTextRun, FlipbookTextPage, FlipbookTextLayerProvider } from './model/text-layer';
+export { safeLinkUrl } from './model/safe-url';

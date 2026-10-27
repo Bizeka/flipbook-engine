@@ -8,6 +8,7 @@ import { computed, signal } from '@preact/signals-core';
 import { resolveMessages } from '../i18n/service';
 import { resolveEmbedUrl, type FlipbookHotspot, type FlipbookHotspotMedia } from '../model/hotspots';
 import { safeCssColor, type FlipbookAnnotation } from '../model/annotations';
+import { safeLinkUrl } from '../model/safe-url';
 import type { FlipbookStore } from '../state/store';
 import { renderNoteDocument } from '../model/note-editor';
 
@@ -31,7 +32,8 @@ function renderMedia(media: FlipbookHotspotMedia, fallbackLabel: string) {
   }
   // Only YouTube and Vimeo are framed; any other embed link opens in a new tab.
   if (media.type === 'embed') {
-    return <a class="bk-hotspot-link" href={media.src} target="_blank" rel="noopener noreferrer">{media.alt || fallbackLabel}</a>;
+    const href = safeLinkUrl(media.src);
+    return href ? <a class="bk-hotspot-link" href={href} target="_blank" rel="noopener noreferrer">{media.alt || fallbackLabel}</a> : null;
   }
   if (media.type === 'video') {
     return <video class="bk-hotspot-media-video" controls preload="metadata" poster={media.poster} aria-label={media.alt || fallbackLabel}><source src={media.src} /></video>;
@@ -140,12 +142,12 @@ export function HotspotLayer(props: HotspotLayerProps) {
                     </button>
                   ))}
                 </div>
-                {selectedGalleryItem.href ? (
-                  <a href={selectedGalleryItem.href} target={selectedGalleryItem.target || '_blank'} rel="noopener noreferrer"><img class="bk-hotspot-gallery-selected" src={selectedGalleryItem.src} alt={selectedGalleryItem.alt || ''} /></a>
+                {safeLinkUrl(selectedGalleryItem.href) ? (
+                  <a href={safeLinkUrl(selectedGalleryItem.href)} target={selectedGalleryItem.target || '_blank'} rel="noopener noreferrer"><img class="bk-hotspot-gallery-selected" src={selectedGalleryItem.src} alt={selectedGalleryItem.alt || ''} /></a>
                 ) : <img class="bk-hotspot-gallery-selected" src={selectedGalleryItem.src} alt={selectedGalleryItem.alt || ''} />}
               </div>
             ) : null}
-            {active.href ? <a class="bk-hotspot-link" href={active.href} target={active.target || '_blank'} rel="noopener noreferrer">{active.kind === 'commerce' ? active.label : active.href}</a> : null}
+            {safeLinkUrl(active.href) ? <a class="bk-hotspot-link" href={safeLinkUrl(active.href)} target={active.target || '_blank'} rel="noopener noreferrer">{active.kind === 'commerce' ? active.label : active.href}</a> : null}
           </div>
         );
       })}

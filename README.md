@@ -465,7 +465,7 @@ hotspots: [{ id: 'lesson', pageIndex: 12, x: .1, y: .4, width: .5, height: .25, 
   content: 'Watch the explanation.', media: { type: 'embed', src: 'https://www.youtube.com/watch?v=VIDEO_ID&t=90' } }]
 ```
 
-A hotspot can render a single image/video/audio preview through `media`, a selectable image gallery through `gallery`, and a safe external/product destination through `href`. Content remains plain text; applications should sanitize server-provided URLs before passing them to the viewer. Use `activateHotspot(id)` and `closeHotspot()` for programmatic control.
+A hotspot can render a single image/video/audio preview through `media`, a selectable image gallery through `gallery`, and a safe external/product destination through `href`. Content remains plain text. Links accept only relative, http(s), mailto and tel URLs; `javascript:`, `data:` and other schemes are dropped by the viewer, but hosts should still validate server-provided URLs. Use `activateHotspot(id)` and `closeHotspot()` for programmatic control.
 
 
 ### Page annotations

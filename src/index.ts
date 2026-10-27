@@ -53,3 +53,4 @@ export { FlipbookEmbedBridge, createFlipbookEmbedController } from './embed';
 export type { FlipbookEmbedOptions, FlipbookEmbedCommandName, FlipbookEmbedCommand, FlipbookEmbedEvent, FlipbookEmbedResponse, FlipbookEmbedState, FlipbookEmbedController } from './embed';
 
 export type { FlipbookTextRun, FlipbookTextPage, FlipbookTextLayerProvider } from './model/text-layer';
+export { safeLinkUrl } from './model/safe-url';
