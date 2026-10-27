@@ -1081,15 +1081,16 @@
 
 .bk-notes-input {
   width: 100%;
-  min-height: 96px;
+  min-height: 72px;
   resize: vertical;
   box-sizing: border-box;
   border: 1px solid var(--flipbook-border);
   border-radius: var(--flipbook-radius-sm);
-  padding: 8px 10px;
+  padding: 6px 8px;
   background: var(--flipbook-bg-surface-alt);
   color: var(--flipbook-text-main);
   font: inherit;
+  font-size: 0.8125rem;
   line-height: 1.4;
 }
 
@@ -1275,7 +1276,7 @@
 .bk-watermark { z-index: 20; }
 .bk-toc, .bk-search-panel, .bk-notes-panel { box-sizing: border-box; max-height: 100%; z-index: 40; }
 .bk-toc { width: min(340px, calc(100% - 16px)); }
-.bk-search-panel, .bk-notes-panel { top: 8px; left: 8px; right: auto; bottom: auto; width: min(380px, calc(100% - 16px)); max-height: calc(100% - 16px); overflow: auto; }
+.bk-search-panel, .bk-notes-panel { top: 8px; left: 8px; right: auto; bottom: auto; width: min(300px, calc(100% - 16px)); max-height: calc(100% - 16px); overflow: auto; }
 .bk-notes-input { max-height: 40dvh; }
 .bk-search-form { display: flex; flex-wrap: wrap; min-width: 0; }
 .bk-search-input { flex: 1 1 100%; min-width: 0; width: 100%; box-sizing: border-box; }
@@ -1298,23 +1299,23 @@
 /* Personal note navigation and coordinate placement. */
 .bk-btn--notes { position: relative; }
 .bk-btn--notes.bk-has-page-note::after { content: ''; position: absolute; width: 7px; height: 7px; border-radius: 50%; right: 3px; top: 3px; background: var(--flipbook-accent); box-shadow: 0 0 0 2px var(--flipbook-bg-panel); }
-.bk-note-total { padding: 2px 7px; border-radius: 99px; background: var(--flipbook-accent); color: var(--flipbook-accent-text); }
-.bk-note-privacy { margin: 0; font-size: .8rem; color: var(--flipbook-text-muted); line-height: 1.5; }
-.bk-note-tabs { display: flex; gap: 4px; padding: 4px; border-radius: var(--flipbook-radius-md); background: var(--flipbook-bg-surface-alt); }
-.bk-note-tabs button { flex: 1; border: 0; padding: 10px 6px; min-height: 44px; background: transparent; color: var(--flipbook-text-main); border-radius: var(--flipbook-radius-sm); font: inherit; }
+.bk-note-total { padding: 1px 6px; font-size: .75rem; border-radius: 99px; background: var(--flipbook-accent); color: var(--flipbook-accent-text); }
+.bk-note-privacy { margin: 0; font-size: .75rem; color: var(--flipbook-text-muted); line-height: 1.4; }
+.bk-note-tabs { display: flex; gap: 2px; padding: 3px; border-radius: var(--flipbook-radius-md); background: var(--flipbook-bg-surface-alt); }
+.bk-note-tabs button { flex: 1; border: 0; padding: 4px 6px; min-height: 30px; background: transparent; color: var(--flipbook-text-main); border-radius: var(--flipbook-radius-sm); font: inherit; font-size: .8125rem; }
 .bk-note-tabs button[aria-selected=true] { background: var(--flipbook-bg-surface); box-shadow: 0 1px 4px var(--flipbook-shadow); color: var(--flipbook-accent); }
-.bk-add-annotation { flex: none; min-height: 44px; border: 1px solid var(--flipbook-accent); border-radius: var(--flipbook-radius-sm); padding: 10px; font: inherit; cursor: pointer; }
+.bk-add-annotation { flex: none; min-height: 32px; border: 1px solid var(--flipbook-accent); border-radius: var(--flipbook-radius-sm); padding: 5px 10px; font: inherit; font-size: .8125rem; cursor: pointer; }
 .bk-note-list { flex-direction: column; gap: 8px; }
-.bk-note-list-item { display: flex; flex-direction: column; gap: 6px; padding: 12px; min-height: 64px; text-align: left; border: 1px solid var(--flipbook-border); border-radius: var(--flipbook-radius-md); background: var(--flipbook-bg-surface-alt); color: var(--flipbook-text-main); font: inherit; cursor: pointer; }
+.bk-note-list-item { display: flex; flex-direction: column; gap: 4px; padding: 8px 10px; min-height: 0; text-align: left; border: 1px solid var(--flipbook-border); border-radius: var(--flipbook-radius-md); background: var(--flipbook-bg-surface-alt); color: var(--flipbook-text-main); font: inherit; cursor: pointer; }
 .bk-note-list-item strong { color: var(--flipbook-accent); font-size: .8rem; }
-.bk-note-list-item span { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; font-size: .875rem; line-height: 1.5; }
+.bk-note-list-item span { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-wrap; overflow-wrap: anywhere; font-size: .8125rem; line-height: 1.5; }
 .bk-note-empty { color: var(--flipbook-text-muted); line-height: 1.6; }
 .bk-note-popover { position: absolute; right: 8px; top: 8px; z-index: 60; display: flex; flex-direction: column; gap: 10px; width: min(320px,calc(100% - 16px)); max-height: calc(100% - 16px); overflow: auto; box-sizing: border-box; padding: 12px; background: var(--flipbook-bg-surface); color: var(--flipbook-text-main); border: 1px solid var(--flipbook-border); border-radius: var(--flipbook-radius-md); box-shadow: 0 8px 24px var(--flipbook-shadow); }
 .bk-note-document { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; }
 .bk-note-document p { margin: 0 0 .6em; }
 .bk-note-popover .bk-notes-actions { flex-wrap: wrap; }
 .bk-note-popover .bk-notes-actions button { min-height: 32px; padding: 4px 12px; font-size: .8125rem; }
-@media (pointer: coarse) { .bk-note-popover .bk-notes-actions button { min-height: 40px; } }
+@media (pointer: coarse) { .bk-note-popover .bk-notes-actions button { min-height: 40px; } .bk-note-tabs button, .bk-add-annotation { min-height: 40px; } }
 .bk-note-placement-layer { position: absolute; inset: 0; z-index: 70; width: 100%; height: 100%; margin: 0; padding: 0; border: 2px dashed var(--flipbook-accent); border-radius: 0; background: color-mix(in srgb,var(--flipbook-accent) 6%,transparent); cursor: crosshair; touch-action: none; }
 .bk-note-placement-hint { position: absolute; z-index: 80; top: 8px; left: 8px; right: 8px; gap: 12px; align-items: center; justify-content: space-between; padding: 12px; border-radius: var(--flipbook-radius-md); background: var(--flipbook-bg-panel); color: var(--flipbook-toolbar-text); box-shadow: 0 4px 12px var(--flipbook-shadow); font-size: .875rem; pointer-events: none; }
 .bk-note-placement-hint button { pointer-events: auto; min-height: 44px; padding: 8px; border: 1px solid var(--flipbook-border); border-radius: var(--flipbook-radius-sm); background: transparent; color: inherit; font: inherit; }
