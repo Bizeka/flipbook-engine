@@ -15,13 +15,16 @@ export function NoteMeta(props: { store: FlipbookStore; value: NoteMetaValue; on
             const group = groups.find(item => item.key === current.groupKey);
             return <>
                 {colors.length ? <fieldset class="bk-note-palette" aria-label={messages.value.noteColor}>
-                    {colors.map(color => <button type="button" class="bk-note-swatch" style={`--bk-swatch:${safeCssColor(color.value) ?? 'transparent'};`} title={color.label} aria-label={color.label ?? color.value}
+                    {colors.map((color, index) => {
+                        const label = color.label || messages.value.noteColorLabel.replace('{n}', String(index + 1));
+                        return <button type="button" class="bk-note-swatch" style={`--bk-swatch:${safeCssColor(color.value) ?? 'transparent'};`} data-label={label} aria-label={label}
                         aria-pressed={computed(() => current.color === color.value ? 'true' : 'false')}
                         onClick={(event: Event) => {
                             current = { ...current, color: current.color === color.value ? undefined : color.value }; props.onChange(current);
                             const pressed = (event.currentTarget as HTMLElement).parentElement!.querySelectorAll('.bk-note-swatch');
                             pressed.forEach(item => item.setAttribute('aria-pressed', item === event.currentTarget && current.color ? 'true' : 'false'));
-                        }} />)}
+                        }} />;
+                    })}
                 </fieldset> : null}
                 {groups.length ? <>
                     <label class="bk-note-meta-label">{messages.value.noteGroup}

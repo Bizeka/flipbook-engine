@@ -49,5 +49,5 @@ export const enMessages = {
   addNote: 'Place a note', pageHasNote: 'This page has a note', page: 'Page', noteSaved: 'Saved',
   confirmDeleteNote: 'Delete this note?', cancel: 'Cancel', placeNote: 'Click or tap a place on the page for your note.',
   keyboardShortcuts: 'Keyboard shortcuts', textSelection: 'Select text', resetZoom: 'Fit page',
-  noteColor: 'Note colour', noteGroup: 'Note group', noGroup: 'No group', allGroups: 'All groups'
+  noteColor: 'Note colour', noteGroup: 'Note group', noGroup: 'No group', allGroups: 'All groups', noteColorLabel: 'Group {n}'
 } as const;

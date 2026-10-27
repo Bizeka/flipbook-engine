@@ -5,6 +5,19 @@
 - Fixed returning from single-page mode to the two-page spread: the hidden book measured zero width, the page-flip library fell back to portrait and the viewer stayed at single width on the wrong page. Orientation is reset when leaving single mode, relayout is skipped while the book is hidden and the reader page is re-applied after every relayout.
 - Fixed the reader jumping back to an earlier page when entering or leaving fullscreen (or resizing) in single-page mode, caused by the hidden library overwriting the current page.
 - The single-page toggle stays in the toolbar instead of the overflow menu.
+- Fixed a blank spread after switching from single-page to two-page mode or jumping to a page that was not on screen yet: the lazy loader replaced the rendered PDF page with its empty placeholder. Leaving single-page mode also no longer turns an extra page.
+- The notes and search panels are more compact: 300px wide, smaller tabs, add button, note field and list items (touch screens keep 40px targets).
+- The note colour palette is on by default (five `DEFAULT_NOTE_COLORS`); pass `noteColors: false` to hide it. Swatches are smaller (20px, 32px on touch).
+- Coordinate-note pins default to 10px with a thin 1px accent ring when hovered or active.
+- Reopening a document returns to the last page read on this device (`rememberPage`, on by default, keyed by the source URL or a given document key); `startPage` opens at a host-saved page, for example one stored from `pageChange`. Double-page layout shows the spread that contains it. The thumbnail rail now scrolls to the active page.
+- Leaf edges beside the open spread: their total thickness follows the page count and each side shows its share of read and unread pages. They scale with resizing and zoom; hide them with `.bk-page-stack { display: none; }`.
+- Search highlights sit on the word: boxes cover the ascent and descent from the baseline and use proportional glyph widths. New default style `highlight` paints a semi-transparent marker over the word; `underline` (3px, below the word) and a larger, softer `bubble` remain; all follow `--flipbook-search-highlight`.
+- Note colour swatches show their name in a small bubble on hover or focus; without a host label they read "Group 1", "Group 2" (Turkish "1. Grup").
+- Security: hotspot and gallery links and the default PDF download only accept relative, http(s), mailto and tel URLs; `javascript:`, `data:` and other schemes are dropped. The download opens with `noopener`. `safeLinkUrl` is exported.
+- Fixed a hotspot click also turning the page when the hotspot sits on the right-hand page; the press no longer reaches page-flip.
+- Thumbnails are 10% smaller.
+- `background.light/dark.image` also accepts CSS gradients and inline SVG markup.
+- Form fields (search, note editor, note group selects and rich note editors) show focus with a flat 1px accent border instead of a glow and an outer outline ring.
 - The viewer no longer collapses when its host element has no definite height: it has a 390px minimum (`--flipbook-min-height`) and falls back to 80dvh, so it follows the viewport at any browser or OS zoom level.
 
 ## 1.1.1 - 2026-10-26

@@ -14,17 +14,37 @@
  */
 
 
-import { computed } from '@preact/signals-core';
+import { computed, effect } from '@preact/signals-core';
 import type { FlipbookStore } from '../state/store';
 
 interface ThumbnailsProps {
     store: FlipbookStore;
+    signal?: AbortSignal;
     onThumbClick: (pageIndex: number) => void;
+}
+
+/** Keeps the active thumbnail in view when the page changes, including the page restored on open. */
+function followActiveThumb(rail: HTMLElement, store: FlipbookStore, signal?: AbortSignal) {
+    let frame: ReturnType<typeof setTimeout> | undefined;
+    const stop = effect(() => {
+        store.currentPage.value; store.isSingleMode.value;
+        if (!store.showThumbs.value) return;
+        clearTimeout(frame);
+        frame = setTimeout(() => {
+            const active = rail.querySelector<HTMLElement>('.thumb-item.active');
+            if (!active || !rail.isConnected) return;
+            const left = active.offsetLeft - rail.offsetLeft, right = left + active.offsetWidth;
+            if (left < rail.scrollLeft || right > rail.scrollLeft + rail.clientWidth) {
+                rail.scrollTo({ left: Math.max(0, left - (rail.clientWidth - active.offsetWidth) / 2), behavior: 'smooth' });
+            }
+        }, 0);
+    });
+    signal?.addEventListener('abort', () => { clearTimeout(frame); stop(); }, { once: true });
 }
 
 export function Thumbnails(props: ThumbnailsProps) {
     return (
-        <div class="bk-thumbs" style={computed(() => props.store.showThumbs.value ? 'display:flex;' : 'display:none;')}>
+        <div class="bk-thumbs" ref={(element: HTMLElement) => { if (element) followActiveThumb(element, props.store, props.signal); }} style={computed(() => props.store.showThumbs.value ? 'display:flex;' : 'display:none;')}>
             {props.store.pages.value.map((page, index) => {
                 const isActive = () => {
                     const current = props.store.currentPage.value;

@@ -24,6 +24,7 @@ import { LayoutManager } from './core/LayoutManager';
 import { InteractionManager } from './core/InteractionManager';
 import { createFlipbookStore, type FlipbookStore } from './state/store';
 import { isFlipbookPageAsset, normalizeFlipbookPages, type FlipbookPageAsset, type NormalizedFlipbookPage } from './model/pages';
+import { safeLinkUrl } from './model/safe-url';
 import { applyThemeConfiguration, type FlipbookBackgrounds, type FlipbookThemeMode } from './theme/theme';
 import { resolveMessages, type FlipbookLocale, type PartialFlipbookMessages } from './i18n/service';
 import { PdfRenderer, type PdfPageLayout, type PdfPageMode } from './core/PdfRenderer';
@@ -31,7 +32,7 @@ import { normalizeFlipbookToc, type FlipbookTocEntry } from './model/toc';
 import type { FlipbookSearchHighlight, FlipbookSearchOptions, FlipbookSearchResult } from './model/search';
 import type { FlipbookHotspot } from './model/hotspots';
 import type { FlipbookAnnotation, FlipbookNoteColor, FlipbookNoteGroup, FlipbookNoteGroupProvider, FlipbookSearchHighlightStyle } from './model/annotations';
-import { normalizeNoteColors, normalizeNoteGroups } from './model/annotations';
+import { normalizeNoteColors, normalizeNoteGroups, normalizeSearchHighlightStyle } from './model/annotations';
 import './styles/flipbook-engine.css';
 import { FlipbookEmbedBridge, type FlipbookEmbedOptions } from './embed';
 import { FlipbookPluginRegistry, type FlipbookPlugin } from './plugins';
@@ -47,7 +48,7 @@ export interface FlipbookEngineOptions {
     optimisticNotes?: boolean;
     noteEditor?: FlipbookNoteEditorFactory;
     /** Pin colours offered in the note editor; `true` uses five defaults. Colours are off when absent. */
-    noteColors?: FlipbookNoteColor[] | string[] | true;
+    noteColors?: FlipbookNoteColor[] | string[] | boolean;
     /** Static note groups (colour groups with a label and description). */
     noteGroups?: FlipbookNoteGroup[];
     /** Loads note groups from the host when the notes UI first needs them; replaces `noteGroups` when it resolves. */
@@ -95,6 +96,10 @@ export interface FlipbookEngineOptions {
     pdfPageMode?: PdfPageMode;
     /** Enables URL-based page deep links and browser history synchronization. */
     deepLink?: boolean;
+    /** Zero-based page to open at, e.g. the reader's last page saved by the host from pageChange. Wins over rememberPage. */
+    startPage?: number;
+    /** Reopens at the last page read on this device (localStorage). A string is the document key; default true keys by the source URL. */
+    rememberPage?: boolean | string;
     /** Zero-based page indexes initially marked as bookmarks. */
     bookmarks?: number[];
     /** Initial host-managed notes keyed by zero-based page index. */
@@ -171,6 +176,7 @@ export class FlipbookEngine {
     private initGeneration = 0;
     private initAbortController: AbortController | null = null;
     private eventsReady = false;
+    private lastPageKey: string | null = null;
     private lastEventState = { currentPage: 0, zoom: 1, zoomActive: false, showThumbs: false, showToc: false, isSingle: false, orientation: '' as '' | 'landscape' | 'portrait' };
     private eventSyncStop: (() => void) | null = null;
     private qualityObserver: IntersectionObserver | null = null;
@@ -284,7 +290,9 @@ export class FlipbookEngine {
 
         // 1. Initialize State
         this.store.init(this.options, resolvedPages.length, resolvedPages, !!pdfUrl, !imageList?.length && !!pdfUrl);
+        this.lastPageKey = this.resolveLastPageKey(pdfUrl, resolvedPages[0]?.normal);
         this.applyInitialDeepLink();
+        this.applyResumePage();
         if (this.options.noteGroupProvider) {
             const provider = this.options.noteGroupProvider;
             void Promise.resolve().then(() => provider(abortController.signal)).then(groups => {
@@ -321,7 +329,10 @@ export class FlipbookEngine {
             onDownload: () => {
                 if (!pdfUrl) return;
                 if (this.options.onDownload) this.options.onDownload(pdfUrl);
-                else window.open(pdfUrl, '_blank');
+                else {
+                    const safeUrl = safeLinkUrl(pdfUrl);
+                    if (safeUrl) window.open(safeUrl, '_blank', 'noopener');
+                }
             },
             onShare: () => {
                 void this.sharePage().then((url) => this.options.onShare?.(url)).catch((error) => {
@@ -498,6 +509,8 @@ export class FlipbookEngine {
             if (image.dataset.pdfPage !== String(pageNumber)) return;
             image.src = dataUrl;
             delete image.dataset.pdfPage;
+            // The placeholder left in data-src would overwrite the rendered page once it scrolls into view.
+            delete image.dataset.src;
         });
     }
     private setupPdfLazyLoading() {
@@ -971,7 +984,7 @@ export class FlipbookEngine {
         if (options.annotations !== undefined) this.store.annotations.value = options.annotations;
         if ('noteColors' in options) this.store.noteColors.value = normalizeNoteColors(options.noteColors);
         if ('noteGroups' in options) this.store.noteGroups.value = normalizeNoteGroups(options.noteGroups);
-        if (options.searchHighlightStyle !== undefined) this.store.searchHighlightStyle.value = options.searchHighlightStyle === 'bubble' ? 'bubble' : 'underline';
+        if (options.searchHighlightStyle !== undefined) this.store.searchHighlightStyle.value = normalizeSearchHighlightStyle(options.searchHighlightStyle);
 
         if (this.container) {
             applyThemeConfiguration(this.container, this.options);
@@ -1010,6 +1023,36 @@ export class FlipbookEngine {
         } catch {
             return null;
         }
+    }
+
+    private resolveLastPageKey(pdfUrl: string, firstPage?: string): string | null {
+        const option = this.options.rememberPage ?? true;
+        if (option === false) return null;
+        const source = typeof option === 'string' && option.trim() ? option.trim() : (pdfUrl || firstPage || '');
+        if (!source) return null;
+        // Data URLs and long links are hashed so the storage key stays short.
+        let hash = 0;
+        for (let index = 0; index < source.length; index++) hash = (hash * 31 + source.charCodeAt(index)) | 0;
+        return 'flipbook:lastPage:' + (source.length > 120 ? 'h' + (hash >>> 0).toString(36) + '-' + source.length : source);
+    }
+
+    /** Opens at startPage, else at the page saved for this document, unless the URL already names a page. */
+    private applyResumePage() {
+        if (this.options.deepLink && typeof window !== 'undefined' && /[?&#]page=\d/i.test(window.location.href)) return;
+        const total = this.store.totalPages.value;
+        let page: number | null = Number.isInteger(this.options.startPage) ? this.options.startPage! : null;
+        if (page === null && this.lastPageKey) {
+            try {
+                const saved = Number(window.localStorage.getItem(this.lastPageKey));
+                if (Number.isInteger(saved) && saved > 0) page = saved;
+            } catch { /* storage blocked */ }
+        }
+        if (page !== null && total > 0) this.store.currentPage.value = Math.max(0, Math.min(total - 1, page));
+    }
+
+    private saveLastPage(page: number) {
+        if (!this.lastPageKey) return;
+        try { window.localStorage.setItem(this.lastPageKey, String(page)); } catch { /* storage blocked */ }
     }
 
     private applyInitialDeepLink() {
@@ -1147,6 +1190,7 @@ export class FlipbookEngine {
                     isSingle: state.isSingle
                 });
                 this.updateDeepLink(state.currentPage);
+                this.saveLastPage(state.currentPage);
             }
             if (state.zoom !== this.lastEventState.zoom || state.zoomActive !== this.lastEventState.zoomActive) {
                 this.emit('zoomChange', { zoom: state.zoom, isActive: state.zoomActive });
@@ -1182,6 +1226,8 @@ export class FlipbookEngine {
 
     public destroy(keepContainer = false) {
         this.textLayerStop?.(); this.textLayerStop = null;
+        // Stop saving first: the store reset below would otherwise record page 0 as the last page.
+        this.lastPageKey = null;
         const hadSession = this.hasActiveSession || !!this.initAbortController || !!this.pageFlipAdapter || !!this.layoutManager || !!this.interactionManager || !!this.pdfRenderer;
         this.initGeneration++;
         this.optimisticEntries.clear();

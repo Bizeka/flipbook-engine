@@ -66,6 +66,8 @@ export interface FlipbookMessages {
   noteGroup: string;
   noGroup: string;
   allGroups: string;
+  /** Fallback swatch label; {n} is the 1-based position. */
+  noteColorLabel: string;
 }
 
 export const builtInMessages = {

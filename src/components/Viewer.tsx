@@ -53,6 +53,24 @@ function SearchHighlightLayer(props: { store: FlipbookStore; pageIndex: number }
     );
 }
 
+/** Leaf edges beside the spread: thickness follows the page count, each side its share of read and unread pages. */
+function PageStacks(props: { store: FlipbookStore }) {
+    const style = (side: 'left' | 'right') => computed(() => {
+        const total = props.store.totalPages.value;
+        if (!props.store.isDoublePageLayout.value || total < 4) return 'display:none;';
+        const page = Math.min(Math.max(props.store.currentPage.value, 0), total - 1);
+        const before = page === 0 ? 0 : (page % 2 === 1 ? page : page - 1);
+        const after = Math.max(0, total - before - (page === 0 ? 1 : 2));
+        const share = (side === 'left' ? before : after) / total;
+        const depth = Math.min(4, Math.max(2, total * 0.02));
+        return share > 0 ? `--bk-stack-share:${share.toFixed(4)};--bk-stack-depth:${depth.toFixed(2)}%;` : 'display:none;';
+    });
+    return <>
+        <div class="bk-page-stack bk-page-stack--left" aria-hidden="true" style={style('left')} />
+        <div class="bk-page-stack bk-page-stack--right" aria-hidden="true" style={style('right')} />
+    </>;
+}
+
 export function Viewer(props: ViewerProps) {
     return (
         <div
@@ -73,6 +91,7 @@ export function Viewer(props: ViewerProps) {
                 class="bk-book-sizer"
                 ref={props.bookSizerRef}
             >
+                <PageStacks store={props.store} />
                 <div
                     ref={props.bookContainerRef}
                     class={computed(() => 'bk-book ' + (props.store.flipState.value !== 'read' ? 'is-flipping' : ''))}

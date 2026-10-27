@@ -26,6 +26,9 @@ FlipbookEngine is a modern, lightweight, and embeddable HTML flipbook viewer for
 - **Host-Managed Notes**: The localized notes toolbar opens an inline editor; hosts can initialize, update, and persist page notes through the public API and `noteChange` event without coupling the viewer to a storage backend.
 - **Client-Side PDF Search**: Extracts and searches PDF text on demand with localized snippets and normalized text-rectangle highlighting.
 - **Interactive Hotspots**: Adds normalized page overlays with accessible plain-text popups and optional links.
+- **Reading Position**: Reopens a document at the last page read on the device, or at a page the host saved; the double-page layout shows the spread that contains it.
+- **Book Depth**: Leaf edges beside the open spread follow the page count and the reading position, and scale with resizing and zoom.
+- **Note Colours**: A colour palette for coordinate notes is on by default; hosts can name each colour, and the name shows on hover.
 
 ## Backend text layers for image books
 
@@ -246,7 +249,12 @@ Supported events: `init`, `progress`, `pageChange`, `zoomChange`, `singlePageMod
 | `pdfRenderConcurrency` | `number` | `3` | Maximum number of PDF pages rendered concurrently when on-demand pages are requested. |
 | `pdfRenderCacheSize` | `number` | `32` | Maximum number of rendered PDF page images retained per engine instance (LRU); `0` disables caching. |
 | `pdfPageMode` | `'auto' \| 'single' \| 'split'` | `'auto'` | Controls PDF page splitting: A3 landscape pages are split automatically, all landscape pages can be split explicitly, or splitting can be disabled. |
-| `background` | `FlipbookBackgrounds \| null` | `null` | Optional light/dark viewer backgrounds with color, image, size, position, and repeat settings. |
+| `background` | `FlipbookBackgrounds \| null` | `null` | Optional light/dark viewer backgrounds with color, image, size, position, and repeat settings. `image` accepts a URL (PNG, JPG, SVG, data URL), a CSS gradient or inline `<svg>` markup. |
+| `startPage` | `number` | - | Zero-based page to open at, for example the last page the host saved from `pageChange`. Wins over `rememberPage`. |
+| `rememberPage` | `boolean \| string` | `true` | Reopens at the last page read on this device (localStorage). A string is used as the document key; otherwise the PDF URL or first page URL is the key. `false` turns it off. |
+| `searchHighlightStyle` | `'highlight' \| 'underline' \| 'bubble'` | `'highlight'` | How search matches are marked on the page: a semi-transparent marker over the word, a 3px line below it, or a soft rounded bubble around it. |
+| `noteColors` | `FlipbookNoteColor[] \| string[] \| boolean` | `true` | Colour palette in the note editor. `true` uses five defaults, `false` hides it, or pass `{ value, label? }` items. |
+| `notePinSize` | `number` | `10` | Diameter in px of coordinate-note pins. |
 | `deepLink` | `boolean` | `false` | Keeps the active page synchronized with a `?page=` URL parameter. The localized toolbar Share control uses this URL format. |
 | `bookmarks` | `number[]` | `[]` | Initial zero-based bookmarked page indexes; the host owns persistence. |
 | `notes` | `Record<number, string>` | `{}` | Initial page notes keyed by zero-based page index; the notes toolbar edits them while the host owns persistence. |
@@ -403,6 +411,42 @@ engine.clearSearch();
 
 Search is unavailable for image-only page lists because those assets do not contain extractable PDF text or text geometry. For image mode, applications that need search/highlights should generate page text and normalized coordinates on the server and pass the resulting page metadata as a host-side feature; the open-source viewer does not OCR raster images. The iframe controller exposes the same operation with `search`, `clearSearch`, and `getSearchResults`.
 
+Matches are marked with `searchHighlightStyle`: `'highlight'` (default) paints a semi-transparent marker over the word so the text stays readable, `'underline'` draws a 3px line below the word and `'bubble'` draws a soft, transparent rounded bubble around it. All three use the `--flipbook-search-highlight` colour (default `#e5484d`). Marks are drawn only when a result has `highlights`: built-in PDF search computes them from the PDF text geometry; a custom `searchProvider` must return normalized `{ x, y, width, height }` rectangles for each match, otherwise only the result list and page navigation are shown.
+
+```ts
+const engine = new FlipbookEngine('#viewer', { searchHighlightStyle: 'bubble' });
+engine.updateOptions({ searchHighlightStyle: 'underline' });
+```
+
+### Reading position
+
+The viewer remembers the last page read for each document on the device and opens there next time: in single-page mode on that page, in double-page mode on the spread that contains it (page 84 opens as 84-85). The key is the PDF URL or the first page image URL; pass a string to `rememberPage` when the same document can be served from different URLs, or `false` to turn it off. A `?page=` deep link always wins.
+
+To follow the reader across devices, store the page on the server and pass it back as `startPage`, which wins over the device copy:
+
+```ts
+const engine = new FlipbookEngine('#viewer', { rememberPage: 'catalog-42', startPage: savedPageIndex });
+engine.on('pageChange', ({ currentPage }) => saveLastPage('catalog-42', currentPage));
+```
+
+### Book depth (leaf edges)
+
+In double-page layout thin leaf edges appear beside the spread. Their total thickness grows with the page count; the left side shows the pages already read and the right side the pages still to come, so on page 10 of a 160-page book the right stack is about 15 times the left one. They follow page turns, resizing and zoom. Tune them with `--flipbook-page-edge-max` (largest thickness, default `18px`, `12px` on small screens), `--flipbook-page-edge-color` and `--flipbook-page-edge-line`, or hide them with `.bk-page-stack { display: none; }`.
+
+### Note colours
+
+The note editor shows a colour palette (on by default). Name the colours from the host or backend and the name appears in a small bubble on hover and keyboard focus; unnamed colours read "Group 1", "Group 2" (Turkish "1. Grup"). The saved annotation carries the chosen `color` value.
+
+```ts
+const engine = new FlipbookEngine('#viewer', {
+  noteColors: [
+    { value: '#e5484d', label: 'Exam' },
+    { value: '#0091ff', label: 'Homework' },
+    { value: '#30a46c', label: 'Read later' }
+  ]
+});
+```
+
 ### Interactive hotspots
 
 Hosts can provide normalized (0..1) page coordinates for lightweight links and pop-ups:
@@ -414,7 +458,7 @@ const engine = new FlipbookEngine('#viewer', {
 engine.on('hotspotActivate', ({ hotspot }) => console.log(hotspot.id));
 ```
 
-Hotspots support `kind: 'info' | 'media' | 'gallery' | 'commerce'`. A hotspot can render a single image/video/audio preview through `media`, a selectable image gallery through `gallery`, and a safe external/product destination through `href`. Content remains plain text; applications should sanitize server-provided URLs before passing them to the viewer. Use `activateHotspot(id)` and `closeHotspot()` for programmatic control.
+Hotspots support `kind: 'info' | 'media' | 'gallery' | 'commerce'`. A hotspot can render a single image/video/audio preview through `media`, a selectable image gallery through `gallery`, and a safe external/product destination through `href`. Content remains plain text. Links accept only relative, http(s), mailto and tel URLs; `javascript:`, `data:` and other schemes are dropped by the viewer, but hosts should still validate server-provided URLs. Use `activateHotspot(id)` and `closeHotspot()` for programmatic control.
 
 
 ### Page annotations

@@ -49,5 +49,5 @@ export const trMessages = {
   addNote: 'Konuma not ekle', pageHasNote: 'Bu sayfada not var', page: 'Sayfa', noteSaved: 'Kaydedildi',
   confirmDeleteNote: 'Bu not silinsin mi?', cancel: 'Vazgeç', placeNote: 'Not eklemek için sayfada bir yere tıklayın veya dokunun.',
   keyboardShortcuts: 'Klavye kısayolları', textSelection: 'Metin seçimi', resetZoom: 'Sayfaya sığdır',
-  noteColor: 'Not rengi', noteGroup: 'Not grubu', noGroup: 'Grupsuz', allGroups: 'Tüm gruplar'
+  noteColor: 'Not rengi', noteGroup: 'Not grubu', noGroup: 'Grupsuz', allGroups: 'Tüm gruplar', noteColorLabel: '{n}. Grup'
 } as const;
