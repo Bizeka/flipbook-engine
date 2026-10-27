@@ -458,7 +458,13 @@ const engine = new FlipbookEngine('#viewer', {
 engine.on('hotspotActivate', ({ hotspot }) => console.log(hotspot.id));
 ```
 
-Hotspots support `kind: 'info' | 'media' | 'gallery' | 'commerce'`. A hotspot can render a single image/video/audio preview through `media`, a selectable image gallery through `gallery`, and a safe external/product destination through `href`. Content remains plain text; applications should sanitize server-provided URLs before passing them to the viewer. Use `activateHotspot(id)` and `closeHotspot()` for programmatic control.
+Hotspots support `kind: 'info' | 'media' | 'gallery' | 'commerce'`. `media` takes `type: 'image' | 'video' | 'audio' | 'embed'`; `embed` (or a YouTube/Vimeo link given as `video`) plays YouTube and Vimeo inside the popup through youtube-nocookie.com or Vimeo with do-not-track, in a sandboxed, lazily loaded iframe. Other embed hosts are shown as a link, never framed.
+
+```ts
+hotspots: [{ id: 'lesson', pageIndex: 12, x: .1, y: .4, width: .5, height: .25, label: 'Lesson video', kind: 'media',
+  content: 'Watch the explanation.', media: { type: 'embed', src: 'https://www.youtube.com/watch?v=VIDEO_ID&t=90' } }]
+```
+ A hotspot can render a single image/video/audio preview through `media`, a selectable image gallery through `gallery`, and a safe external/product destination through `href`. Content remains plain text; applications should sanitize server-provided URLs before passing them to the viewer. Use `activateHotspot(id)` and `closeHotspot()` for programmatic control.
 
 
 ### Page annotations

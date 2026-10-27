@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased (1.2.0)
+
+- Hotspots can embed YouTube and Vimeo videos: `media: { type: 'embed', src }` takes a watch, share, shorts or embed link, and a YouTube or Vimeo link given as `type: 'video'` is embedded too. Players load lazily from youtube-nocookie.com or Vimeo with do-not-track, in a sandboxed iframe that allows fullscreen; a `t=` / `start=` time is kept. Other hosts are never framed and show as a link. The popup widens to 420px for a 16:9 player. `resolveEmbedUrl` is exported.
+
 ## 1.1.2 - 2026-10-27
 
 - Fixed returning from single-page mode to the two-page spread: the hidden book measured zero width, the page-flip library fell back to portrait and the viewer stayed at single width on the wrong page. Orientation is reset when leaving single mode, relayout is skipped while the book is hidden and the reader page is re-applied after every relayout.
