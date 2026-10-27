@@ -5,7 +5,6 @@
 - Fixed returning from single-page mode to the two-page spread: the hidden book measured zero width, the page-flip library fell back to portrait and the viewer stayed at single width on the wrong page. Orientation is reset when leaving single mode, relayout is skipped while the book is hidden and the reader page is re-applied after every relayout.
 - Fixed the reader jumping back to an earlier page when entering or leaving fullscreen (or resizing) in single-page mode, caused by the hidden library overwriting the current page.
 - The single-page toggle stays in the toolbar instead of the overflow menu.
-- Form fields use a flat 1px accent border on focus instead of a glow or an offset outline ring.
 - The viewer no longer collapses when its host element has no definite height: it has a 390px minimum (`--flipbook-min-height`) and falls back to 80dvh, so it follows the viewport at any browser or OS zoom level.
 
 ## 1.1.1 - 2026-10-26
