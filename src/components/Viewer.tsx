@@ -94,8 +94,8 @@ export function Viewer(props: ViewerProps) {
                 <PageStacks store={props.store} />
                 <div
                     ref={props.bookContainerRef}
-                    class={computed(() => 'bk-book ' + (props.store.flipState.value !== 'read' ? 'is-flipping' : ''))}
-                    style={computed(() => `display: ${props.store.isSingleMode.value ? 'none' : 'block'};`)}
+                    // Hidden by class, not by rewriting style: page-flip keeps its own inline sizing on this element.
+                    class={computed(() => 'bk-book' + (props.store.flipState.value !== 'read' ? ' is-flipping' : '') + (props.store.isSingleMode.value ? ' is-hidden' : ''))}
                 >
                     {props.store.pages.value.map((page, index) => {
                             const isHard = index === 0 || index === props.store.pages.value.length - 1;
