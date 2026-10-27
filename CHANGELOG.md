@@ -11,7 +11,7 @@
 - Coordinate-note pins default to 10px with a thin 1px accent ring when hovered or active.
 - Reopening a document returns to the last page read on this device (`rememberPage`, on by default, keyed by the source URL or a given document key); `startPage` opens at a host-saved page, for example one stored from `pageChange`. Double-page layout shows the spread that contains it. The thumbnail rail now scrolls to the active page.
 - Leaf edges beside the open spread: their total thickness follows the page count and each side shows its share of read and unread pages. They scale with resizing and zoom; hide them with `.bk-page-stack { display: none; }`.
-- Search highlights sit on the word: boxes cover the ascent and descent from the baseline and use proportional glyph widths. New default style `highlight` paints a semi-transparent marker over the word; `underline` (3px, below the word) and `bubble` remain.
+- Search highlights sit on the word: boxes cover the ascent and descent from the baseline and use proportional glyph widths. New default style `highlight` paints a semi-transparent marker over the word; `underline` (3px, below the word) and a larger, softer `bubble` remain; all follow `--flipbook-search-highlight`.
 - Note colour swatches show their name in a small bubble on hover or focus; without a host label they read "Group 1", "Group 2" (Turkish "1. Grup").
 - Thumbnails are 10% smaller.
 - `background.light/dark.image` also accepts CSS gradients and inline SVG markup.

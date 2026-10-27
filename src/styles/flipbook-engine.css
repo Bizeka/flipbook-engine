@@ -1271,9 +1271,10 @@
 .bk-search-progress { display:block; width:100%; height:6px; margin-top:6px; accent-color:var(--flipbook-accent); }
 .bk-search-highlight-layer { position:absolute; inset:0; pointer-events:none; z-index:6; }
 .bk-search-text-highlight { position:absolute; display:block; min-width:3px; box-sizing:border-box; pointer-events:none; }
-.bk-search-highlight-layer.is-highlight .bk-search-text-highlight { margin:0 -5px 0 -2px; padding:0 5px 0 2px; border-radius:2px; background:color-mix(in srgb,var(--flipbook-search-highlight,#e5484d) 32%,transparent); mix-blend-mode:multiply; }
-.bk-search-highlight-layer.is-underline .bk-search-text-highlight { border-bottom:3px solid #e5484d; border-radius:2px; }
-.bk-search-highlight-layer.is-bubble .bk-search-text-highlight { margin:-1px -5px; padding:1px 5px; border:1.5px solid color-mix(in srgb,#e5484d 75%,transparent); border-radius:999px; background:color-mix(in srgb,#e5484d 18%,transparent); }
+.bk-search-highlight-layer.is-highlight .bk-search-text-highlight::before { content:""; position:absolute; inset:0 -4px 0 -2px; border-radius:2px; background:color-mix(in srgb,var(--flipbook-search-highlight,#e5484d) 32%,transparent); mix-blend-mode:multiply; }
+.bk-search-highlight-layer.is-underline .bk-search-text-highlight { border-bottom:3px solid var(--flipbook-search-highlight,#e5484d); border-radius:2px; }
+/* The bubble is drawn around the word box, so it grows without moving off the text. */
+.bk-search-highlight-layer.is-bubble .bk-search-text-highlight::before { content:""; position:absolute; inset:-5px -10px; border:1px solid color-mix(in srgb,var(--flipbook-search-highlight,#e5484d) 32%,transparent); border-radius:999px; background:color-mix(in srgb,var(--flipbook-search-highlight,#e5484d) 9%,transparent); box-shadow:0 2px 10px color-mix(in srgb,var(--flipbook-search-highlight,#e5484d) 16%,transparent); }
 .bk-hotspot-layer { position:absolute; inset:0; pointer-events:none; z-index:5; }
 .bk-hotspot { position:absolute; pointer-events:auto; border:2px solid color-mix(in srgb,var(--flipbook-accent) 75%, transparent); border-radius:var(--flipbook-radius-sm); background:color-mix(in srgb,var(--flipbook-accent) 16%, transparent); color:var(--flipbook-text-main); cursor:pointer; }
 .bk-hotspot:hover,.bk-hotspot:focus-visible { background:color-mix(in srgb,var(--flipbook-accent) 28%, transparent); }
