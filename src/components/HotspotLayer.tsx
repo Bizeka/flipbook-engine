@@ -75,7 +75,10 @@ export function HotspotLayer(props: HotspotLayerProps) {
   return (
     <div class="bk-hotspot-layer">
       {hotspots.value.map((hotspot) => (
-        <button type="button" class="bk-hotspot" style={normalizedRectStyle(hotspot)} aria-label={hotspot.label} onClick={() => { activeGalleryIndex.value = 0; props.onActivate(hotspot); }}>
+        <button type="button" class="bk-hotspot" style={normalizedRectStyle(hotspot)} aria-label={hotspot.label}
+          // A click on a hotspot opens it; it must not also reach page-flip and turn the page.
+          onPointerDown={stopPageFlipInteraction} onMouseDown={stopPageFlipInteraction} onTouchStart={stopPageFlipInteraction}
+          onClick={() => { activeGalleryIndex.value = 0; props.onActivate(hotspot); }}>
           <span class="bk-hotspot-label">{hotspot.label}</span>
         </button>
       ))}

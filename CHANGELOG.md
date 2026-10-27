@@ -14,6 +14,7 @@
 - Search highlights sit on the word: boxes cover the ascent and descent from the baseline and use proportional glyph widths. New default style `highlight` paints a semi-transparent marker over the word; `underline` (3px, below the word) and a larger, softer `bubble` remain; all follow `--flipbook-search-highlight`.
 - Note colour swatches show their name in a small bubble on hover or focus; without a host label they read "Group 1", "Group 2" (Turkish "1. Grup").
 - Security: hotspot and gallery links and the default PDF download only accept relative, http(s), mailto and tel URLs; `javascript:`, `data:` and other schemes are dropped. The download opens with `noopener`. `safeLinkUrl` is exported.
+- Fixed a hotspot click also turning the page when the hotspot sits on the right-hand page; the press no longer reaches page-flip.
 - Thumbnails are 10% smaller.
 - `background.light/dark.image` also accepts CSS gradients and inline SVG markup.
 - Form fields (search, note editor, note group selects and rich note editors) show focus with a flat 1px accent border instead of a glow and an outer outline ring.
