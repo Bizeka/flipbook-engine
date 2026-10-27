@@ -49,13 +49,21 @@ test('pin hover and focus show the note bubble, Escape closes it', async () => {
   engine.destroy();
 });
 
-test('colours and groups are off by default and appear in the editor and notes panel when configured', async () => {
+test('the palette is on by default, noteColors: false hides it, groups appear when configured', async () => {
   const plain = new FlipbookEngine('#app', { soundEnabled: false, annotationProvider: async () => {} });
   await plain.init('', pages);
   plain.beginAnnotation(); plain.placeAnnotation(0, .3, .3);
   await tick();
-  assert.match(document.querySelector('.bk-note-meta')!.getAttribute('style') ?? '', /display:none/);
+  assert.doesNotMatch(document.querySelector('.bk-note-meta')!.getAttribute('style') ?? '', /display:none/);
+  assert.equal(document.querySelectorAll('.bk-note-swatch').length, 5);
   plain.destroy();
+
+  const off = new FlipbookEngine('#app', { soundEnabled: false, noteColors: false, annotationProvider: async () => {} });
+  await off.init('', pages);
+  off.beginAnnotation(); off.placeAnnotation(0, .3, .3);
+  await tick();
+  assert.match(document.querySelector('.bk-note-meta')!.getAttribute('style') ?? '', /display:none/);
+  off.destroy();
 
   const saved: any[] = [];
   const engine = new FlipbookEngine('#app', { soundEnabled: false, noteColors: true, noteGroupProvider: async () => groups,
