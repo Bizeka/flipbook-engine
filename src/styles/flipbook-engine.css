@@ -1320,7 +1320,7 @@
 .bk-note-placement-hint button { pointer-events: auto; min-height: 44px; padding: 8px; border: 1px solid var(--flipbook-border); border-radius: var(--flipbook-radius-sm); background: transparent; color: inherit; font: inherit; }
 .bk-wrapper :focus-visible { outline: 2px solid var(--flipbook-accent); outline-offset: 3px; }
 /* Form fields show focus with their own thin accent border, not an outer ring. */
-.bk-wrapper input:focus-visible, .bk-wrapper textarea:focus-visible, .bk-wrapper select:focus-visible { outline: none; }
+.bk-wrapper input:focus-visible, .bk-wrapper textarea:focus-visible, .bk-wrapper select:focus-visible, .bk-wrapper [contenteditable="true"]:focus-visible { outline: none; }
 @media (prefers-reduced-motion:reduce) { .bk-wrapper *, .bk-wrapper *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; } }
 .bk-shortcuts-dialog { width: min(440px,calc(100vw - 32px)); max-height: 80dvh; overflow: auto; padding: 20px; border: 1px solid var(--flipbook-border); border-radius: var(--flipbook-radius-md); background: var(--flipbook-bg-surface); color: var(--flipbook-text-main); box-sizing: border-box; }
 .bk-shortcuts-dialog::backdrop { background: #0008; }
