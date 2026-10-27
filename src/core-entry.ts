@@ -30,3 +30,4 @@ export { isA3Landscape } from './core/PdfRenderer';
 export type { FlipbookHotspot, FlipbookHotspotKind, FlipbookHotspotMedia, FlipbookHotspotMediaType, FlipbookHotspotGalleryItem } from './model/hotspots';
 
 export type { FlipbookTextRun, FlipbookTextPage, FlipbookTextLayerProvider } from './model/text-layer';
+export { safeLinkUrl } from './model/safe-url';

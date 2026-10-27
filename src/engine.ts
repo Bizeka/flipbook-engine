@@ -24,6 +24,7 @@ import { LayoutManager } from './core/LayoutManager';
 import { InteractionManager } from './core/InteractionManager';
 import { createFlipbookStore, type FlipbookStore } from './state/store';
 import { isFlipbookPageAsset, normalizeFlipbookPages, type FlipbookPageAsset, type NormalizedFlipbookPage } from './model/pages';
+import { safeLinkUrl } from './model/safe-url';
 import { applyThemeConfiguration, type FlipbookBackgrounds, type FlipbookThemeMode } from './theme/theme';
 import { resolveMessages, type FlipbookLocale, type PartialFlipbookMessages } from './i18n/service';
 import { PdfRenderer, type PdfPageLayout, type PdfPageMode } from './core/PdfRenderer';
@@ -328,7 +329,10 @@ export class FlipbookEngine {
             onDownload: () => {
                 if (!pdfUrl) return;
                 if (this.options.onDownload) this.options.onDownload(pdfUrl);
-                else window.open(pdfUrl, '_blank');
+                else {
+                    const safeUrl = safeLinkUrl(pdfUrl);
+                    if (safeUrl) window.open(safeUrl, '_blank', 'noopener');
+                }
             },
             onShare: () => {
                 void this.sharePage().then((url) => this.options.onShare?.(url)).catch((error) => {

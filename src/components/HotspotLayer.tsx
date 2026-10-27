@@ -8,6 +8,7 @@ import { computed, signal } from '@preact/signals-core';
 import { resolveMessages } from '../i18n/service';
 import type { FlipbookHotspot, FlipbookHotspotMedia } from '../model/hotspots';
 import { safeCssColor, type FlipbookAnnotation } from '../model/annotations';
+import { safeLinkUrl } from '../model/safe-url';
 import type { FlipbookStore } from '../state/store';
 import { renderNoteDocument } from '../model/note-editor';
 
@@ -132,12 +133,12 @@ export function HotspotLayer(props: HotspotLayerProps) {
                     </button>
                   ))}
                 </div>
-                {selectedGalleryItem.href ? (
-                  <a href={selectedGalleryItem.href} target={selectedGalleryItem.target || '_blank'} rel="noopener noreferrer"><img class="bk-hotspot-gallery-selected" src={selectedGalleryItem.src} alt={selectedGalleryItem.alt || ''} /></a>
+                {safeLinkUrl(selectedGalleryItem.href) ? (
+                  <a href={safeLinkUrl(selectedGalleryItem.href)} target={selectedGalleryItem.target || '_blank'} rel="noopener noreferrer"><img class="bk-hotspot-gallery-selected" src={selectedGalleryItem.src} alt={selectedGalleryItem.alt || ''} /></a>
                 ) : <img class="bk-hotspot-gallery-selected" src={selectedGalleryItem.src} alt={selectedGalleryItem.alt || ''} />}
               </div>
             ) : null}
-            {active.href ? <a class="bk-hotspot-link" href={active.href} target={active.target || '_blank'} rel="noopener noreferrer">{active.kind === 'commerce' ? active.label : active.href}</a> : null}
+            {safeLinkUrl(active.href) ? <a class="bk-hotspot-link" href={safeLinkUrl(active.href)} target={active.target || '_blank'} rel="noopener noreferrer">{active.kind === 'commerce' ? active.label : active.href}</a> : null}
           </div>
         );
       })}
