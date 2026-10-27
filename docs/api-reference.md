@@ -231,7 +231,7 @@ Optional `textLayerProvider`, `textSelection` and `setTextSelection(enabled)` ad
 
 ## Note pins, search highlights, colours and groups
 
-- `notePinSize` (px, default 14) or the CSS variable `--flipbook-note-pin-size` sizes coordinate-note pins.
+- `notePinSize` (px, default 10) or the CSS variable `--flipbook-note-pin-size` sizes coordinate-note pins.
 - `searchHighlightStyle`: `'underline'` (default, red underline) or `'bubble'` (transparent rounded bubble).
 - Pins show the note in a speech-bubble on hover and keyboard focus; on touch the first tap previews, the second opens the note. Escape closes the bubble.
-- `noteColors`: `true` (five defaults, `DEFAULT_NOTE_COLORS`), or `{ value, label? }[]` / CSS colour strings. `noteGroups`: `{ key, label, description?, color? }[]`. `noteGroupProvider(signal)` returns groups from the host and replaces `noteGroups`. Annotations gain optional `color` and `groupKey`; the host persists them through `annotationProvider`. The editor shows a palette and group picker (with the group description); the notes panel shows the group label and a group filter. Without these options nothing changes.
+- `noteColors`: on by default with the five `DEFAULT_NOTE_COLORS`; `false` hides the palette, or `{ value, label? }[]` / CSS colour strings. `noteGroups`: `{ key, label, description?, color? }[]`. `noteGroupProvider(signal)` returns groups from the host and replaces `noteGroups`. Annotations gain optional `color` and `groupKey`; the host persists them through `annotationProvider`. The editor shows a palette and group picker (with the group description); the notes panel shows the group label and a group filter. Without these options nothing changes.

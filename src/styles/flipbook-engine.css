@@ -1345,19 +1345,19 @@
 .bk-text-layer span::selection { background:color-mix(in srgb, var(--flipbook-primary,#7367f0) 35%, transparent); color:transparent; }
 
 /* Coordinate-note pins: small dot, colour from --bk-pin, size from --flipbook-note-pin-size. */
-.bk-annotation-marker { position:absolute; transform:translate(-50%,-50%); width:var(--flipbook-note-pin-size,14px); height:var(--flipbook-note-pin-size,14px); padding:0; border:2px solid var(--flipbook-bg-surface); border-radius:50%; background:var(--bk-pin,var(--flipbook-accent)); box-shadow:0 1px 4px var(--flipbook-shadow); box-sizing:border-box; pointer-events:auto; cursor:pointer; font-size:0; touch-action:manipulation; }
+.bk-annotation-marker { position:absolute; transform:translate(-50%,-50%); width:var(--flipbook-note-pin-size,10px); height:var(--flipbook-note-pin-size,10px); padding:0; border:1.5px solid var(--flipbook-bg-surface); border-radius:50%; background:var(--bk-pin,var(--flipbook-accent)); box-shadow:0 1px 4px var(--flipbook-shadow); box-sizing:border-box; pointer-events:auto; cursor:pointer; font-size:0; touch-action:manipulation; }
 .bk-annotation-marker::before { content:""; position:absolute; inset:-9px; border-radius:50%; }
-.bk-annotation-marker:hover,.bk-annotation-marker:focus-visible { outline:2px solid var(--flipbook-accent); outline-offset:2px; }
-.bk-annotation-marker.active { outline:2px solid var(--flipbook-text-main); outline-offset:2px; }
+.bk-annotation-marker:hover,.bk-annotation-marker:focus-visible { outline:1px solid var(--flipbook-accent); outline-offset:1px; }
+.bk-annotation-marker.active { outline:1px solid var(--flipbook-accent); outline-offset:1px; }
 @media (pointer:coarse) { .bk-annotation-marker::before { inset:-14px; } }
-.bk-note-bubble { position:absolute; z-index:30; transform:translate(-50%,calc(-100% - calc(var(--flipbook-note-pin-size,14px) / 2 + 10px))); width:max-content; max-width:min(260px,80%); box-sizing:border-box; padding:8px 10px; border:1px solid var(--flipbook-border); border-radius:var(--flipbook-radius-md); background:var(--flipbook-bg-surface); color:var(--flipbook-text-main); box-shadow:0 6px 18px var(--flipbook-shadow); font-size:.8125rem; line-height:1.45; pointer-events:auto; }
+.bk-note-bubble { position:absolute; z-index:30; transform:translate(-50%,calc(-100% - calc(var(--flipbook-note-pin-size,10px) / 2 + 10px))); width:max-content; max-width:min(260px,80%); box-sizing:border-box; padding:8px 10px; border:1px solid var(--flipbook-border); border-radius:var(--flipbook-radius-md); background:var(--flipbook-bg-surface); color:var(--flipbook-text-main); box-shadow:0 6px 18px var(--flipbook-shadow); font-size:.8125rem; line-height:1.45; pointer-events:auto; }
 .bk-note-bubble::after { content:""; position:absolute; left:50%; top:100%; width:10px; height:10px; margin-top:-5px; transform:translateX(-50%) rotate(45deg); background:inherit; border:solid var(--flipbook-border); border-width:0 1px 1px 0; }
-.bk-note-bubble.is-below { transform:translate(-50%,calc(var(--flipbook-note-pin-size,14px) / 2 + 10px)); }
+.bk-note-bubble.is-below { transform:translate(-50%,calc(var(--flipbook-note-pin-size,10px) / 2 + 10px)); }
 .bk-note-bubble.is-below::after { top:-5px; margin-top:0; border-width:1px 0 0 1px; }
-.bk-note-bubble.is-start { transform:translate(-14px,calc(-100% - calc(var(--flipbook-note-pin-size,14px) / 2 + 10px))); }
-.bk-note-bubble.is-end { transform:translate(calc(-100% + 14px),calc(-100% - calc(var(--flipbook-note-pin-size,14px) / 2 + 10px))); }
-.bk-note-bubble.is-below.is-start { transform:translate(-14px,calc(var(--flipbook-note-pin-size,14px) / 2 + 10px)); }
-.bk-note-bubble.is-below.is-end { transform:translate(calc(-100% + 14px),calc(var(--flipbook-note-pin-size,14px) / 2 + 10px)); }
+.bk-note-bubble.is-start { transform:translate(-14px,calc(-100% - calc(var(--flipbook-note-pin-size,10px) / 2 + 10px))); }
+.bk-note-bubble.is-end { transform:translate(calc(-100% + 14px),calc(-100% - calc(var(--flipbook-note-pin-size,10px) / 2 + 10px))); }
+.bk-note-bubble.is-below.is-start { transform:translate(-14px,calc(var(--flipbook-note-pin-size,10px) / 2 + 10px)); }
+.bk-note-bubble.is-below.is-end { transform:translate(calc(-100% + 14px),calc(var(--flipbook-note-pin-size,10px) / 2 + 10px)); }
 .bk-note-bubble.is-start::after { left:14px; } .bk-note-bubble.is-end::after { left:calc(100% - 14px); }
 .bk-note-bubble-body { max-height:9em; overflow:auto; }
 .bk-note-bubble-group { display:inline-block; margin-bottom:4px; padding:0 6px; border-radius:99px; background:color-mix(in srgb,var(--flipbook-accent) 18%,transparent); font-size:.6875rem; font-weight:700; }
@@ -1365,10 +1365,10 @@
 
 /* Note colour palette, group picker and filter. */
 .bk-note-meta { display:flex; flex-direction:column; gap:8px; }
-.bk-note-palette { display:flex; flex-wrap:wrap; gap:8px; border:0; margin:0; padding:0; }
-.bk-note-swatch { position:relative; width:28px; height:28px; padding:0; border:2px solid var(--flipbook-bg-surface); border-radius:50%; background:var(--bk-swatch); box-shadow:0 0 0 1px var(--flipbook-border); cursor:pointer; }
-.bk-note-swatch[aria-pressed="true"] { box-shadow:0 0 0 2px var(--flipbook-text-main); }
-@media (pointer:coarse) { .bk-note-swatch { width:36px; height:36px; } }
+.bk-note-palette { display:flex; flex-wrap:wrap; gap:6px; border:0; margin:0; padding:0; }
+.bk-note-swatch { position:relative; width:20px; height:20px; padding:0; border:2px solid var(--flipbook-bg-surface); border-radius:50%; background:var(--bk-swatch); box-shadow:0 0 0 1px var(--flipbook-border); cursor:pointer; }
+.bk-note-swatch[aria-pressed="true"] { box-shadow:0 0 0 1.5px var(--flipbook-accent); }
+@media (pointer:coarse) { .bk-note-swatch { width:32px; height:32px; } }
 .bk-note-group-select,.bk-note-group-filter { width:100%; box-sizing:border-box; min-height:36px; padding:4px 8px; border:1px solid var(--flipbook-border); border-radius:var(--flipbook-radius-sm); background:var(--flipbook-bg-surface); color:var(--flipbook-text-main); font:inherit; }
 .bk-note-group-desc { margin:0; color:var(--flipbook-text-muted); font-size:.75rem; }
 .bk-note-meta-label { font-size:.75rem; font-weight:700; color:var(--flipbook-text-muted); }

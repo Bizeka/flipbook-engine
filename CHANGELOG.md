@@ -7,6 +7,8 @@
 - The single-page toggle stays in the toolbar instead of the overflow menu.
 - Fixed a blank spread after switching from single-page to two-page mode or jumping to a page that was not on screen yet: the lazy loader replaced the rendered PDF page with its empty placeholder. Leaving single-page mode also no longer turns an extra page.
 - The notes and search panels are more compact: 300px wide, smaller tabs, add button, note field and list items (touch screens keep 40px targets).
+- The note colour palette is on by default (five `DEFAULT_NOTE_COLORS`); pass `noteColors: false` to hide it. Swatches are smaller (20px, 32px on touch).
+- Coordinate-note pins default to 10px with a thin 1px accent ring when hovered or active.
 - Form fields (search, note editor, note group selects and rich note editors) show focus with a flat 1px accent border instead of a glow and an outer outline ring.
 - The viewer no longer collapses when its host element has no definite height: it has a 390px minimum (`--flipbook-min-height`) and falls back to 80dvh, so it follows the viewport at any browser or OS zoom level.
 

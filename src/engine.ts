@@ -47,7 +47,7 @@ export interface FlipbookEngineOptions {
     optimisticNotes?: boolean;
     noteEditor?: FlipbookNoteEditorFactory;
     /** Pin colours offered in the note editor; `true` uses five defaults. Colours are off when absent. */
-    noteColors?: FlipbookNoteColor[] | string[] | true;
+    noteColors?: FlipbookNoteColor[] | string[] | boolean;
     /** Static note groups (colour groups with a label and description). */
     noteGroups?: FlipbookNoteGroup[];
     /** Loads note groups from the host when the notes UI first needs them; replaces `noteGroups` when it resolves. */

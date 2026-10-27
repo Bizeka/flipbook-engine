@@ -28,9 +28,10 @@ export const DEFAULT_NOTE_COLORS: FlipbookNoteColor[] = [
   { value: '#0091ff', label: 'Blue' }, { value: '#8e4ec6', label: 'Purple' }
 ];
 
-export function normalizeNoteColors(input: FlipbookNoteColor[] | string[] | true | undefined): FlipbookNoteColor[] {
-  if (!input) return [];
-  if (input === true) return DEFAULT_NOTE_COLORS;
+/** The default palette is on unless the host passes `false` or an empty list. */
+export function normalizeNoteColors(input: FlipbookNoteColor[] | string[] | boolean | undefined): FlipbookNoteColor[] {
+  if (input === false) return [];
+  if (input === undefined || input === true) return DEFAULT_NOTE_COLORS;
   return input.map(item => typeof item === 'string' ? { value: item } : item).filter(item => item && typeof item.value === 'string' && item.value.trim());
 }
 
