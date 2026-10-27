@@ -26,6 +26,7 @@ export type { FlipbookTocEntry } from './model/toc';
 export type { FlipbookSearchProvider, FlipbookSearchProgress, FlipbookSearchProgressReporter, FlipbookNoteProvider, FlipbookAnnotationProvider } from './model/backend';
 export type { FlipbookSearchHighlight, FlipbookSearchResult, FlipbookSearchOptions } from './model/search';
 export type { FlipbookHotspot, FlipbookHotspotKind, FlipbookHotspotMedia, FlipbookHotspotMediaType, FlipbookHotspotGalleryItem } from './model/hotspots';
+export { resolveEmbedUrl } from './model/hotspots';
 export type { FlipbookAnnotation, FlipbookNoteColor, FlipbookNoteGroup, FlipbookNoteGroupProvider, FlipbookSearchHighlightStyle } from './model/annotations';
 export { DEFAULT_NOTE_COLORS } from './model/annotations';
 export type { FlipbookNoteDocument, FlipbookNoteValue, FlipbookNoteEditor, FlipbookNoteEditorFactory } from './model/note-editor';

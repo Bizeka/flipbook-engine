@@ -1,6 +1,6 @@
 # FlipbookEngine
 
-> **Current release:** `flipbookengine@1.1.2` includes the localized Table of Contents API, backend text layers and coordinate notes.
+> **Current release:** `flipbookengine@1.2.0` adds YouTube/Vimeo hotspot embeds, reading-position resume, leaf edges, search highlight styles and named note colours, and fixes single/double switching and fullscreen page loss.
 > **1.0.0 scope:** Version 1.0.0 added the plugin contract, independent feature entrypoints, TOC runtime/embed APIs, and the complete open-source reader surface.
 
 [![NPM Version](https://img.shields.io/npm/v/flipbookengine?style=flat-square&color=blue)](https://www.npmjs.com/package/flipbookengine)
@@ -84,7 +84,7 @@ Passing `pages` remains optional. When omitted, FlipbookEngine creates the page 
 Use the ESM build with an import map for PDF.js. The worker must be served from a URL your site permits in its Content Security Policy.
 
 ```html
-<link rel="stylesheet" href="https://unpkg.com/flipbookengine@1.1.2/dist/flipbook-engine.css" />
+<link rel="stylesheet" href="https://unpkg.com/flipbookengine@1.2.0/dist/flipbook-engine.css" />
 <div id="viewer" style="width: 100%; height: 600px;"></div>
 
 <script type="importmap">
@@ -95,7 +95,7 @@ Use the ESM build with an import map for PDF.js. The worker must be served from 
 }
 </script>
 <script type="module">
-  import { FlipbookEngine } from 'https://unpkg.com/flipbookengine@1.1.2/dist/flipbook-engine.js';
+  import { FlipbookEngine } from 'https://unpkg.com/flipbookengine@1.2.0/dist/flipbook-engine.js';
 
   const engine = new FlipbookEngine('#viewer', {
     pdfWorkerSrc: 'https://unpkg.com/pdfjs-dist@5.4.530/build/pdf.worker.min.mjs'
@@ -458,7 +458,14 @@ const engine = new FlipbookEngine('#viewer', {
 engine.on('hotspotActivate', ({ hotspot }) => console.log(hotspot.id));
 ```
 
-Hotspots support `kind: 'info' | 'media' | 'gallery' | 'commerce'`. A hotspot can render a single image/video/audio preview through `media`, a selectable image gallery through `gallery`, and a safe external/product destination through `href`. Content remains plain text. Links accept only relative, http(s), mailto and tel URLs; `javascript:`, `data:` and other schemes are dropped by the viewer, but hosts should still validate server-provided URLs. Use `activateHotspot(id)` and `closeHotspot()` for programmatic control.
+Hotspots support `kind: 'info' | 'media' | 'gallery' | 'commerce'`. `media` takes `type: 'image' | 'video' | 'audio' | 'embed'`; `embed` (or a YouTube/Vimeo link given as `video`) plays YouTube and Vimeo inside the popup through youtube-nocookie.com or Vimeo with do-not-track, in a sandboxed, lazily loaded iframe. Other embed hosts are shown as a link, never framed.
+
+```ts
+hotspots: [{ id: 'lesson', pageIndex: 12, x: .1, y: .4, width: .5, height: .25, label: 'Lesson video', kind: 'media',
+  content: 'Watch the explanation.', media: { type: 'embed', src: 'https://www.youtube.com/watch?v=VIDEO_ID&t=90' } }]
+```
+
+A hotspot can render a single image/video/audio preview through `media`, a selectable image gallery through `gallery`, and a safe external/product destination through `href`. Content remains plain text. Links accept only relative, http(s), mailto and tel URLs; `javascript:`, `data:` and other schemes are dropped by the viewer, but hosts should still validate server-provided URLs. Use `activateHotspot(id)` and `closeHotspot()` for programmatic control.
 
 
 ### Page annotations

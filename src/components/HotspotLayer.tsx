@@ -6,7 +6,7 @@
 
 import { computed, signal } from '@preact/signals-core';
 import { resolveMessages } from '../i18n/service';
-import type { FlipbookHotspot, FlipbookHotspotMedia } from '../model/hotspots';
+import { resolveEmbedUrl, type FlipbookHotspot, type FlipbookHotspotMedia } from '../model/hotspots';
 import { safeCssColor, type FlipbookAnnotation } from '../model/annotations';
 import { safeLinkUrl } from '../model/safe-url';
 import type { FlipbookStore } from '../state/store';
@@ -25,6 +25,15 @@ interface HotspotLayerProps {
 function renderMedia(media: FlipbookHotspotMedia, fallbackLabel: string) {
   if (media.type === 'image') {
     return <img class="bk-hotspot-media-image" src={media.src} alt={media.alt || ''} loading="lazy" />;
+  }
+  const embed = media.type === 'embed' || media.type === 'video' ? resolveEmbedUrl(media.src) : null;
+  if (embed) {
+    return <div class="bk-hotspot-media-embed"><iframe src={embed} title={media.alt || fallbackLabel} loading="lazy" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen="" referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-scripts allow-same-origin allow-presentation" /></div>;
+  }
+  // Only YouTube and Vimeo are framed; any other embed link opens in a new tab.
+  if (media.type === 'embed') {
+    const href = safeLinkUrl(media.src);
+    return href ? <a class="bk-hotspot-link" href={href} target="_blank" rel="noopener noreferrer">{media.alt || fallbackLabel}</a> : null;
   }
   if (media.type === 'video') {
     return <video class="bk-hotspot-media-video" controls preload="metadata" poster={media.poster} aria-label={media.alt || fallbackLabel}><source src={media.src} /></video>;
@@ -123,7 +132,7 @@ export function HotspotLayer(props: HotspotLayerProps) {
         const selectedIndex = gallery.length ? Math.min(activeGalleryIndex.value, gallery.length - 1) : 0;
         const selectedGalleryItem = gallery[selectedIndex];
         return (
-          <div class="bk-hotspot-popup" onPointerDown={stopPageFlipInteraction} onPointerMove={stopPageFlipInteraction} onPointerUp={stopPageFlipInteraction} onPointerCancel={stopPageFlipInteraction} onTouchStart={stopPageFlipInteraction} onTouchMove={stopPageFlipInteraction} onTouchEnd={stopPageFlipInteraction} onMouseDown={stopPageFlipInteraction} role="dialog" aria-label={active.label}>
+          <div class={'bk-hotspot-popup' + (active.media && (active.media.type === 'embed' || active.media.type === 'video') && resolveEmbedUrl(active.media.src) ? ' has-embed' : '')} onPointerDown={stopPageFlipInteraction} onPointerMove={stopPageFlipInteraction} onPointerUp={stopPageFlipInteraction} onPointerCancel={stopPageFlipInteraction} onTouchStart={stopPageFlipInteraction} onTouchMove={stopPageFlipInteraction} onTouchEnd={stopPageFlipInteraction} onMouseDown={stopPageFlipInteraction} role="dialog" aria-label={active.label}>
             <div class="bk-hotspot-popup-heading"><strong>{active.label}</strong><button type="button" class="bk-hotspot-popup-close" onClick={props.onClose} aria-label={computed(() => messages.value.closeHotspot || 'Close popup')}>×</button></div>
             {active.content ? <p>{active.content}</p> : null}
             {active.media ? <div class="bk-hotspot-popup-media">{renderMedia(active.media, active.label)}</div> : null}
