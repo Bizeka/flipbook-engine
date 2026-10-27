@@ -29,6 +29,20 @@ export interface PdfRenderOptions {
     cacheSize?: number;
 }
 
+let measureContext: CanvasRenderingContext2D | null | undefined;
+/** Share of the item's rendered width taken by text[start, end); proportional glyph widths when a canvas is available. */
+function textWidthRatio(text: string, start: number, end: number): number {
+    if (!text.length) return 0;
+    if (measureContext === undefined) {
+        try { measureContext = typeof document !== 'undefined' ? document.createElement('canvas').getContext('2d') : null; } catch { measureContext = null; }
+        if (measureContext) measureContext.font = '100px Helvetica, Arial, sans-serif';
+    }
+    const total = measureContext?.measureText(text).width ?? 0;
+    if (!(total > 0)) return (end - start) / text.length;
+    const width = (value: string) => measureContext!.measureText(value).width;
+    return (width(text.slice(0, end)) - width(text.slice(0, start))) / total;
+}
+
 export class PdfRenderer {
     private pdfDoc: any = null;
     private loadingTask: any = null;
@@ -169,11 +183,12 @@ export class PdfRenderer {
                     if (!(itemWidth > 0 && itemHeight > 0 && Number.isFinite(itemX) && Number.isFinite(itemY))) return;
                     let itemOffset = itemHaystack.indexOf(needle);
                     while (itemOffset >= 0) {
-                        const ratioStart = Math.max(0, Math.min(1, itemOffset / Math.max(1, itemText.length)));
-                        const ratioWidth = Math.max(0.02, Math.min(1 - ratioStart, needle.length / Math.max(1, itemText.length)));
+                        const ratioStart = Math.max(0, Math.min(1, textWidthRatio(itemText, 0, itemOffset)));
+                        const ratioWidth = Math.max(0.02, Math.min(1 - ratioStart, textWidthRatio(itemText, itemOffset, itemOffset + needle.length)));
+                        // itemY is the baseline: cover the ascent above it and the descent below it.
                         highlights.push({
                             x: Math.max(0, Math.min(1, (itemX + itemWidth * ratioStart) / viewportWidth)),
-                            y: Math.max(0, Math.min(1, (viewportHeight - itemY - itemHeight) / viewportHeight)),
+                            y: Math.max(0, Math.min(1, (viewportHeight - itemY - itemHeight * 0.8) / viewportHeight)),
                             width: Math.max(0, Math.min(1, itemWidth * ratioWidth / viewportWidth)),
                             height: Math.max(0, Math.min(1, itemHeight / viewportHeight))
                         });

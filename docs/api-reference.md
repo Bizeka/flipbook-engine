@@ -28,7 +28,9 @@ When instantiating `new FlipbookEngine(selector, options)`, you can configure th
 | `pdfRenderConcurrency` | `number` | `3` | Maximum number of PDF pages rendered concurrently when on-demand pages are requested. |
 | `pdfRenderCacheSize` | `number` | `32` | Maximum number of rendered PDF page images retained per engine instance (LRU); `0` disables caching. |
 | `pdfPageMode` | `'auto' \| 'single' \| 'split'` | `'auto'` | Automatically split A3 landscape pages, split every landscape page, or keep source pages intact. |
-| `background` | `FlipbookBackgrounds \| null` | `null` | Optional per-theme viewer background styles. |
+| `background` | `FlipbookBackgrounds \| null` | `null` | Optional per-theme viewer background: `{ light?, dark? }`, each `{ color?, image?, size?, position?, repeat? }`. `image` is a URL (PNG, JPG, SVG, data URL), a CSS gradient or inline `<svg>` markup. |
+| `startPage` | `number` | — | Zero-based page to open at, e.g. a last page the host saved from `pageChange`. Wins over `rememberPage`; a deep-linked `?page=` wins over both. |
+| `rememberPage` | `boolean \| string` | `true` | Reopens at the last page read on this device (localStorage). A string is the document key; otherwise the source URL is used. |
 | `deepLink` | `boolean` | `false` | Synchronizes the active page with a `?page=` URL parameter and browser history. |
 | `onShare` | `(url: string) => void` | `null` | Optional callback invoked after the localized toolbar Share control shares or copies the generated page URL. |
 | `bookmarks` | `number[]` | `[]` | Initial zero-based page indexes marked as bookmarks; persistence remains with the host application. |
@@ -232,6 +234,6 @@ Optional `textLayerProvider`, `textSelection` and `setTextSelection(enabled)` ad
 ## Note pins, search highlights, colours and groups
 
 - `notePinSize` (px, default 10) or the CSS variable `--flipbook-note-pin-size` sizes coordinate-note pins.
-- `searchHighlightStyle`: `'underline'` (default, red underline) or `'bubble'` (transparent rounded bubble).
+- `searchHighlightStyle`: `'highlight'` (default, semi-transparent marker fill over the word; colour from `--flipbook-search-highlight`), `'underline'` (red underline below the word) or `'bubble'` (transparent rounded bubble).
 - Pins show the note in a speech-bubble on hover and keyboard focus; on touch the first tap previews, the second opens the note. Escape closes the bubble.
 - `noteColors`: on by default with the five `DEFAULT_NOTE_COLORS`; `false` hides the palette, or `{ value, label? }[]` / CSS colour strings. `noteGroups`: `{ key, label, description?, color? }[]`. `noteGroupProvider(signal)` returns groups from the host and replaces `noteGroups`. Annotations gain optional `color` and `groupKey`; the host persists them through `annotationProvider`. The editor shows a palette and group picker (with the group description); the notes panel shows the group label and a group filter. Without these options nothing changes.

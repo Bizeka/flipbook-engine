@@ -24,7 +24,7 @@ test('notePinSize sets the pin size variable and defaults stay in CSS', async ()
 test('search highlights use one clean style that follows searchHighlightStyle', async () => {
   const engine = new FlipbookEngine('#app', { soundEnabled: false });
   await engine.init('', pages);
-  assert.match(document.querySelector('.bk-search-highlight-layer')!.className, /is-underline/);
+  assert.match(document.querySelector('.bk-search-highlight-layer')!.className, /is-highlight/);
   engine.updateOptions({ searchHighlightStyle: 'bubble' });
   assert.match(document.querySelector('.bk-search-highlight-layer')!.className, /is-bubble/);
   engine.destroy();

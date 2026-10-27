@@ -14,7 +14,7 @@ import type { PartialFlipbookMessages } from '../i18n/service';
 import type { FlipbookSearchResult } from '../model/search';
 import type { FlipbookSearchProgress } from '../model/backend';
 import type { FlipbookHotspot } from '../model/hotspots';
-import { normalizeNoteColors, normalizeNoteGroups, type FlipbookAnnotation, type FlipbookNoteColor, type FlipbookNoteGroup, type FlipbookSearchHighlightStyle } from '../model/annotations';
+import { normalizeNoteColors, normalizeNoteGroups, normalizeSearchHighlightStyle, type FlipbookAnnotation, type FlipbookNoteColor, type FlipbookNoteGroup, type FlipbookSearchHighlightStyle } from '../model/annotations';
 import type { FlipbookNoteDocument, FlipbookNoteEditorFactory } from '../model/note-editor';
 
 export type FlipState = 'read' | 'fold_corner' | 'flipping';
@@ -45,7 +45,7 @@ export function createFlipbookStore(): FlipbookStore {
     const noteEditor = signal<FlipbookNoteEditorFactory | undefined>(undefined);
     const canAnnotate = signal(false), placingNote = signal(false), pendingAnnotation = signal<FlipbookAnnotation | null>(null);
     const noteColors = signal<FlipbookNoteColor[]>([]), noteGroups = signal<FlipbookNoteGroup[]>([]), noteGroupFilter = signal(''), hoverAnnotationId = signal<string | null>(null);
-    const searchHighlightStyle = signal<FlipbookSearchHighlightStyle>('underline');
+    const searchHighlightStyle = signal<FlipbookSearchHighlightStyle>('highlight');
     const notesView = signal<'page' | 'all'>('page');
     const searchAvailable = signal(false), searchBusy = signal(false), searchProgress = signal<FlipbookSearchProgress | null>(null), searchFailed = signal(false), notesSaving = signal(false), notesFailed = signal(false);
     const currentPage = signal(0), totalPages = signal(0), isSingleMode = signal(false);
@@ -68,7 +68,7 @@ export function createFlipbookStore(): FlipbookStore {
     const init = (options: FlipbookEngineOptions, total: number, mappedPages: NormalizedFlipbookPage[], hasPdfUrl: boolean, pdfMode = hasPdfUrl) => {
         pageNoteDocuments.value = new Map(Object.entries(options.noteDocuments ?? {}).map(([page, doc]) => [Number(page), doc])); noteEditor.value = options.noteEditor; canAnnotate.value = !!options.annotationProvider; placingNote.value = false; pendingAnnotation.value = null;
         noteColors.value = normalizeNoteColors(options.noteColors); noteGroups.value = normalizeNoteGroups(options.noteGroups); noteGroupFilter.value = ''; hoverAnnotationId.value = null;
-        searchHighlightStyle.value = options.searchHighlightStyle === 'bubble' ? 'bubble' : 'underline';
+        searchHighlightStyle.value = normalizeSearchHighlightStyle(options.searchHighlightStyle);
         textAvailable.value = !!options.textLayerProvider;
         textPages.value = new Map(); textSelection.value = options.textSelection ?? false;
         searchAvailable.value = pdfMode || !!options.searchProvider;

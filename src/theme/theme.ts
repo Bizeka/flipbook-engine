@@ -35,6 +35,10 @@ export interface ThemeConfiguration {
 
 function toCssImage(image?: string): string | undefined {
   if (!image) return undefined;
+  const trimmed = image.trim();
+  // CSS gradients pass through; inline SVG markup becomes a data URL.
+  if (/^(repeating-)?(linear|radial|conic)-gradient\(/i.test(trimmed)) return trimmed;
+  if (/^<svg[\s>]/i.test(trimmed)) image = 'data:image/svg+xml,' + encodeURIComponent(trimmed);
   const escaped = image.replace(/["\\\r\n]/g, (character) => '\\' + character);
   return 'url("' + escaped + '")';
 }

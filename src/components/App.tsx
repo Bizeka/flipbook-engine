@@ -178,7 +178,7 @@ export function App(props: AppProps) {
                 pluginRegistry={props.pluginRegistry}
             />
 
-            <Thumbnails store={props.store}
+            <Thumbnails store={props.store} signal={props.signal}
                 onThumbClick={handleThumbClick}
             />
         </div>

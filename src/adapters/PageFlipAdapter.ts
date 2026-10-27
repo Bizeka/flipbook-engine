@@ -74,6 +74,8 @@ export class PageFlipAdapter {
 
     public init(viewportWidth: number, viewportHeight: number) {
         this.pageFlip = new PageFlip(this.bookContainer, {
+            // Open on the restored or deep-linked page; otherwise the library reports page 0 and overwrites it.
+            startPage: this.store.currentPage.peek(),
             width: viewportWidth,
             height: viewportHeight,
             size: "stretch" as any,
