@@ -28,7 +28,7 @@ function renderMedia(media: FlipbookHotspotMedia, fallbackLabel: string) {
   }
   const embed = media.type === 'embed' || media.type === 'video' ? resolveEmbedUrl(media.src) : null;
   if (embed) {
-    return <div class="bk-hotspot-media-embed"><iframe src={embed} title={media.alt || fallbackLabel} loading="lazy" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen="" referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-scripts allow-same-origin allow-presentation allow-popups allow-popups-to-escape-sandbox" /></div>;
+    return <div class="bk-hotspot-media-embed"><iframe src={embed} title={media.alt || fallbackLabel} loading="lazy" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen="" referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-scripts allow-same-origin allow-presentation" /></div>;
   }
   // Only YouTube and Vimeo are framed; any other embed link opens in a new tab.
   if (media.type === 'embed') {

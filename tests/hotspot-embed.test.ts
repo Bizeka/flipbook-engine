@@ -43,7 +43,7 @@ test('hotspot embeds render a sandboxed player, other embed hosts fall back to a
   assert.equal(frame?.getAttribute('title'), 'Lesson video');
   assert.match(frame?.getAttribute('allow') ?? '', /fullscreen/);
   assert.match(frame?.getAttribute('sandbox') ?? '', /allow-scripts/);
-  assert.doesNotMatch(frame?.getAttribute('sandbox') ?? '', /allow-top-navigation/);
+  assert.doesNotMatch(frame?.getAttribute('sandbox') ?? '', /allow-top-navigation|allow-popups/);
   assert.ok(document.querySelector('.bk-hotspot-popup.has-embed'));
 
   engine.activateHotspot('as-video');
