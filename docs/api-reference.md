@@ -202,6 +202,7 @@ const engine = new FlipbookEngine('#viewer', {
 ### Hotspots
 
 - **`getHotspots(pageIndex = getCurrentPage())`**: Returns host-provided overlays for a logical page.
+- **`setHotspots(hotspots)`**: Replaces all hotspots and redraws them on every page, in single and double layout (same as `updateOptions({ hotspots })`). If the open hotspot is no longer in the list, its popup closes and `hotspotClose` is emitted.
 - **`activateHotspot(id)`** / **`closeHotspot()`**: Opens or closes a hotspot popup. Opening emits `hotspotActivate` and `hotspotOpen`; closing emits `hotspotClose`. Hotspots may include `kind`, `media` (`image`, `video`, `audio`, `embed`), `gallery` image items, and an optional `href` for commerce/product links; popup text is always rendered as plain text.
 - **`className`** (string) adds classes to the hotspot button next to `bk-hotspot`; tokens that are not valid class names are dropped. **`data`** (`Record<string, string | number | boolean>`) is written as `data-*` attributes on the same button; keys must be lowercase words joined by hyphens (`{ kind: 'video', 'item-id': 42 }` gives `data-kind="video" data-item-id="42"`), other keys and values are ignored.
 

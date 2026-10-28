@@ -83,7 +83,8 @@ export function HotspotLayer(props: HotspotLayerProps) {
   const layerKey = Math.random().toString(36).slice(2, 8);
   return (
     <div class="bk-hotspot-layer">
-      {hotspots.value.map((hotspot) => (
+      {/* Reactive like the note pins: spread pages are built once, so a plain map would never see a new hotspot list. */}
+      {computed(() => <div class="bk-hotspot-items">{hotspots.value.map((hotspot) => (
         <button type="button" class={('bk-hotspot ' + hotspotClassNames(hotspot.className)).trim()} style={normalizedRectStyle(hotspot)} aria-label={hotspot.label}
           ref={(element: HTMLElement) => { if (element) hotspotDataAttributes(hotspot.data).forEach(([name, value]) => element.setAttribute(name, value)); }}
           // A click on a hotspot opens it; it must not also reach page-flip and turn the page.
@@ -91,7 +92,7 @@ export function HotspotLayer(props: HotspotLayerProps) {
           onClick={() => { activeGalleryIndex.value = 0; props.onActivate(hotspot); }}>
           <span class="bk-hotspot-label">{hotspot.label}</span>
         </button>
-      ))}
+      ))}</div>)}
       {computed(() => <div class="bk-annotation-markers">{annotations.value.map((annotation) => {
         const color = annotation.color ?? props.store.noteGroups.value.find((group) => group.key === annotation.groupKey)?.color;
         const show = () => { props.store.hoverAnnotationId.value = annotation.id; };

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.3 - 2026-10-28
+
+- Fixed hotspot changes at runtime not showing in double-page layout: `updateOptions({ hotspots })` redrew the single-page view but the spread pages, built once, kept the old hotspots. The hotspot layer now follows the list on every page.
+- New `engine.setHotspots(list)`, the same as `updateOptions({ hotspots })`. Removing the open hotspot closes its popup and emits `hotspotClose`.
+
 ## 1.2.2 - 2026-10-28
 
 - New `showShare` option (default `true`): `false` hides the Share command in the toolbar and the overflow menu, so a host can offer sharing only to some readers (for example teachers). It can be switched with `updateOptions`; `sharePage()` keeps working for the host.

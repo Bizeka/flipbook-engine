@@ -810,6 +810,12 @@ export class FlipbookEngine {
         return this.store.hotspots.value.filter((hotspot) => hotspot.pageIndex === pageIndex);
     }
 
+    /** Replaces all hotspots and redraws them on every page, in single and double layout. Same as updateOptions({ hotspots }). */
+    public setHotspots(hotspots: FlipbookHotspot[]): void {
+        this.options = { ...this.options, hotspots };
+        this.store.hotspots.value = Array.isArray(hotspots) ? hotspots : [];
+    }
+
     public activateHotspot(hotspotId: string): void {
         const hotspot = this.store.hotspots.value.find((item) => item.id === hotspotId);
         if (!hotspot) return;
