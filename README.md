@@ -1,6 +1,6 @@
 # FlipbookEngine
 
-> **Current release:** `flipbookengine@1.2.1` (1.2.0 plus a fix for single-page mode in hosts with their own `.bk-book` rule and a phone toolbar that fits) adds YouTube/Vimeo hotspot embeds, reading-position resume, leaf edges, search highlight styles and named note colours, and fixes single/double switching and fullscreen page loss.
+> **Current release:** `flipbookengine@1.2.2` (1.2.0 plus a fix for single-page mode in hosts with their own `.bk-book` rule, a phone toolbar that fits and the `showShare` option) adds YouTube/Vimeo hotspot embeds, reading-position resume, leaf edges, search highlight styles and named note colours, and fixes single/double switching and fullscreen page loss.
 > **1.0.0 scope:** Version 1.0.0 added the plugin contract, independent feature entrypoints, TOC runtime/embed APIs, and the complete open-source reader surface.
 
 [![NPM Version](https://img.shields.io/npm/v/flipbookengine?style=flat-square&color=blue)](https://www.npmjs.com/package/flipbookengine)
@@ -84,7 +84,7 @@ Passing `pages` remains optional. When omitted, FlipbookEngine creates the page 
 Use the ESM build with an import map for PDF.js. The worker must be served from a URL your site permits in its Content Security Policy.
 
 ```html
-<link rel="stylesheet" href="https://unpkg.com/flipbookengine@1.2.1/dist/flipbook-engine.css" />
+<link rel="stylesheet" href="https://unpkg.com/flipbookengine@1.2.2/dist/flipbook-engine.css" />
 <div id="viewer" style="width: 100%; height: 600px;"></div>
 
 <script type="importmap">
@@ -95,7 +95,7 @@ Use the ESM build with an import map for PDF.js. The worker must be served from 
 }
 </script>
 <script type="module">
-  import { FlipbookEngine } from 'https://unpkg.com/flipbookengine@1.2.1/dist/flipbook-engine.js';
+  import { FlipbookEngine } from 'https://unpkg.com/flipbookengine@1.2.2/dist/flipbook-engine.js';
 
   const engine = new FlipbookEngine('#viewer', {
     pdfWorkerSrc: 'https://unpkg.com/pdfjs-dist@5.4.530/build/pdf.worker.min.mjs'
@@ -256,6 +256,7 @@ Supported events: `init`, `progress`, `pageChange`, `zoomChange`, `singlePageMod
 | `noteColors` | `FlipbookNoteColor[] \| string[] \| boolean` | `true` | Colour palette in the note editor. `true` uses five defaults, `false` hides it, or pass `{ value, label? }` items. |
 | `notePinSize` | `number` | `10` | Diameter in px of coordinate-note pins. |
 | `deepLink` | `boolean` | `false` | Keeps the active page synchronized with a `?page=` URL parameter. The localized toolbar Share control uses this URL format. |
+| `showShare` | `boolean` | `true` | Shows the Share command. `false` hides it, for example for readers without share permission; `sharePage()` still works for the host. |
 | `bookmarks` | `number[]` | `[]` | Initial zero-based bookmarked page indexes; the host owns persistence. |
 | `notes` | `Record<number, string>` | `{}` | Initial page notes keyed by zero-based page index; the notes toolbar edits them while the host owns persistence. |
 | `hotspots` | `FlipbookHotspot[]` | `[]` | Normalized (0..1) page overlays with info/media/gallery/commerce popup content and optional links. |

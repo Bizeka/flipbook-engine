@@ -59,6 +59,8 @@ export interface FlipbookEngineOptions {
     notePinSize?: number;
     noteDocuments?: Record<number, FlipbookNoteDocument>;
     allowDownload?: boolean;
+    /** Shows the Share command in the toolbar. Default true; false hides it (the sharePage API keeps working). */
+    showShare?: boolean;
     showThumbs?: boolean;
     showToc?: boolean;
     toc?: FlipbookTocEntry[];
@@ -970,6 +972,7 @@ export class FlipbookEngine {
         if (options.toc !== undefined) this.store.toc.value = normalizeFlipbookToc(options.toc, this.store.totalPages.value);
         if (options.showArrows !== undefined) this.store.showArrows.value = options.showArrows;
         if (options.allowDownload !== undefined) this.store.allowDownload.value = options.allowDownload;
+        if (options.showShare !== undefined) this.store.showShare.value = options.showShare;
         if (options.whiteLabel !== undefined) this.store.whiteLabel.value = options.whiteLabel;
         if (options.soundEnabled !== undefined) this.store.soundEnabled.value = options.soundEnabled;
         if (options.locale !== undefined) this.store.locale.value = options.locale;

@@ -9,6 +9,7 @@ When instantiating `new FlipbookEngine(selector, options)`, you can configure th
 | Property | Type | Default | Description |
 |---|---|---|---|
 | `allowDownload` | `boolean` | `true` | Exposes a download button in the toolbar. |
+| `showShare` | `boolean` | `true` | Shows the Share command (toolbar or overflow menu). `false` hides it, for example for readers who may not share; `sharePage()` still works for the host. Can be changed with `updateOptions`. |
 | `showThumbs` | `boolean` | `false` | Starts the viewer with the thumbnail navigation rail hidden. |
 | `showToc` | `boolean` | `false` | Shows the supplied table of contents panel when it contains entries. |
 | `toc` | `FlipbookTocEntry[]` | `[]` | Host-provided chapter/category entries using zero-based page indexes. |
