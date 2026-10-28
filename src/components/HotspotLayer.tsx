@@ -6,7 +6,7 @@
 
 import { computed, signal } from '@preact/signals-core';
 import { resolveMessages } from '../i18n/service';
-import { resolveEmbedUrl, type FlipbookHotspot, type FlipbookHotspotMedia } from '../model/hotspots';
+import { hotspotClassNames, hotspotDataAttributes, resolveEmbedUrl, type FlipbookHotspot, type FlipbookHotspotMedia } from '../model/hotspots';
 import { safeCssColor, type FlipbookAnnotation } from '../model/annotations';
 import { safeLinkUrl } from '../model/safe-url';
 import type { FlipbookStore } from '../state/store';
@@ -84,7 +84,8 @@ export function HotspotLayer(props: HotspotLayerProps) {
   return (
     <div class="bk-hotspot-layer">
       {hotspots.value.map((hotspot) => (
-        <button type="button" class="bk-hotspot" style={normalizedRectStyle(hotspot)} aria-label={hotspot.label}
+        <button type="button" class={('bk-hotspot ' + hotspotClassNames(hotspot.className)).trim()} style={normalizedRectStyle(hotspot)} aria-label={hotspot.label}
+          ref={(element: HTMLElement) => { if (element) hotspotDataAttributes(hotspot.data).forEach(([name, value]) => element.setAttribute(name, value)); }}
           // A click on a hotspot opens it; it must not also reach page-flip and turn the page.
           onPointerDown={stopPageFlipInteraction} onMouseDown={stopPageFlipInteraction} onTouchStart={stopPageFlipInteraction}
           onClick={() => { activeGalleryIndex.value = 0; props.onActivate(hotspot); }}>

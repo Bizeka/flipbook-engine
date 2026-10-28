@@ -1,6 +1,6 @@
 # FlipbookEngine
 
-> **Current release:** `flipbookengine@1.2.1` (1.2.0 plus a fix for single-page mode in hosts with their own `.bk-book` rule and a phone toolbar that fits) adds YouTube/Vimeo hotspot embeds, reading-position resume, leaf edges, search highlight styles and named note colours, and fixes single/double switching and fullscreen page loss.
+> **Current release:** `flipbookengine@1.2.2` (1.2.0 plus a fix for single-page mode in hosts with their own `.bk-book` rule, a phone toolbar that fits and the `showShare` option) adds YouTube/Vimeo hotspot embeds, reading-position resume, leaf edges, search highlight styles and named note colours, and fixes single/double switching and fullscreen page loss.
 > **1.0.0 scope:** Version 1.0.0 added the plugin contract, independent feature entrypoints, TOC runtime/embed APIs, and the complete open-source reader surface.
 
 [![NPM Version](https://img.shields.io/npm/v/flipbookengine?style=flat-square&color=blue)](https://www.npmjs.com/package/flipbookengine)
@@ -84,7 +84,7 @@ Passing `pages` remains optional. When omitted, FlipbookEngine creates the page 
 Use the ESM build with an import map for PDF.js. The worker must be served from a URL your site permits in its Content Security Policy.
 
 ```html
-<link rel="stylesheet" href="https://unpkg.com/flipbookengine@1.2.1/dist/flipbook-engine.css" />
+<link rel="stylesheet" href="https://unpkg.com/flipbookengine@1.2.2/dist/flipbook-engine.css" />
 <div id="viewer" style="width: 100%; height: 600px;"></div>
 
 <script type="importmap">
@@ -95,7 +95,7 @@ Use the ESM build with an import map for PDF.js. The worker must be served from 
 }
 </script>
 <script type="module">
-  import { FlipbookEngine } from 'https://unpkg.com/flipbookengine@1.2.1/dist/flipbook-engine.js';
+  import { FlipbookEngine } from 'https://unpkg.com/flipbookengine@1.2.2/dist/flipbook-engine.js';
 
   const engine = new FlipbookEngine('#viewer', {
     pdfWorkerSrc: 'https://unpkg.com/pdfjs-dist@5.4.530/build/pdf.worker.min.mjs'
@@ -232,7 +232,7 @@ const unsubscribe = engine.on('pageChange', ({ currentPage, totalPages, isSingle
 unsubscribe();
 ```
 
-Supported events: `init`, `progress`, `pageChange`, `zoomChange`, `singlePageModeChange`, `thumbsToggle`, `tocToggle`, `orientationChange`, `deepLinkChange`, `bookmarkChange`, `noteChange`, `searchChange`, `searchProgress`, `hotspotActivate`, `annotationActivate`, `error`, `destroy`.
+Supported events: `init`, `progress`, `pageChange`, `zoomChange`, `singlePageModeChange`, `thumbsToggle`, `tocToggle`, `orientationChange`, `deepLinkChange`, `bookmarkChange`, `noteChange`, `searchChange`, `searchProgress`, `hotspotActivate`, `hotspotOpen`, `hotspotClose`, `annotationActivate`, `error`, `destroy`.
 
 | Option | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
@@ -256,6 +256,7 @@ Supported events: `init`, `progress`, `pageChange`, `zoomChange`, `singlePageMod
 | `noteColors` | `FlipbookNoteColor[] \| string[] \| boolean` | `true` | Colour palette in the note editor. `true` uses five defaults, `false` hides it, or pass `{ value, label? }` items. |
 | `notePinSize` | `number` | `10` | Diameter in px of coordinate-note pins. |
 | `deepLink` | `boolean` | `false` | Keeps the active page synchronized with a `?page=` URL parameter. The localized toolbar Share control uses this URL format. |
+| `showShare` | `boolean` | `true` | Shows the Share command. `false` hides it, for example for readers without share permission; `sharePage()` still works for the host. |
 | `bookmarks` | `number[]` | `[]` | Initial zero-based bookmarked page indexes; the host owns persistence. |
 | `notes` | `Record<number, string>` | `{}` | Initial page notes keyed by zero-based page index; the notes toolbar edits them while the host owns persistence. |
 | `hotspots` | `FlipbookHotspot[]` | `[]` | Normalized (0..1) page overlays with info/media/gallery/commerce popup content and optional links. |
@@ -418,6 +419,8 @@ const engine = new FlipbookEngine('#viewer', { searchHighlightStyle: 'bubble' })
 engine.updateOptions({ searchHighlightStyle: 'underline' });
 ```
 
+Hotspots also take `className` (extra classes on the `.bk-hotspot` button) and `data` (written as `data-*` attributes), so a host can style and identify its own hotspots, for example `{ className: 'sl-video', data: { 'item-id': 42 } }`. `engine.pointToPage(clientX, clientY)` turns a viewport point into `{ pageIndex, x, y }` (0..1 on that page) or `null`, for placing hotspots or markers where the reader clicked. Stable class names for host styling are listed in [docs/theming.md](docs/theming.md#stable-class-names).
+
 ### Reading position
 
 The viewer remembers the last page read for each document on the device and opens there next time: in single-page mode on that page, in double-page mode on the spread that contains it (page 84 opens as 84-85). The key is the PDF URL or the first page image URL; pass a string to `rememberPage` when the same document can be served from different URLs, or `false` to turn it off. A `?page=` deep link always wins.
@@ -455,7 +458,8 @@ Hosts can provide normalized (0..1) page coordinates for lightweight links and p
 const engine = new FlipbookEngine('#viewer', {
   hotspots: [{ id: 'product-42', pageIndex: 3, x: 0.60, y: 0.25, width: 0.25, height: 0.18, label: 'Product details', content: 'Open the product details page.', href: '/products/42' }]
 });
-engine.on('hotspotActivate', ({ hotspot }) => console.log(hotspot.id));
+engine.on('hotspotOpen', ({ hotspot }) => console.log('open', hotspot.id));
+engine.on('hotspotClose', ({ hotspot }) => console.log('close', hotspot.id));
 ```
 
 Hotspots support `kind: 'info' | 'media' | 'gallery' | 'commerce'`. `media` takes `type: 'image' | 'video' | 'audio' | 'embed'`; `embed` (or a YouTube/Vimeo link given as `video`) plays YouTube and Vimeo inside the popup through youtube-nocookie.com or Vimeo with do-not-track, in a sandboxed, lazily loaded iframe. Other embed hosts are shown as a link, never framed.

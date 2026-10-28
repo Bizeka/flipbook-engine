@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2.2 - 2026-10-28
+
+- New `showShare` option (default `true`): `false` hides the Share command in the toolbar and the overflow menu, so a host can offer sharing only to some readers (for example teachers). It can be switched with `updateOptions`; `sharePage()` keeps working for the host.
+- New `engine.pointToPage(clientX, clientY)`: returns the visible page under a viewport point and the position on it (`{ pageIndex, x, y }`, 0..1) or `null`, in single and double layout and while zoomed.
+- Hotspots take `className` (extra classes on the `.bk-hotspot` button) and `data` (`data-*` attributes); invalid class names and keys are dropped.
+- New events `hotspotOpen` and `hotspotClose` (also forwarded through the iframe embed bridge). `hotspotActivate` stays.
+- Stable class names for host styling are documented in docs/theming.md.
+- Test stability: the React wrapper tests wait for the pages instead of a fixed 100 ms, which failed on a loaded machine and could stop `npm publish`.
+
 ## 1.2.1 - 2026-10-27
 
 - Fixed returning from single-page to two-page mode inside hosts whose own stylesheet has a `.bk-book` rule (SmartLearn shelf cards): switching hid the book by rewriting its style attribute, which dropped the inline width page-flip had set, so the host rule shrank the book and page-flip fell back to one small portrait page. The book is now hidden by a class, and its sizing rule is scoped under the sizer.

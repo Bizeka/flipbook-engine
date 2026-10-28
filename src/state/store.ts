@@ -26,7 +26,7 @@ export interface FlipbookStore {
     pageNoteDocuments: Signal<ReadonlyMap<number, FlipbookNoteDocument>>; noteEditor: Signal<FlipbookNoteEditorFactory | undefined>; canAnnotate: Signal<boolean>; noteColors: Signal<FlipbookNoteColor[]>; noteGroups: Signal<FlipbookNoteGroup[]>; noteGroupFilter: Signal<string>; searchHighlightStyle: Signal<FlipbookSearchHighlightStyle>; hoverAnnotationId: Signal<string | null>; placingNote: Signal<boolean>; pendingAnnotation: Signal<FlipbookAnnotation | null>; notesView: Signal<'page' | 'all'>; searchAvailable: Signal<boolean>; searchBusy: Signal<boolean>; searchProgress: Signal<FlipbookSearchProgress | null>; searchFailed: Signal<boolean>; notesSaving: Signal<boolean>; notesFailed: Signal<boolean>;
     currentPage: Signal<number>; totalPages: Signal<number>; isSingleMode: Signal<boolean>;
     showThumbs: Signal<boolean>; showToc: Signal<boolean>; showNotes: Signal<boolean>; showSearch: Signal<boolean>; showArrows: Signal<boolean>; orientation: Signal<Orientation>;
-    flipState: Signal<FlipState>; themeMode: Signal<FlipbookThemeMode>; allowDownload: Signal<boolean>; bookmarkedPages: Signal<ReadonlySet<number>>; pageNotes: Signal<ReadonlyMap<number, string>>;
+    flipState: Signal<FlipState>; themeMode: Signal<FlipbookThemeMode>; allowDownload: Signal<boolean>; showShare: Signal<boolean>; bookmarkedPages: Signal<ReadonlySet<number>>; pageNotes: Signal<ReadonlyMap<number, string>>;
     hasDownloadUrl: Signal<boolean>; isPdfMode: Signal<boolean>; primaryColor: Signal<string>; whiteLabel: Signal<boolean>;
     isZoomed: Signal<boolean>; isAutoPlaying: Signal<boolean>; autoPlayInterval: Signal<number>;
     soundEnabled: Signal<boolean>; searchQuery: Signal<string>; searchResults: Signal<FlipbookSearchResult[]>; hotspots: Signal<FlipbookHotspot[]>; activeHotspotId: Signal<string | null>; annotations: Signal<FlipbookAnnotation[]>; activeAnnotationId: Signal<string | null>; locale: Signal<string>; messages: Signal<Partial<Record<string, PartialFlipbookMessages>>>; zoomState: Signal<ZoomState>; pages: Signal<NormalizedFlipbookPage[]>; toc: Signal<FlipbookTocEntry[]>;
@@ -51,7 +51,7 @@ export function createFlipbookStore(): FlipbookStore {
     const currentPage = signal(0), totalPages = signal(0), isSingleMode = signal(false);
     const showThumbs = signal(false), showToc = signal(false), showNotes = signal(false), showSearch = signal(false), showArrows = signal(true), orientation = signal<Orientation>('landscape');
     const flipState = signal<FlipState>('read'), themeMode = signal<FlipbookThemeMode>('auto');
-    const allowDownload = signal(true), hasDownloadUrl = signal(false), isPdfMode = signal(false), primaryColor = signal('#7367f0');
+    const allowDownload = signal(true), showShare = signal(true), hasDownloadUrl = signal(false), isPdfMode = signal(false), primaryColor = signal('#7367f0');
     const whiteLabel = signal(false), isZoomed = signal(false), isAutoPlaying = signal(false);
     const bookmarkedPages = signal<ReadonlySet<number>>(new Set());
     const pageNotes = signal<ReadonlyMap<number, string>>(new Map());
@@ -88,6 +88,7 @@ export function createFlipbookStore(): FlipbookStore {
         toc.value = normalizeFlipbookToc(options.toc ?? [], total);
         if (options.showArrows !== undefined) showArrows.value = options.showArrows;
         if (options.allowDownload !== undefined) allowDownload.value = options.allowDownload;
+        if (options.showShare !== undefined) showShare.value = options.showShare;
         if (options.whiteLabel !== undefined) whiteLabel.value = options.whiteLabel;
         if (options.soundEnabled !== undefined) soundEnabled.value = options.soundEnabled;
         if (options.locale !== undefined) locale.value = options.locale;
@@ -114,6 +115,7 @@ export function createFlipbookStore(): FlipbookStore {
         flipState.value = 'read';
         themeMode.value = 'auto';
         allowDownload.value = true;
+        showShare.value = true;
         hasDownloadUrl.value = false;
         isPdfMode.value = false;
         searchAvailable.value = false; noteColors.value = []; noteGroups.value = []; noteGroupFilter.value = ''; hoverAnnotationId.value = null; pageNoteDocuments.value = new Map(); canAnnotate.value = false; placingNote.value = false; pendingAnnotation.value = null;
@@ -137,7 +139,7 @@ export function createFlipbookStore(): FlipbookStore {
         annotations.value = [];
         activeAnnotationId.value = null;
     };
-    return { noteColors, noteGroups, noteGroupFilter, searchHighlightStyle, hoverAnnotationId, textAvailable, textPages, textSelection, pageNoteDocuments, noteEditor, canAnnotate, placingNote, pendingAnnotation, notesView, searchAvailable, searchBusy, searchProgress, searchFailed, notesSaving, notesFailed, currentPage, totalPages, isSingleMode, showThumbs, showToc, showNotes, showSearch, showArrows, orientation, flipState, themeMode, allowDownload, bookmarkedPages, pageNotes, hasDownloadUrl, isPdfMode, primaryColor, whiteLabel, isZoomed, isAutoPlaying, autoPlayInterval, soundEnabled, searchQuery, searchResults, hotspots, activeHotspotId, annotations, activeAnnotationId, locale, messages, zoomState, pages, toc, isDoublePageLayout, isFrontCover, isBackCover, init, reset };
+    return { noteColors, noteGroups, noteGroupFilter, searchHighlightStyle, hoverAnnotationId, textAvailable, textPages, textSelection, pageNoteDocuments, noteEditor, canAnnotate, placingNote, pendingAnnotation, notesView, searchAvailable, searchBusy, searchProgress, searchFailed, notesSaving, notesFailed, currentPage, totalPages, isSingleMode, showThumbs, showToc, showNotes, showSearch, showArrows, orientation, flipState, themeMode, allowDownload, showShare, bookmarkedPages, pageNotes, hasDownloadUrl, isPdfMode, primaryColor, whiteLabel, isZoomed, isAutoPlaying, autoPlayInterval, soundEnabled, searchQuery, searchResults, hotspots, activeHotspotId, annotations, activeAnnotationId, locale, messages, zoomState, pages, toc, isDoublePageLayout, isFrontCover, isBackCover, init, reset };
 }
 
 // Compatibility exports for consumers of the former internal singleton module.
