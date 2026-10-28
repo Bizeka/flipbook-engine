@@ -44,6 +44,30 @@ const engine = new FlipbookEngine('#viewer', {
 ```
 
 
+## Stable Class Names
+
+Hosts may style or query these classes; they keep their names and meaning within a major version. Anything else in the viewer markup is internal and can change in a patch release.
+
+| Class | Element |
+|---|---|
+| `.bk-wrapper` | Viewer root inside the host element |
+| `.bk-toolbar`, `.bk-btn` | Toolbar and its buttons |
+| `.bk-btn--single`, `--fullscreen`, `--notes`, `--share`, `--bookmark`, `--download`, `--autoplay`, `--sound`, `--text-selection`, `--plugin` | Specific toolbar commands |
+| `.bk-more`, `.bk-more-menu` | Overflow menu (…) and its panel |
+| `.bk-book-wrapper` (+ `single-mode`, `double-mode`, `bk-is-cover`, `bk-is-back-cover`, `zoomed`) | Stage that holds the book; the modifiers describe the layout |
+| `.bk-book-sizer` | Box sized to the visible spread or page |
+| `.bk-book` (+ `is-hidden`, `is-flipping`) | The page-flip book (double layout) |
+| `.bz-page` with `data-idx`, `.bz-page-content` | One page of the book and its content box; `data-idx` is the zero-based page index |
+| `.bk-single-view`, `.bk-single-page` with `data-idx` | Single-page view and its page |
+| `.bk-page-stack` (+ `--left`, `--right`) | Leaf edges beside the spread |
+| `.bk-thumbs`, `.thumb-item` (+ `active`) | Thumbnail rail and items |
+| `.bk-hotspot`, `.bk-hotspot-popup` | Hotspot button (plus the host's `className` and `data-*`) and its popup |
+| `.bk-annotation-marker` (+ `active`), `.bk-note-bubble` | Coordinate-note pin and its hover bubble |
+| `.bk-notes-panel`, `.bk-search-panel`, `.bk-toc` | Side panels |
+| `.bk-search-highlight-layer` (+ `is-highlight`, `is-underline`, `is-bubble`), `.bk-search-text-highlight` | Search marks |
+
+Do not reuse these names for the host's own elements. A host rule such as `.bk-book { width: 128px }` also hits the viewer; prefix host classes instead (for example `.sl-shelf-book`). To map a pointer position to a page, use `engine.pointToPage(clientX, clientY)` rather than measuring `.bz-page-content` yourself.
+
 ## Viewer Size
 
 The viewer fills its host element. When the host has no definite height it keeps a minimum of `--flipbook-min-height` (default `390px`) and falls back to `80dvh`, so it follows the viewport at any browser or operating-system zoom level.

@@ -138,6 +138,10 @@ export interface FlipbookEngineEventMap {
     searchChange: { query: string; results: FlipbookSearchResult[] };
     searchProgress: { query: string; completed: number; total: number };
     hotspotActivate: { hotspot: FlipbookHotspot; pageIndex: number };
+    /** A hotspot popup opened (same moment as hotspotActivate). */
+    hotspotOpen: { hotspot: FlipbookHotspot; pageIndex: number };
+    /** A hotspot popup closed: closed by the reader or closeHotspot(), replaced by another hotspot, or the hotspot was removed. */
+    hotspotClose: { hotspot: FlipbookHotspot; pageIndex: number };
     annotationActivate: { annotation: FlipbookAnnotation; pageIndex: number };
     annotationChange: { annotation: FlipbookAnnotation; action: 'save' | 'delete' };
 }
@@ -179,7 +183,7 @@ export class FlipbookEngine {
     private initAbortController: AbortController | null = null;
     private eventsReady = false;
     private lastPageKey: string | null = null;
-    private lastEventState = { currentPage: 0, zoom: 1, zoomActive: false, showThumbs: false, showToc: false, isSingle: false, orientation: '' as '' | 'landscape' | 'portrait' };
+    private lastEventState = { currentPage: 0, zoom: 1, zoomActive: false, showThumbs: false, showToc: false, isSingle: false, orientation: '' as '' | 'landscape' | 'portrait', activeHotspot: null as FlipbookHotspot | null };
     private eventSyncStop: (() => void) | null = null;
     private qualityObserver: IntersectionObserver | null = null;
     private pdfLazyStop: (() => void) | null = null;
@@ -811,9 +815,31 @@ export class FlipbookEngine {
         if (!hotspot) return;
         this.store.activeHotspotId.value = hotspot.id;
         this.emit('hotspotActivate', { hotspot, pageIndex: hotspot.pageIndex });
+        this.emit('hotspotOpen', { hotspot, pageIndex: hotspot.pageIndex });
     }
 
     public closeHotspot(): void { this.store.activeHotspotId.value = null; }
+
+    /**
+     * Maps a viewport point (e.g. a pointer event's clientX/clientY) to the visible page under it and a position on that
+     * page from 0 to 1 (x from the left edge, y from the top edge). Returns null when the point is not on a visible page.
+     * Works in single and double layout and while zoomed.
+     */
+    public pointToPage(clientX: number, clientY: number): { pageIndex: number; x: number; y: number } | null {
+        if (!this.container || !Number.isFinite(clientX) || !Number.isFinite(clientY)) return null;
+        const pages = this.container.querySelectorAll<HTMLElement>(this.store.isSingleMode.value ? '.bk-single-page' : '.bk-book .bz-page-content');
+        for (const page of Array.from(pages)) {
+            const holder = page.closest<HTMLElement>('[data-idx]');
+            const box = page.getBoundingClientRect();
+            // Pages page-flip is not showing are display:none and measure zero, so they are skipped here.
+            if (!holder || !box.width || !box.height) continue;
+            if (clientX < box.left || clientX > box.right || clientY < box.top || clientY > box.bottom) continue;
+            const pageIndex = Number(holder.dataset.idx);
+            if (!Number.isInteger(pageIndex)) continue;
+            return { pageIndex, x: (clientX - box.left) / box.width, y: (clientY - box.top) / box.height };
+        }
+        return null;
+    }
 
     public getAnnotations(pageIndex = this.getCurrentPage()): FlipbookAnnotation[] {
         return this.store.annotations.value.filter((annotation) => annotation.pageIndex === pageIndex);
@@ -1179,7 +1205,8 @@ export class FlipbookEngine {
                 showThumbs: this.store.showThumbs.value,
                 showToc: this.store.showToc.value,
                 isSingle: this.store.isSingleMode.value,
-                orientation: this.store.orientation.value
+                orientation: this.store.orientation.value,
+                activeHotspot: this.findHotspot(this.store.activeHotspotId.value)
             };
             if (!this.eventsReady) {
                 this.lastEventState = state;
@@ -1210,6 +1237,10 @@ export class FlipbookEngine {
             if (state.orientation !== this.lastEventState.orientation) {
                 this.emit('orientationChange', { orientation: state.orientation });
             }
+            const closed = this.lastEventState.activeHotspot;
+            if (closed && closed !== state.activeHotspot) {
+                this.emit('hotspotClose', { hotspot: closed, pageIndex: closed.pageIndex });
+            }
             this.lastEventState = state;
         });
     }
@@ -1222,8 +1253,13 @@ export class FlipbookEngine {
             showThumbs: this.store.showThumbs.value,
             showToc: this.store.showToc.value,
             isSingle: this.store.isSingleMode.value,
-            orientation: this.store.orientation.value
+            orientation: this.store.orientation.value,
+            activeHotspot: this.findHotspot(this.store.activeHotspotId.peek())
         };
+    }
+
+    private findHotspot(id: string | null): FlipbookHotspot | null {
+        return id === null ? null : this.store.hotspots.value.find(item => item.id === id) ?? null;
     }
     public setTextSelection(enabled: boolean) { this.store.textSelection.value = !!enabled; }
 

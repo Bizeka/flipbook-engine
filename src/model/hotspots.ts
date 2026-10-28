@@ -81,4 +81,22 @@ export interface FlipbookHotspot {
   media?: FlipbookHotspotMedia;
   /** Optional gallery of image previews. */
   gallery?: FlipbookHotspotGalleryItem[];
+  /** Extra classes for the hotspot button (.bk-hotspot); invalid class names are ignored. */
+  className?: string;
+  /** Written as data-* attributes on the hotspot button; keys are lowercase words joined by hyphens, e.g. { kind: 'video', 'item-id': 42 }. */
+  data?: Record<string, string | number | boolean>;
+}
+
+/** Class tokens a host may add to a hotspot; anything else is dropped. */
+export function hotspotClassNames(value: unknown): string {
+  if (typeof value !== 'string') return '';
+  return value.split(/\s+/).filter(token => /^-?[A-Za-z_][\w-]*$/.test(token)).join(' ');
+}
+
+/** data-* attributes for a hotspot; keys must be lowercase words joined by hyphens. */
+export function hotspotDataAttributes(value: unknown): Array<[string, string]> {
+  if (!value || typeof value !== 'object') return [];
+  return Object.entries(value as Record<string, unknown>)
+    .filter(([key, item]) => /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/.test(key) && ['string', 'number', 'boolean'].includes(typeof item))
+    .map(([key, item]) => ['data-' + key, String(item)]);
 }

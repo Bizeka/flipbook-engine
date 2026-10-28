@@ -151,6 +151,8 @@ export class FlipbookEmbedBridge {
     searchChange: true,
     searchProgress: true,
     hotspotActivate: true,
+    hotspotOpen: true,
+    hotspotClose: true,
     annotationChange: true, annotationActivate: true
   };
 

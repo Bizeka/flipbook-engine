@@ -232,7 +232,7 @@ const unsubscribe = engine.on('pageChange', ({ currentPage, totalPages, isSingle
 unsubscribe();
 ```
 
-Supported events: `init`, `progress`, `pageChange`, `zoomChange`, `singlePageModeChange`, `thumbsToggle`, `tocToggle`, `orientationChange`, `deepLinkChange`, `bookmarkChange`, `noteChange`, `searchChange`, `searchProgress`, `hotspotActivate`, `annotationActivate`, `error`, `destroy`.
+Supported events: `init`, `progress`, `pageChange`, `zoomChange`, `singlePageModeChange`, `thumbsToggle`, `tocToggle`, `orientationChange`, `deepLinkChange`, `bookmarkChange`, `noteChange`, `searchChange`, `searchProgress`, `hotspotActivate`, `hotspotOpen`, `hotspotClose`, `annotationActivate`, `error`, `destroy`.
 
 | Option | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
@@ -419,6 +419,8 @@ const engine = new FlipbookEngine('#viewer', { searchHighlightStyle: 'bubble' })
 engine.updateOptions({ searchHighlightStyle: 'underline' });
 ```
 
+Hotspots also take `className` (extra classes on the `.bk-hotspot` button) and `data` (written as `data-*` attributes), so a host can style and identify its own hotspots, for example `{ className: 'sl-video', data: { 'item-id': 42 } }`. `engine.pointToPage(clientX, clientY)` turns a viewport point into `{ pageIndex, x, y }` (0..1 on that page) or `null`, for placing hotspots or markers where the reader clicked. Stable class names for host styling are listed in [docs/theming.md](docs/theming.md#stable-class-names).
+
 ### Reading position
 
 The viewer remembers the last page read for each document on the device and opens there next time: in single-page mode on that page, in double-page mode on the spread that contains it (page 84 opens as 84-85). The key is the PDF URL or the first page image URL; pass a string to `rememberPage` when the same document can be served from different URLs, or `false` to turn it off. A `?page=` deep link always wins.
@@ -456,7 +458,8 @@ Hosts can provide normalized (0..1) page coordinates for lightweight links and p
 const engine = new FlipbookEngine('#viewer', {
   hotspots: [{ id: 'product-42', pageIndex: 3, x: 0.60, y: 0.25, width: 0.25, height: 0.18, label: 'Product details', content: 'Open the product details page.', href: '/products/42' }]
 });
-engine.on('hotspotActivate', ({ hotspot }) => console.log(hotspot.id));
+engine.on('hotspotOpen', ({ hotspot }) => console.log('open', hotspot.id));
+engine.on('hotspotClose', ({ hotspot }) => console.log('close', hotspot.id));
 ```
 
 Hotspots support `kind: 'info' | 'media' | 'gallery' | 'commerce'`. `media` takes `type: 'image' | 'video' | 'audio' | 'embed'`; `embed` (or a YouTube/Vimeo link given as `video`) plays YouTube and Vimeo inside the popup through youtube-nocookie.com or Vimeo with do-not-track, in a sandboxed, lazily loaded iframe. Other embed hosts are shown as a link, never framed.

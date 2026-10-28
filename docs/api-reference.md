@@ -85,6 +85,16 @@ Uses the native share dialog when available, otherwise copies the page URL to th
 
 `getNotes()`, `getNote(pageIndex)`, `setNote(pageIndex, note)`, and `clearNote(pageIndex)` manage host-owned notes. The toolbar's localized **Page note** button opens an inline editor; empty notes are removed; `noteChange` emits `{ pageIndex, pageNumber, note }` with `null` when a note is cleared. Hosts can persist that payload in a database or other storage.
 
+### `pointToPage(clientX: number, clientY: number)`
+Maps a viewport point, such as a pointer event's `clientX`/`clientY`, to the visible page under it. Returns `{ pageIndex, x, y }` with `x` and `y` from 0 to 1 (left and top edge of that page), or `null` when the point is not on a visible page. It works in single and double layout and while zoomed, so a host can place its own markers without reading the engine's DOM.
+
+```ts
+book.addEventListener('dblclick', (event) => {
+  const point = engine.pointToPage(event.clientX, event.clientY);
+  if (point) addHotspotAt(point.pageIndex, point.x, point.y);
+});
+```
+
 ### `connectEmbed(options?: FlipbookEmbedOptions)`
 Connects an origin-validated postMessage bridge for iframe integrations. Call this from the document loaded inside the iframe.
 
@@ -151,6 +161,8 @@ const unsubscribe = engine.on('pageChange', ({ currentPage, pageNumber, totalPag
 - **`bookmarkChange`**: Emitted when a page bookmark is added or removed. Payload: `{ pageIndex: number; pageNumber: number; bookmarked: boolean }`.
 - **`noteChange`**: Emitted when a page note is added, updated, or cleared. Payload: `{ pageIndex: number; pageNumber: number; note: string | null }`.
 - **`error`**: Emitted when PDF loading/rendering fails. Payload: `{ code: 'PDF_LOAD_FAILED' | 'PDF_RENDER_FAILED'; message: string; cause?: unknown }`
+- **`hotspotOpen`**: A hotspot popup opened (same moment as `hotspotActivate`). Payload: `{ hotspot: FlipbookHotspot; pageIndex: number }`.
+- **`hotspotClose`**: A hotspot popup closed: by the reader, by `closeHotspot()`, by opening another hotspot, or because the hotspot was removed. Payload: `{ hotspot: FlipbookHotspot; pageIndex: number }`.
 - **`destroy`**: Emitted when the engine is destroyed.
 
 
@@ -190,7 +202,8 @@ const engine = new FlipbookEngine('#viewer', {
 ### Hotspots
 
 - **`getHotspots(pageIndex = getCurrentPage())`**: Returns host-provided overlays for a logical page.
-- **`activateHotspot(id)`** / **`closeHotspot()`**: Opens or closes a hotspot popup. Activation emits `hotspotActivate`. Hotspots may include `kind`, `media` (`image`, `video`, `audio`), `gallery` image items, and an optional `href` for commerce/product links; popup text is always rendered as plain text.
+- **`activateHotspot(id)`** / **`closeHotspot()`**: Opens or closes a hotspot popup. Opening emits `hotspotActivate` and `hotspotOpen`; closing emits `hotspotClose`. Hotspots may include `kind`, `media` (`image`, `video`, `audio`, `embed`), `gallery` image items, and an optional `href` for commerce/product links; popup text is always rendered as plain text.
+- **`className`** (string) adds classes to the hotspot button next to `bk-hotspot`; tokens that are not valid class names are dropped. **`data`** (`Record<string, string | number | boolean>`) is written as `data-*` attributes on the same button; keys must be lowercase words joined by hyphens (`{ kind: 'video', 'item-id': 42 }` gives `data-kind="video" data-item-id="42"`), other keys and values are ignored.
 
 
 ### Page annotations
