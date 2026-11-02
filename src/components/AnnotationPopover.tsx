@@ -5,6 +5,7 @@ import type { FlipbookStore } from '../state/store';
 import { NoteEditor } from './NoteEditor';
 import { NoteMeta, type NoteMetaValue } from './NoteMeta';
 import { renderNoteDocument, type FlipbookNoteEditor, type FlipbookNoteValue } from '../model/note-editor';
+import { styled } from './style';
 export function AnnotationPopover(props: { store: FlipbookStore; signal: AbortSignal; onSave: (note: FlipbookAnnotation) => Promise<boolean>; onDelete: (note: FlipbookAnnotation) => Promise<boolean>; onClose: () => void }) {
     const messages = computed(() => resolveMessages({ locale: props.store.locale.value, messages: props.store.messages.value }));
     const selected = computed(() => props.store.pendingAnnotation.value ?? props.store.annotations.value.find(note => note.id === props.store.activeAnnotationId.value));
@@ -13,7 +14,7 @@ export function AnnotationPopover(props: { store: FlipbookStore; signal: AbortSi
     const input = { current: null as FlipbookNoteEditor | null };
     const ready = signal(false);
     return <aside class="bk-note-popover" role="dialog" aria-label={computed(() => messages.value.notes)}
-        style={computed(() => props.store.canAnnotate.value && selected.value ? 'display:flex;' : 'display:none;')}
+        style={styled(() => props.store.canAnnotate.value && selected.value ? 'display:flex;' : 'display:none;')}
         onKeyDown={(event: KeyboardEvent) => { if (event.key === 'Escape') { event.stopPropagation(); props.onClose(); } }}>
         {computed(() => {
             const note = selected.value;

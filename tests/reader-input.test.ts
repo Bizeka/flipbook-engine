@@ -86,7 +86,7 @@ test('Escape closes one layer at a time', async () => {
   (engine as any).store.pendingAnnotation.value = { id: 'p', pageIndex: 0, x: .5, y: .5, text: '' };
   await tick();
   key(root, 'Escape'); await tick();
-  assert.equal(document.querySelector('.bk-note-popover')?.getAttribute('style'), 'display:none;');
+  assert.equal((document.querySelector('.bk-note-popover') as HTMLElement | null)?.style.display, 'none');
   assert.equal(panel.style.display, 'flex');
   key(root, 'Escape'); await tick();
   assert.equal(panel.style.display, 'none');

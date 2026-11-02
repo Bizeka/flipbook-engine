@@ -21,6 +21,7 @@ import { HotspotLayer } from './HotspotLayer';
 import type { FlipbookHotspot } from '../model/hotspots';
 import type { FlipbookAnnotation } from '../model/annotations';
 import { NotePlacementLayer, bindNoteGestures } from './NotePlacementLayer';
+import { css, styled } from './style';
 
 interface ViewerProps {
     store: FlipbookStore;
@@ -45,7 +46,7 @@ function SearchHighlightLayer(props: { store: FlipbookStore; pageIndex: number }
             {computed(() => (
                 <div class="bk-search-highlight-items">
                     {highlights.value.map((highlight) => (
-                        <span class="bk-search-text-highlight" style={'left:' + (highlight.x * 100) + '%;top:' + (highlight.y * 100) + '%;width:' + (highlight.width * 100) + '%;height:' + (highlight.height * 100) + '%;'} />
+                        <span class="bk-search-text-highlight" style={css('left:' + (highlight.x * 100) + '%;top:' + (highlight.y * 100) + '%;width:' + (highlight.width * 100) + '%;height:' + (highlight.height * 100) + '%;')} />
                     ))}
                 </div>
             ))}
@@ -55,7 +56,7 @@ function SearchHighlightLayer(props: { store: FlipbookStore; pageIndex: number }
 
 /** Leaf edges beside the spread: thickness follows the page count, each side its share of read and unread pages. */
 function PageStacks(props: { store: FlipbookStore }) {
-    const style = (side: 'left' | 'right') => computed(() => {
+    const style = (side: 'left' | 'right') => styled(() => {
         const total = props.store.totalPages.value;
         if (!props.store.isDoublePageLayout.value || total < 4) return 'display:none;';
         const page = Math.min(Math.max(props.store.currentPage.value, 0), total - 1);
@@ -107,7 +108,7 @@ export function Viewer(props: ViewerProps) {
                                     data-density={isHard ? "hard" : "soft"}
                                     data-idx={index}
                                 >
-                                    <div class="bz-page-content" style="position:relative; width:100%; height:100%; overflow:hidden;">
+                                    <div class="bz-page-content" style={css("position:relative; width:100%; height:100%; overflow:hidden;")}>
                                         <img
                                             data-pdf-page={page.assetId.startsWith('pdf-page-') ? (page.sourcePageNumber ?? page.pageNumber) : undefined}
                                             src={page.low || page.normal}
@@ -128,7 +129,7 @@ export function Viewer(props: ViewerProps) {
 
                 <div
                     class="bk-single-view"
-                    style={computed(() => `display: ${props.store.isSingleMode.value ? 'flex' : 'none'}; width: 100%; height: 100%; justify-content: center; align-items: center; position: absolute; top: 0; left: 0; z-index: 10;`)}
+                    style={styled(() => `display: ${props.store.isSingleMode.value ? 'flex' : 'none'}; width: 100%; height: 100%; justify-content: center; align-items: center; position: absolute; top: 0; left: 0; z-index: 10;`)}
                 >
                     {computed(() => {
                         const page = props.store.pages.value[props.store.currentPage.value];
@@ -140,7 +141,7 @@ export function Viewer(props: ViewerProps) {
                                     class={computed(() => `bk-single-img page-content ${page.cropMode !== 'full' ? 'page-content--split page-content--' + page.cropMode : ''}`)}
                                     src={props.store.zoomState.value.isActive ? page.normal : (page.low || page.normal)}
                                     alt={`Page ${props.store.currentPage.value + 1}`}
-                                    style="opacity: 1; transition: opacity 0.3s; box-shadow: var(--flipbook-shadow);"
+                                    style={css("opacity: 1; transition: opacity 0.3s; box-shadow: var(--flipbook-shadow);")}
                                 />
                                 {computed(() => props.store.isSingleMode.value ? (
                                     <>

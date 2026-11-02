@@ -25,6 +25,7 @@ for (const name of required) {
 for (const name of ['notePinSize', 'searchHighlightStyle', 'noteColors', 'noteGroups', 'noteGroupProvider', 'optimisticNotes']) {
   if (!types.includes(name)) problems.push(`dist type declarations do not contain "${name}"`);
 }
+if (/cssText/.test(bundle)) problems.push('dist bundle assigns cssText, which a nonce-only style-src blocks');
 if (oldestBuild < newestSource - 60_000) problems.push('dist is older than the sources, rebuild before publishing');
 
 if (problems.length) {

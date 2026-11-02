@@ -11,6 +11,7 @@ import { safeCssColor, type FlipbookAnnotation } from '../model/annotations';
 import { safeLinkUrl } from '../model/safe-url';
 import type { FlipbookStore } from '../state/store';
 import { renderNoteDocument } from '../model/note-editor';
+import { css } from './style';
 
 
 interface HotspotLayerProps {
@@ -85,7 +86,7 @@ export function HotspotLayer(props: HotspotLayerProps) {
     <div class="bk-hotspot-layer">
       {/* Reactive like the note pins: spread pages are built once, so a plain map would never see a new hotspot list. */}
       {computed(() => <div class="bk-hotspot-items">{hotspots.value.map((hotspot) => (
-        <button type="button" class={('bk-hotspot ' + hotspotClassNames(hotspot.className)).trim()} style={normalizedRectStyle(hotspot)} aria-label={hotspot.label}
+        <button type="button" class={('bk-hotspot ' + hotspotClassNames(hotspot.className)).trim()} style={css(normalizedRectStyle(hotspot))} aria-label={hotspot.label}
           ref={(element: HTMLElement) => { if (element) hotspotDataAttributes(hotspot.data).forEach(([name, value]) => element.setAttribute(name, value)); }}
           // A click on a hotspot opens it; it must not also reach page-flip and turn the page.
           onPointerDown={stopPageFlipInteraction} onMouseDown={stopPageFlipInteraction} onTouchStart={stopPageFlipInteraction}
@@ -101,7 +102,7 @@ export function HotspotLayer(props: HotspotLayerProps) {
         const showNow = () => { clearTimeout(hideTimer); show(); };
         let touched = false, wasShown = false;
         return <button type="button" data-annotation-id={annotation.id} class={computed(() => 'bk-annotation-marker' + (props.store.activeAnnotationId.value === annotation.id ? ' active' : ''))}
-          style={'left:' + Math.max(0, Math.min(1, annotation.x)) * 100 + '%;top:' + Math.max(0, Math.min(1, annotation.y)) * 100 + '%;' + (safeCssColor(color) ? '--bk-pin:' + color + ';' : '')}
+          style={css('left:' + Math.max(0, Math.min(1, annotation.x)) * 100 + '%;top:' + Math.max(0, Math.min(1, annotation.y)) * 100 + '%;' + (safeCssColor(color) ? '--bk-pin:' + color + ';' : ''))}
           aria-label={annotation.text} aria-describedby={computed(() => props.store.hoverAnnotationId.value === annotation.id ? 'bk-note-bubble-' + layerKey + '-' + annotation.id : undefined)}
           onPointerDown={(event: PointerEvent) => { touched = event.pointerType === 'touch' || event.pointerType === 'pen'; wasShown = props.store.hoverAnnotationId.value === annotation.id; stopPageFlipInteraction(event); }} onTouchStart={stopPageFlipInteraction} onMouseDown={stopPageFlipInteraction}
           onPointerEnter={(event: PointerEvent) => { if (event.pointerType === 'mouse') showNow(); }} onPointerLeave={(event: PointerEvent) => { if (event.pointerType === 'mouse') hideSoon(); }}
@@ -120,7 +121,7 @@ export function HotspotLayer(props: HotspotLayerProps) {
         const group = props.store.noteGroups.value.find((item) => item.key === note.groupKey);
         const side = note.x < .3 ? ' is-start' : note.x > .55 ? ' is-end' : '', below = note.y < .3 ? ' is-below' : '';
         return <div id={'bk-note-bubble-' + layerKey + '-' + note.id} role="tooltip" ref={(element: HTMLElement) => bindBubbleDismiss(element, props.store)} class={'bk-note-bubble' + side + below}
-          style={'left:' + Math.max(0, Math.min(1, note.x)) * 100 + '%;top:' + Math.max(0, Math.min(1, note.y)) * 100 + '%;'}
+          style={css('left:' + Math.max(0, Math.min(1, note.x)) * 100 + '%;top:' + Math.max(0, Math.min(1, note.y)) * 100 + '%;')}
           onPointerDown={stopPageFlipInteraction} onTouchStart={stopPageFlipInteraction} onMouseDown={stopPageFlipInteraction}
           onPointerEnter={(event: PointerEvent) => { if (event.pointerType === 'mouse') clearTimeout(hideTimer); }} onPointerLeave={(event: PointerEvent) => { if (event.pointerType === 'mouse') hideTimer = setTimeout(() => { props.store.hoverAnnotationId.value = null; }, 180); }}>
           {group ? <span class="bk-note-bubble-group">{group.label}</span> : null}

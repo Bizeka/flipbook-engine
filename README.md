@@ -1,6 +1,6 @@
 # FlipbookEngine
 
-> **Current release:** `flipbookengine@1.2.3` (1.2.0 plus host fixes and options: `showShare`, `pointToPage`, hotspot classes, data and events, and `setHotspots`) adds YouTube/Vimeo hotspot embeds, reading-position resume, leaf edges, search highlight styles and named note colours, and fixes single/double switching and fullscreen page loss.
+> **Current release:** `flipbookengine@1.2.4` (1.2.0 plus host fixes and options: `showShare`, `pointToPage`, hotspot classes, data and events, and `setHotspots`) adds YouTube/Vimeo hotspot embeds, reading-position resume, leaf edges, search highlight styles and named note colours, and fixes single/double switching and fullscreen page loss.
 > **1.0.0 scope:** Version 1.0.0 added the plugin contract, independent feature entrypoints, TOC runtime/embed APIs, and the complete open-source reader surface.
 
 [![NPM Version](https://img.shields.io/npm/v/flipbookengine?style=flat-square&color=blue)](https://www.npmjs.com/package/flipbookengine)
@@ -84,7 +84,7 @@ Passing `pages` remains optional. When omitted, FlipbookEngine creates the page 
 Use the ESM build with an import map for PDF.js. The worker must be served from a URL your site permits in its Content Security Policy.
 
 ```html
-<link rel="stylesheet" href="https://unpkg.com/flipbookengine@1.2.3/dist/flipbook-engine.css" />
+<link rel="stylesheet" href="https://unpkg.com/flipbookengine@1.2.4/dist/flipbook-engine.css" />
 <div id="viewer" style="width: 100%; height: 600px;"></div>
 
 <script type="importmap">
@@ -95,7 +95,7 @@ Use the ESM build with an import map for PDF.js. The worker must be served from 
 }
 </script>
 <script type="module">
-  import { FlipbookEngine } from 'https://unpkg.com/flipbookengine@1.2.3/dist/flipbook-engine.js';
+  import { FlipbookEngine } from 'https://unpkg.com/flipbookengine@1.2.4/dist/flipbook-engine.js';
 
   const engine = new FlipbookEngine('#viewer', {
     pdfWorkerSrc: 'https://unpkg.com/pdfjs-dist@5.4.530/build/pdf.worker.min.mjs'
@@ -269,6 +269,8 @@ Supported events: `init`, `progress`, `pageChange`, `zoomChange`, `singlePageMod
 PDF.js page dimensions are detected at runtime, so portrait A4, landscape A4, and other page ratios are supported without a fixed size preset. A3 landscape pages are split into left/right logical pages when `pdfPageMode` is `'auto'` or `'split'`; the halves are presented as an A4-like spread in double-page mode.
 
 ## Styling and Theming
+
+**Content Security Policy.** The package works under a nonce-only `style-src` (for example `style-src 'self' 'nonce-...'`) with no `unsafe-inline`. It never writes `style` attributes or `cssText`; dynamic styles are assigned per property through the CSSOM, which CSP allows. Load `flipbook-engine.css` as a normal stylesheet (with your nonce on an inline `<style>` if you inline it).
 
 FlipbookEngine features fully custom-property-based styling compatible with modern styling systems.
 

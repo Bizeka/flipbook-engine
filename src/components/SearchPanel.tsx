@@ -1,6 +1,7 @@
 import { computed, signal } from '@preact/signals-core';
 import { resolveMessages } from '../i18n/service';
 import type { FlipbookStore } from '../state/store';
+import { styled } from './style';
 
 interface SearchPanelProps {
   store: FlipbookStore;
@@ -25,7 +26,7 @@ export function SearchPanel(props: SearchPanelProps) {
     props.onClear();
   };
   return (
-    <section class="bk-search-panel" style={computed(() => props.store.showSearch.value ? 'display:flex;' : 'display:none;')} aria-label={computed(() => messages.value.search || 'Search')} onKeyDown={(event: KeyboardEvent) => { if (event.key === 'Escape') props.onClose(); }}>
+    <section class="bk-search-panel" style={styled(() => props.store.showSearch.value ? 'display:flex;' : 'display:none;')} aria-label={computed(() => messages.value.search || 'Search')} onKeyDown={(event: KeyboardEvent) => { if (event.key === 'Escape') props.onClose(); }}>
       <div class="bk-search-heading-row">
         <strong class="bk-search-heading">{computed(() => messages.value.search || 'Search')}</strong>
         <button type="button" class="bk-search-close" onClick={props.onClose} aria-label={computed(() => messages.value.closeSearch || 'Close search')}>×</button>

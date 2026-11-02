@@ -16,6 +16,7 @@
 
 import { computed, effect } from '@preact/signals-core';
 import type { FlipbookStore } from '../state/store';
+import { styled } from './style';
 
 interface ThumbnailsProps {
     store: FlipbookStore;
@@ -44,7 +45,7 @@ function followActiveThumb(rail: HTMLElement, store: FlipbookStore, signal?: Abo
 
 export function Thumbnails(props: ThumbnailsProps) {
     return (
-        <div class="bk-thumbs" ref={(element: HTMLElement) => { if (element) followActiveThumb(element, props.store, props.signal); }} style={computed(() => props.store.showThumbs.value ? 'display:flex;' : 'display:none;')}>
+        <div class="bk-thumbs" ref={(element: HTMLElement) => { if (element) followActiveThumb(element, props.store, props.signal); }} style={styled(() => props.store.showThumbs.value ? 'display:flex;' : 'display:none;')}>
             {props.store.pages.value.map((page, index) => {
                 const isActive = () => {
                     const current = props.store.currentPage.value;
