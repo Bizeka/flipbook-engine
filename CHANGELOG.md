@@ -4,6 +4,7 @@
 
 - CSP: the reader no longer uses `style.cssText` or `style` attributes. Every dynamic style is set per property (`el.style.x`), so the package works under a nonce-only `style-src` without `unsafe-inline` or `unsafe-hashes`. Behaviour is unchanged.
 - A test (`tests/csp-safe.test.ts`) fails on `cssText`, `setAttribute("style"` and `style=` in markup strings.
+- Fixed pinch-zoom on touch devices: on an already zoomed page the pan offset was not scaled with the zoom ratio, so every pinch step jumped. While zoomed the reader now sets `touch-action: none` so the browser does not pan or zoom the page itself.
 
 ## 1.2.3 - 2026-10-28
 
