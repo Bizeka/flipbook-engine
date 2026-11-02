@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.5 - 2026-11-03
+
+- Release workflow publishes through npm trusted publishing (OIDC) instead of an access token. No code changes.
+
 ## 1.2.4 - 2026-11-03
 
 - CSP: the reader no longer uses `style.cssText` or `style` attributes. Every dynamic style is set per property (`el.style.x`), so the package works under a nonce-only `style-src` without `unsafe-inline` or `unsafe-hashes`. Behaviour is unchanged.
