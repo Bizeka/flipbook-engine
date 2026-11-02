@@ -45,6 +45,8 @@ export class InteractionManager {
         this.unsubs.push(
             effect(() => {
                 this.store.isZoomed.value = this.store.zoomState.value.isActive;
+                // The browser must not pinch-zoom or pan the page itself while the reader handles the gesture.
+                this.container.style.touchAction = this.store.zoomState.value.isActive ? 'none' : 'pan-y';
 
                 if (this.store.zoomState.value.isActive) {
                     this.container.style.transform = `translate(${this.store.zoomState.value.translateX}px, ${this.store.zoomState.value.translateY}px) scale(${this.store.zoomState.value.scale})`;
@@ -138,8 +140,8 @@ export class InteractionManager {
                 const scale = Math.max(1, Math.min(5, pinchScale * Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) / pinchDistance));
                 const ratio = scale / pinchScale;
                 const pan = scale > 1 ? this.clampPan(
-                    startTx + (pinchX - pinchCenterX) * (1 - ratio) + (a.clientX + b.clientX) / 2 - pinchX,
-                    startTy + (pinchY - pinchCenterY) * (1 - ratio) + (a.clientY + b.clientY) / 2 - pinchY, scale) : { x: 0, y: 0 };
+                    startTx * ratio + (pinchX - pinchCenterX) * (1 - ratio) + (a.clientX + b.clientX) / 2 - pinchX,
+                    startTy * ratio + (pinchY - pinchCenterY) * (1 - ratio) + (a.clientY + b.clientY) / 2 - pinchY, scale) : { x: 0, y: 0 };
                 this.store.zoomState.value = { ...this.store.zoomState.value, scale, isActive: scale > 1, translateX: pan.x, translateY: pan.y };
                 event.stopPropagation(); if (event.cancelable) event.preventDefault();
             } else if (!wasPinch && this.store.zoomState.value.isActive && this.touchStartX !== null && event.touches.length === 1) {
