@@ -35,7 +35,7 @@ test('pin hover and focus show the note bubble, Escape closes it', async () => {
     annotations: [{ id: 'a', pageIndex: 0, x: .5, y: .5, text: 'Remember this', color: '#0091ff', groupKey: 'exam' }], noteGroups: groups });
   await engine.init('', pages);
   const marker = document.querySelector('.bk-annotation-marker') as HTMLButtonElement;
-  assert.match(marker.getAttribute('style') ?? '', /--bk-pin:#0091ff/);
+  assert.match(marker.style.getPropertyValue('--bk-pin'), /#0091ff/);
   assert.equal(document.querySelector('.bk-note-bubble'), null);
   marker.dispatchEvent(new window.FocusEvent('focus'));
   await tick();
@@ -54,7 +54,7 @@ test('the palette is on by default, noteColors: false hides it, groups appear wh
   await plain.init('', pages);
   plain.beginAnnotation(); plain.placeAnnotation(0, .3, .3);
   await tick();
-  assert.doesNotMatch(document.querySelector('.bk-note-meta')!.getAttribute('style') ?? '', /display:none/);
+  assert.notEqual((document.querySelector('.bk-note-meta') as HTMLElement).style.display, 'none');
   assert.equal(document.querySelectorAll('.bk-note-swatch').length, 5);
   plain.destroy();
 
@@ -62,7 +62,7 @@ test('the palette is on by default, noteColors: false hides it, groups appear wh
   await off.init('', pages);
   off.beginAnnotation(); off.placeAnnotation(0, .3, .3);
   await tick();
-  assert.match(document.querySelector('.bk-note-meta')!.getAttribute('style') ?? '', /display:none/);
+  assert.equal((document.querySelector('.bk-note-meta') as HTMLElement).style.display, 'none');
   off.destroy();
 
   const saved: any[] = [];

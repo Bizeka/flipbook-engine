@@ -2,13 +2,14 @@ import { computed } from '@preact/signals-core';
 import { resolveMessages } from '../i18n/service';
 import { safeCssColor } from '../model/annotations';
 import type { FlipbookStore } from '../state/store';
+import { css, styled } from './style';
 
 export interface NoteMetaValue { color?: string; groupKey?: string }
 
 /** Colour palette and group picker; renders nothing unless the host configured colours or groups. */
 export function NoteMeta(props: { store: FlipbookStore; value: NoteMetaValue; onChange: (value: NoteMetaValue) => void }) {
     const messages = computed(() => resolveMessages({ locale: props.store.locale.value, messages: props.store.messages.value }));
-    return <div class="bk-note-meta" style={computed(() => props.store.noteColors.value.length || props.store.noteGroups.value.length ? '' : 'display:none;')}>
+    return <div class="bk-note-meta" style={styled(() => props.store.noteColors.value.length || props.store.noteGroups.value.length ? '' : 'display:none;')}>
         {computed(() => {
             let current = { ...props.value };
             const colors = props.store.noteColors.value, groups = props.store.noteGroups.value;
@@ -17,7 +18,7 @@ export function NoteMeta(props: { store: FlipbookStore; value: NoteMetaValue; on
                 {colors.length ? <fieldset class="bk-note-palette" aria-label={messages.value.noteColor}>
                     {colors.map((color, index) => {
                         const label = color.label || messages.value.noteColorLabel.replace('{n}', String(index + 1));
-                        return <button type="button" class="bk-note-swatch" style={`--bk-swatch:${safeCssColor(color.value) ?? 'transparent'};`} data-label={label} aria-label={label}
+                        return <button type="button" class="bk-note-swatch" style={css(`--bk-swatch:${safeCssColor(color.value) ?? 'transparent'};`)} data-label={label} aria-label={label}
                         aria-pressed={computed(() => current.color === color.value ? 'true' : 'false')}
                         onClick={(event: Event) => {
                             current = { ...current, color: current.color === color.value ? undefined : color.value }; props.onChange(current);

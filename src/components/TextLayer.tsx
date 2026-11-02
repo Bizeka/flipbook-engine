@@ -1,6 +1,7 @@
 import { computed } from '@preact/signals-core';
 import type { FlipbookStore } from '../state/store';
 import { domSignal } from '../core/domSignal';
+import { css } from './style';
 
 function fitRuns(group: HTMLElement, lifetime: AbortSignal) {
     const signal = domSignal(group, lifetime);
@@ -33,7 +34,7 @@ export function TextLayer(props: { store: FlipbookStore; pageIndex: number; sign
             const page = props.store.textPages.value.get(props.pageIndex);
             return page?.runs.length ? <div ref={(group: HTMLElement) => fitRuns(group, props.signal)}>{page.runs.map(run =>
                 <span dir={run.direction ?? 'ltr'} data-text-start={run.start} data-text-width={run.width}
-                    style={`left:${run.x * 100}%;top:${run.y * 100}%;width:max-content;height:${run.height * 100}%;font-size:${run.height * 100}cqh;transform-origin:left top;`}>{run.text}</span>
+                    style={css(`left:${run.x * 100}%;top:${run.y * 100}%;width:max-content;height:${run.height * 100}%;font-size:${run.height * 100}cqh;transform-origin:left top;`)}>{run.text}</span>
             )}</div> : null;
         })}
     </div>;

@@ -5,6 +5,7 @@ import type { FlipbookStore } from '../state/store';
 import { safeCssColor, type FlipbookAnnotation } from '../model/annotations';
 import { NoteEditor } from './NoteEditor';
 import { renderNoteDocument, type FlipbookNoteDocument, type FlipbookNoteEditor, type FlipbookNoteValue } from '../model/note-editor';
+import { css, styled } from './style';
 
 interface NotesPanelProps {
     store: FlipbookStore;
@@ -56,7 +57,7 @@ export function NotesPanel(props: NotesPanelProps) {
         pendingCommits.delete(page);
     };
     return (
-        <aside class="bk-notes-panel" style={computed(() => props.store.showNotes.value ? 'display:flex;' : 'display:none;')}
+        <aside class="bk-notes-panel" style={styled(() => props.store.showNotes.value ? 'display:flex;' : 'display:none;')}
             aria-label={computed(() => messages.value.myNotes)} onKeyDown={(event: KeyboardEvent) => { if (event.key === 'Escape') { event.stopPropagation(); props.onClose(); } }}>
             <div class="bk-notes-heading-row">
                 <div class="bk-notes-heading">{computed(() => messages.value.myNotes)} <span class="bk-note-total">{computed(() => props.store.pageNotes.value.size + props.store.annotations.value.length)}</span></div>
@@ -74,11 +75,11 @@ export function NotesPanel(props: NotesPanelProps) {
                 <button type="button" role="tab" aria-selected={computed(() => props.store.notesView.value === 'page' ? 'true' : 'false')} tabIndex={computed(() => props.store.notesView.value === 'page' ? 0 : -1)} onClick={() => props.store.notesView.value = 'page'}>{computed(() => `${messages.value.currentPage} · ${props.store.currentPage.value + 1}`)}</button>
             </div>
             <select class="bk-note-group-filter" aria-label={computed(() => messages.value.noteGroup)} value={computed(() => props.store.noteGroupFilter.value)}
-                style={computed(() => props.store.noteGroups.value.length ? '' : 'display:none;')} onChange={(event: Event) => props.store.noteGroupFilter.value = (event.currentTarget as HTMLSelectElement).value}>
+                style={styled(() => props.store.noteGroups.value.length ? '' : 'display:none;')} onChange={(event: Event) => props.store.noteGroupFilter.value = (event.currentTarget as HTMLSelectElement).value}>
                 {computed(() => <><option value="">{messages.value.allGroups}</option>{props.store.noteGroups.value.map(group => <option value={group.key} selected={group.key === props.store.noteGroupFilter.value}>{group.label}</option>)}</>)}
             </select>
-            <button type="button" class="bk-add-annotation" style={computed(() => props.store.canAnnotate.value ? 'display:block;' : 'display:none;')} onClick={props.onAdd}>{computed(() => messages.value.addNote)}</button>
-            <div class="bk-note-list" style={computed(() => props.store.notesView.value === 'all' ? 'display:flex;' : 'display:none;')}>
+            <button type="button" class="bk-add-annotation" style={styled(() => props.store.canAnnotate.value ? 'display:block;' : 'display:none;')} onClick={props.onAdd}>{computed(() => messages.value.addNote)}</button>
+            <div class="bk-note-list" style={styled(() => props.store.notesView.value === 'all' ? 'display:flex;' : 'display:none;')}>
                 {computed(() => {
                     const notes = [...props.store.pageNotes.value].map(([pageIndex, text]) => ({ id: `page-${pageIndex}`, pageIndex, text, annotation: undefined as FlipbookAnnotation | undefined }));
                     notes.push(...props.store.annotations.value.map(annotation => ({ ...annotation, annotation })));
@@ -86,12 +87,12 @@ export function NotesPanel(props: NotesPanelProps) {
                     if (filter) notes.splice(0, notes.length, ...notes.filter(note => note.annotation?.groupKey === filter));
                     notes.sort((a, b) => a.pageIndex - b.pageIndex || a.id.localeCompare(b.id));
                     return notes.length ? <div class="bk-note-list-items">{notes.map(note => <button type="button" class="bk-note-list-item" onClick={() => note.annotation ? props.onAnnotation(note.annotation) : props.onSelect(note.pageIndex)}>
-                        <strong>{note.annotation ? <i class="bk-note-dot" style={safeCssColor(note.annotation.color) ? `--bk-pin:${note.annotation.color};` : ''} /> : null}{messages.value.page} {note.pageIndex + 1}</strong>
+                        <strong>{note.annotation ? <i class="bk-note-dot" style={css(safeCssColor(note.annotation.color) ? `--bk-pin:${note.annotation.color};` : '')} /> : null}{messages.value.page} {note.pageIndex + 1}</strong>
                         {note.annotation?.groupKey ? <span class="bk-note-list-group">{props.store.noteGroups.value.find(group => group.key === note.annotation!.groupKey)?.label ?? note.annotation.groupKey}</span> : null}<span>{note.text}</span>
                     </button>)}</div> : <p class="bk-note-empty">{messages.value.noNotes}</p>;
                 })}
             </div>
-            <div class="bk-current-note" style={computed(() => props.store.notesView.value === 'page' ? 'display:block;' : 'display:none;')}>
+            <div class="bk-current-note" style={styled(() => props.store.notesView.value === 'page' ? 'display:block;' : 'display:none;')}>
             {computed(() => !props.store.showNotes.value || props.store.notesView.value !== 'page' ? null : currentNote.value && !editing.value ? (
                 <div class="bk-note-saved">
                     <div class="bk-note-content">{renderNoteDocument(props.store.pageNoteDocuments.value.get(props.store.currentPage.value), currentNote.value)}</div>

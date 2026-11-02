@@ -8,6 +8,7 @@ import { computed } from '@preact/signals-core';
 import { resolveMessages } from '../i18n/service';
 import type { FlipbookTocEntry } from '../model/toc';
 import type { FlipbookStore } from '../state/store';
+import { styled } from './style';
 
 interface TableOfContentsProps {
     onClose?: () => void;
@@ -43,7 +44,7 @@ export function TableOfContents(props: TableOfContentsProps) {
             class="bk-toc"
             onKeyDown={(event: KeyboardEvent) => { if (event.key === 'Escape') props.onClose?.(); }}
             aria-label={computed(() => messages.value.tableOfContents || 'Table of Contents')}
-            style={computed(() => props.store.showToc.value && props.store.toc.value.length ? 'display:flex;' : 'display:none;')}
+            style={styled(() => props.store.showToc.value && props.store.toc.value.length ? 'display:flex;' : 'display:none;')}
         >
             <div class="bk-search-heading-row">
                 <div class="bk-toc-heading">{computed(() => messages.value.tableOfContents || 'Table of Contents')}</div>

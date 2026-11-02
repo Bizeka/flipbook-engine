@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.4 - 2026-11-03
+
+- CSP: the reader no longer uses `style.cssText` or `style` attributes. Every dynamic style is set per property (`el.style.x`), so the package works under a nonce-only `style-src` without `unsafe-inline` or `unsafe-hashes`. Behaviour is unchanged.
+- A test (`tests/csp-safe.test.ts`) fails on `cssText`, `setAttribute("style"` and `style=` in markup strings.
+
 ## 1.2.3 - 2026-10-28
 
 - Fixed hotspot changes at runtime not showing in double-page layout: `updateOptions({ hotspots })` redrew the single-page view but the spread pages, built once, kept the old hotspots. The hotspot layer now follows the list on every page.

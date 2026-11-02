@@ -102,7 +102,7 @@ test('coordinate notes coexist, preserve drafts on failure, and placement cancel
   const wrapper = document.querySelector('.bk-wrapper')!;
   wrapper.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
   engine.placeAnnotation(0, .2, .3);
-  assert.equal(document.querySelector('.bk-note-popover')?.getAttribute('style'), 'display:none;');
+  assert.equal((document.querySelector('.bk-note-popover') as HTMLElement | null)?.style.display, 'none');
   engine.beginAnnotation(); engine.placeAnnotation(0, .2, .3);
   assert.equal(engine.getCurrentPage(), 0);
   const first = { id: 'first', pageIndex: 0, x: .2, y: .3, text: 'First' };

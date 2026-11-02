@@ -1,13 +1,14 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
 import dts from 'vite-plugin-dts';
+import { cspSafePageFlip } from './scripts/csp-safe-page-flip.js';
 
 export default defineConfig({
   esbuild: {
     jsx: 'automatic',
     jsxImportSource: '@serenity-is/domwise'
   },
-  plugins: [dts({ insertTypesEntry: true, outDir: 'dist' })],
+  plugins: [cspSafePageFlip(), dts({ insertTypesEntry: true, outDir: 'dist' })],
   build: {
     lib: {
       entry: {

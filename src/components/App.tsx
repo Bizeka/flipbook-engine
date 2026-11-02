@@ -34,6 +34,7 @@ import type { FlipbookStore } from '../state/store';
 import type { PageFlipAdapter } from '../adapters/PageFlipAdapter';
 import type { InteractionManager } from '../core/InteractionManager';
 import type { FlipbookPluginRegistry } from '../plugins';
+import { css } from './style';
 
 interface AppProps {
     pageFlipAdapterRef: { current: PageFlipAdapter | null };
@@ -148,7 +149,7 @@ export function App(props: AppProps) {
 
                 {!props.store.whiteLabel.value ? (
                     <div class="bk-watermark">
-                        Powered by <a href="https://flipbookengine.com" target="_blank" rel="noopener" style="text-decoration: underline;">FlipbookEngine</a>
+                        Powered by <a href="https://flipbookengine.com" target="_blank" rel="noopener" style={css("text-decoration: underline;")}>FlipbookEngine</a>
                     </div>
                 ) : null}
                 <TableOfContents store={props.store} onEntryClick={handleTocEntryClick} onClose={() => props.store.showToc.value = false} />

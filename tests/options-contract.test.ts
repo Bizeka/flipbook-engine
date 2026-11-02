@@ -13,8 +13,8 @@ test('runtime options keep arrow, single-mode, and zoom state consistent', async
   ]);
 
   engine.updateOptions({ showArrows: false, isSingleMode: true });
-  assert.equal(document.querySelector('.bk-nav-arrows')?.getAttribute('style'), 'display: none;');
-  assert.equal(document.querySelector('.bk-single-view')?.getAttribute('style')?.includes('display: flex;'), true);
+  assert.equal((document.querySelector('.bk-nav-arrows') as HTMLElement | null)?.style.display, 'none');
+  assert.equal((document.querySelector('.bk-single-view') as HTMLElement | null)?.style.display, 'flex');
 
   engine.setZoom(Number.NaN);
   assert.equal(engine.getZoom(), 1);

@@ -2,6 +2,7 @@ import { computed } from '@preact/signals-core';
 import { resolveMessages } from '../i18n/service';
 import type { FlipbookStore } from '../state/store';
 import { domSignal } from '../core/domSignal';
+import { styled } from './style';
 
 type Place = (page: number, x: number, y: number) => void;
 const controls = 'button,a,input,textarea,select,[contenteditable="true"],.bk-hotspot-popup';
@@ -10,7 +11,7 @@ const stop = (event: Event) => event.stopPropagation();
 export function NotePlacementLayer(props: { store: FlipbookStore; pageIndex: number; onPlace: Place }) {
     const messages = computed(() => resolveMessages({ locale: props.store.locale.value, messages: props.store.messages.value }));
     return <button type="button" class="bk-note-placement-layer" aria-label={computed(() => messages.value.placeNote)}
-        style={computed(() => props.store.placingNote.value ? 'display:block;' : 'display:none;')}
+        style={styled(() => props.store.placingNote.value ? 'display:block;' : 'display:none;')}
         onPointerDown={stop} onPointerMove={stop} onPointerUp={stop} onTouchStart={stop} onTouchMove={stop} onTouchEnd={stop} onMouseDown={stop}
         onClick={(event: MouseEvent) => {
             event.preventDefault(); event.stopPropagation();
