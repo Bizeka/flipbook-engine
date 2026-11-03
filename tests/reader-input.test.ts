@@ -21,6 +21,12 @@ function sizedManager() {
   Object.defineProperty(container, 'offsetHeight', { value: 600 });
   parent.getBoundingClientRect = () => ({ left: 0, top: 0, width: 400, height: 600, right: 400, bottom: 600, x: 0, y: 0, toJSON() {} }) as DOMRect;
   const store = createFlipbookStore();
+  // The transformed box as a browser reports it: scaled around its centre, then translated.
+  container.getBoundingClientRect = () => {
+    const { scale, translateX, translateY } = store.zoomState.value;
+    const width = 400 * scale, height = 600 * scale, left = 200 + translateX - width / 2, top = 300 + translateY - height / 2;
+    return { left, top, width, height, right: left + width, bottom: top + height, x: left, y: top, toJSON() {} } as DOMRect;
+  };
   const manager = new InteractionManager(container, {} as never, store);
   manager.init();
   return { store, manager, container };

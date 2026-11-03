@@ -14,15 +14,17 @@
  */
 
 
-import { effect } from '@preact/signals-core';
+import { computed, effect } from '@preact/signals-core';
 import type { FlipbookStore } from '../state/store';
 import type { PageFlipAdapter } from '../adapters/PageFlipAdapter';
+import { clampPan, zoomAt, zoomBaseline, zoomFollow, type ZoomBaseline, type ZoomFrame, type ZoomPoint, type ZoomView } from './zoomMath';
 
 export class InteractionManager {
     private container: HTMLElement;
     private pageFlipAdapter: PageFlipAdapter;
     private store: FlipbookStore;
     private touchStartX: number | null = null;
+    private gesturing = false;
     private unsubs: Array<() => void> = [];
     private listenerAbortController: AbortController;
 
@@ -42,19 +44,19 @@ export class InteractionManager {
     }
 
     private setupStateSync() {
+        const active = computed(() => this.store.zoomState.value.isActive);
         this.unsubs.push(
+            // Runs only when zoom turns on or off, not on every gesture frame.
             effect(() => {
-                this.store.isZoomed.value = this.store.zoomState.value.isActive;
+                this.store.isZoomed.value = active.value;
                 // The browser must not pinch-zoom or pan the page itself while the reader handles the gesture.
-                this.container.style.touchAction = this.store.zoomState.value.isActive ? 'none' : 'pan-y';
-
-                if (this.store.zoomState.value.isActive) {
-                    this.container.style.transform = `translate(${this.store.zoomState.value.translateX}px, ${this.store.zoomState.value.translateY}px) scale(${this.store.zoomState.value.scale})`;
-                    this.container.style.transition = 'none';
-                } else {
-                    this.container.style.transform = '';
-                    this.container.style.transition = 'transform 0.3s ease';
-                }
+                this.container.style.touchAction = active.value ? 'none' : 'pan-y';
+            }),
+            // The one per-frame write: a transform, which the compositor applies without layout or repaint.
+            effect(() => {
+                const zoom = this.store.zoomState.value;
+                this.container.style.transition = zoom.isActive || this.gesturing ? 'none' : 'transform 0.3s ease';
+                this.container.style.transform = zoom.isActive ? `translate(${zoom.translateX}px, ${zoom.translateY}px) scale(${zoom.scale})` : '';
             })
         );
     }
@@ -108,61 +110,99 @@ export class InteractionManager {
         }, { capture: true, signal: this.listenerAbortController.signal });
     }
 
+    /**
+     * While fingers zoom or pan, the element keeps one composited layer (will-change), so scale steps
+     * reuse its texture instead of re-rasterising the pages every frame; dropping it at the end
+     * re-rasterises once at the final scale.
+     */
+    private setGesturing(on: boolean) {
+        if (this.gesturing === on) return;
+        this.gesturing = on;
+        this.container.style.willChange = on ? 'transform' : '';
+        if (on) this.container.style.transition = 'none';
+    }
+
+    /** Untransformed centre and size of the zoomed element; read once per finger down, never per move. */
+    private measureFrame(): ZoomFrame {
+        const view = this.view();
+        const box = this.container.getBoundingClientRect();
+        return { cx: box.left + box.width / 2 - view.x, cy: box.top + box.height / 2 - view.y, width: this.container.offsetWidth, height: this.container.offsetHeight };
+    }
+
+    /** The view as drawn: an inactive zoom has no transform, whatever scale it holds. */
+    private view(): ZoomView {
+        const zoom = this.store.zoomState.peek();
+        return zoom.isActive ? { scale: zoom.scale, x: zoom.translateX, y: zoom.translateY } : { scale: 1, x: 0, y: 0 };
+    }
+
+    private applyView(next: ZoomView) {
+        const zoom = this.store.zoomState.peek();
+        if (zoom.scale === next.scale && zoom.translateX === next.x && zoom.translateY === next.y && zoom.isActive === next.scale > 1) return;
+        this.store.zoomState.value = { ...zoom, scale: next.scale, isActive: next.scale > 1, translateX: next.x, translateY: next.y };
+    }
+
     private bindTouch() {
-        let startY = 0, startTx = 0, startTy = 0, pinchDistance = 0, pinchScale = 1;
-        let lastTapTime = 0, lastTapX = 0, lastTapY = 0;
-        let pinchX = 0, pinchY = 0, pinchCenterX = 0, pinchCenterY = 0, wasPinch = false;
+        let startY = 0, lastTapTime = 0, lastTapX = 0, lastTapY = 0;
+        // tracking: the reader owns this gesture; multi: it has had two fingers, so it is never a tap or swipe.
+        let tracking = false, multi = false, base: ZoomBaseline | null = null;
+        let frame: ZoomFrame = { cx: 0, cy: 0, width: 0, height: 0 };
         const signal = this.listenerAbortController.signal;
         const interactive = (target: EventTarget | null) => (target as Element)?.closest('button,a,input,textarea,select,[contenteditable="true"]');
+        const points = (touches: TouchList) => Array.from(touches).slice(0, 2).map((touch): ZoomPoint => ({ x: touch.clientX, y: touch.clientY }));
+        const reset = () => { tracking = false; multi = false; base = null; this.touchStartX = null; this.setGesturing(false); };
         this.container.addEventListener('touchstart', event => {
-            if (interactive(event.target) || this.store.textSelection.value || this.store.placingNote.value || this.store.pendingAnnotation.value || this.store.activeAnnotationId.value) { this.touchStartX = null; return; }
-            if (event.touches.length === 2) {
-                const [a, b] = Array.from(event.touches);
-                const box = this.container.parentElement!.getBoundingClientRect();
-                pinchDistance = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
-                pinchScale = this.store.zoomState.value.scale;
-                pinchX = (a.clientX + b.clientX) / 2; pinchY = (a.clientY + b.clientY) / 2;
-                pinchCenterX = box.left + box.width / 2; pinchCenterY = box.top + box.height / 2;
-                startTx = this.store.zoomState.value.translateX; startTy = this.store.zoomState.value.translateY;
-                wasPinch = true; this.touchStartX = null;
-                event.stopPropagation(); if (event.cancelable) event.preventDefault();
-            } else if (event.touches.length === 1) {
-                wasPinch = false; pinchDistance = 0;
-                this.touchStartX = event.touches[0].clientX; startY = event.touches[0].clientY;
-                startTx = this.store.zoomState.value.translateX; startTy = this.store.zoomState.value.translateY;
-                if (this.store.zoomState.value.isActive) event.stopPropagation();
+            if (interactive(event.target) || this.store.textSelection.value || this.store.placingNote.value || this.store.pendingAnnotation.value || this.store.activeAnnotationId.value) {
+                if (event.touches.length === 1) reset();
+                this.touchStartX = null;
+                return;
             }
+            const count = event.touches.length;
+            if (count === 1) { multi = false; this.touchStartX = event.touches[0].clientX; startY = event.touches[0].clientY; }
+            else if (count >= 2) {
+                // page-flip saw the first finger; drop its pending corner fold or swipe so the pinch cannot turn the page.
+                if (!multi) this.pageFlipAdapter.cancelUserTouch?.();
+                multi = true; this.touchStartX = null;
+            }
+            tracking = true;
+            const zoomed = this.store.zoomState.peek().isActive;
+            if (count >= 2 || zoomed) { this.setGesturing(true); frame = this.measureFrame(); }
+            // Every finger change restarts the segment from the current view, so adding a finger never jumps.
+            base = zoomBaseline(this.view(), points(event.touches));
+            if (count >= 2 || zoomed) event.stopPropagation();
+            if (count >= 2 && event.cancelable) event.preventDefault();
         }, { capture: true, passive: false, signal });
         this.container.addEventListener('touchmove', event => {
-            if (interactive(event.target) || this.store.placingNote.value) return;
-            if (event.touches.length === 2 && pinchDistance > 0) {
-                const [a, b] = Array.from(event.touches);
-                const scale = Math.max(1, Math.min(5, pinchScale * Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) / pinchDistance));
-                const ratio = scale / pinchScale;
-                const pan = scale > 1 ? this.clampPan(
-                    startTx * ratio + (pinchX - pinchCenterX) * (1 - ratio) + (a.clientX + b.clientX) / 2 - pinchX,
-                    startTy * ratio + (pinchY - pinchCenterY) * (1 - ratio) + (a.clientY + b.clientY) / 2 - pinchY, scale) : { x: 0, y: 0 };
-                this.store.zoomState.value = { ...this.store.zoomState.value, scale, isActive: scale > 1, translateX: pan.x, translateY: pan.y };
-                event.stopPropagation(); if (event.cancelable) event.preventDefault();
-            } else if (!wasPinch && this.store.zoomState.value.isActive && this.touchStartX !== null && event.touches.length === 1) {
-                this.updateZoomPan(startTx + event.touches[0].clientX - this.touchStartX, startTy + event.touches[0].clientY - startY);
-                event.stopPropagation(); if (event.cancelable) event.preventDefault();
-            }
+            if (!tracking || !base || interactive(event.target) || this.store.placingNote.value) return;
+            const count = event.touches.length;
+            const zoomed = this.store.zoomState.peek().isActive;
+            // One unzoomed finger belongs to native scrolling and page-flip.
+            if (count === 1 && !zoomed && !multi) return;
+            const current = points(event.touches);
+            if (current.length !== base.fingers) base = zoomBaseline(this.view(), current);
+            else if (count >= 2 || zoomed) this.applyView(zoomFollow(base, current, frame));
+            event.stopPropagation(); if (event.cancelable) event.preventDefault();
         }, { capture: true, passive: false, signal });
         const finish = (event: TouchEvent) => {
-            if (!wasPinch && !this.store.placingNote.value && !this.store.pendingAnnotation.value && !this.store.activeAnnotationId.value && this.touchStartX !== null && !this.store.zoomState.value.isActive && this.store.isSingleMode.value && event.changedTouches.length === 1) {
+            const zoomed = this.store.zoomState.peek().isActive;
+            if (tracking && !multi && !this.store.placingNote.value && !this.store.pendingAnnotation.value && !this.store.activeAnnotationId.value && this.touchStartX !== null && !zoomed && this.store.isSingleMode.value && event.changedTouches.length === 1) {
                 const dx = event.changedTouches[0].clientX - this.touchStartX, dy = event.changedTouches[0].clientY - startY;
                 if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.4) dx > 0 ? this.pageFlipAdapter.turnToPrevPage() : this.pageFlipAdapter.turnToNextPage();
             }
             const tap = event.changedTouches[0];
-            if (!wasPinch && tap && !event.touches.length && this.touchStartX !== null && !interactive(event.target) && !this.store.placingNote.value && !this.store.pendingAnnotation.value && !this.store.activeAnnotationId.value && !this.store.textSelection.value
+            let doubleTap: Touch | null = null;
+            if (tracking && !multi && tap && !event.touches.length && this.touchStartX !== null && !interactive(event.target) && !this.store.placingNote.value && !this.store.pendingAnnotation.value && !this.store.activeAnnotationId.value && !this.store.textSelection.value
                 && Math.hypot(tap.clientX - this.touchStartX, tap.clientY - startY) < 10) {
                 const now = Date.now();
-                if (now - lastTapTime < 300 && Math.hypot(tap.clientX - lastTapX, tap.clientY - lastTapY) < 30) { lastTapTime = 0; this.toggleZoomAt(tap.clientX, tap.clientY); event.stopPropagation(); }
+                if (now - lastTapTime < 300 && Math.hypot(tap.clientX - lastTapX, tap.clientY - lastTapY) < 30) { lastTapTime = 0; doubleTap = tap; event.stopPropagation(); }
                 else { lastTapTime = now; lastTapX = tap.clientX; lastTapY = tap.clientY; }
             }
-            if (wasPinch || this.store.zoomState.value.isActive) event.stopPropagation();
-            this.touchStartX = null; if (!event.touches.length) { wasPinch = false; pinchDistance = 0; }
+            if (multi || zoomed) event.stopPropagation();
+            this.touchStartX = null;
+            // The remaining finger carries on from where it is now; the last one ends the gesture.
+            if (!event.touches.length) reset();
+            else if (tracking) base = zoomBaseline(this.view(), points(event.touches));
+            // After the reset, so zooming back out animates.
+            if (doubleTap) this.toggleZoomAt(doubleTap.clientX, doubleTap.clientY);
         };
         // Safari reports trackpad and some touch pinches only as gesture events.
         let gestureStart = 1;
@@ -174,7 +214,7 @@ export class InteractionManager {
             this.store.zoomState.value = { ...this.store.zoomState.value, scale, isActive: scale > 1, translateX: pan.x, translateY: pan.y };
         }, { signal });
         this.container.addEventListener('touchend', finish, { capture: true, passive: true, signal });
-        this.container.addEventListener('touchcancel', () => { this.touchStartX = null; wasPinch = false; pinchDistance = 0; }, { capture: true, signal });
+        this.container.addEventListener('touchcancel', reset, { capture: true, signal });
     }
     public zoomIn() {
         let newScale = this.store.zoomState.value.scale + 0.5;
@@ -204,10 +244,7 @@ export class InteractionManager {
 
     /** Keeps the zoomed page overlapping the viewport; skipped while the container has no size. */
     private clampPan(x: number, y: number, scale: number): { x: number; y: number } {
-        const width = this.container.offsetWidth, height = this.container.offsetHeight;
-        if (!width || !height) return { x, y };
-        const limitX = (scale - 1) * width / 2, limitY = (scale - 1) * height / 2;
-        return { x: Math.max(-limitX, Math.min(limitX, x)), y: Math.max(-limitY, Math.min(limitY, y)) };
+        return clampPan(x, y, scale, this.container.offsetWidth, this.container.offsetHeight);
     }
 
     private updateZoomPan(x: number, y: number) {
@@ -231,10 +268,7 @@ export class InteractionManager {
             this.store.zoomState.value = { ...this.store.zoomState.value, isActive: false, translateX: 0, translateY: 0, scale: 1 };
             return;
         }
-        const box = (this.container.parentElement ?? this.container).getBoundingClientRect();
-        const scale = 2.5;
-        const pan = this.clampPan((box.left + box.width / 2 - clientX) * (scale - 1), (box.top + box.height / 2 - clientY) * (scale - 1), scale);
-        this.store.zoomState.value = { ...this.store.zoomState.value, isActive: true, scale, translateX: pan.x, translateY: pan.y };
+        this.applyView(zoomAt({ x: clientX, y: clientY }, 2.5, this.measureFrame()));
     }
 
     public destroy() {
@@ -243,10 +277,3 @@ export class InteractionManager {
         this.unsubs = [];
     }
 }
-
-
-
-
-
-
-
