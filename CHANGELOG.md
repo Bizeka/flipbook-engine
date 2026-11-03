@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.2.6 - 2026-11-03
+
+- Smooth touch pinch-zoom and pan. The point under the fingers now stays under them, adding or lifting a finger no longer jumps, and the gesture runs without rebuilding or re-rasterising the page on every frame:
+  - In single-page mode every pinch frame rebuilt the whole page (image, text layer, hotspots), because the page view read the zoom state; it now rebuilds only on a page change and swaps the image to full quality when zoom turns on.
+  - The zoom anchor used the parent box centre instead of the zoomed element's own centre, so in single-page mode (and when scrolled) the page drifted away from the fingers. The element's untransformed centre and size are now read once when a finger goes down, never during the move.
+  - While fingers are down the zoomed element keeps one composited layer (`will-change: transform`, removed when the gesture ends), so scale steps reuse its texture.
+  - Lifting one finger of a pinch keeps panning with the other; putting it back continues the pinch from the current view.
+  - A pinch can no longer turn the page: page-flip forgets the first finger when the second lands, and the rest of the gesture is never read as a swipe or a tap.
+- The pinch and pan math is a small pure module (`src/core/zoomMath.ts`) with tests. Double-tap zoom, wheel, mouse, trackpad and the public API are unchanged.
+
 ## 1.2.5 - 2026-11-03
 
 - Release workflow publishes through npm trusted publishing (OIDC) instead of an access token. No code changes.

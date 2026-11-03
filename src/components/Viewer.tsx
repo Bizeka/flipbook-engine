@@ -73,6 +73,8 @@ function PageStacks(props: { store: FlipbookStore }) {
 }
 
 export function Viewer(props: ViewerProps) {
+    // Changes only when zoom turns on or off. Reading zoomState itself would rerun the bindings below on every pinch frame.
+    const zoomed = computed(() => props.store.zoomState.value.isActive);
     return (
         <div
             role="region"
@@ -83,7 +85,7 @@ export function Viewer(props: ViewerProps) {
                 if (props.store.isDoublePageLayout.value) classes += 'double-mode ';
                 if (props.store.isFrontCover.value) classes += 'bk-is-cover ';
                 if (props.store.isBackCover.value) classes += 'bk-is-back-cover ';
-                if (props.store.zoomState.value.isActive) classes += 'zoomed ';
+                if (zoomed.value) classes += 'zoomed ';
                 return classes.trim();
             })}
             ref={(element: HTMLElement) => { props.bookWrapperRef(element); bindNoteGestures(element, props.store, props.onPlaceAnnotation, props.signal); }}
@@ -131,6 +133,7 @@ export function Viewer(props: ViewerProps) {
                     class="bk-single-view"
                     style={styled(() => `display: ${props.store.isSingleMode.value ? 'flex' : 'none'}; width: 100%; height: 100%; justify-content: center; align-items: center; position: absolute; top: 0; left: 0; z-index: 10;`)}
                 >
+                    {/* Rebuilt on a page change only: the zoom level never rebuilds the page, its text layer or its hotspots. */}
                     {computed(() => {
                         const page = props.store.pages.value[props.store.currentPage.value];
                         if (!page) return null;
@@ -139,7 +142,7 @@ export function Viewer(props: ViewerProps) {
                                 <img
                                     data-pdf-page={page.assetId.startsWith('pdf-page-') ? (page.sourcePageNumber ?? page.pageNumber) : undefined}
                                     class={computed(() => `bk-single-img page-content ${page.cropMode !== 'full' ? 'page-content--split page-content--' + page.cropMode : ''}`)}
-                                    src={props.store.zoomState.value.isActive ? page.normal : (page.low || page.normal)}
+                                    src={computed(() => zoomed.value ? page.normal : (page.low || page.normal))}
                                     alt={`Page ${props.store.currentPage.value + 1}`}
                                     style={css("opacity: 1; transition: opacity 0.3s; box-shadow: var(--flipbook-shadow);")}
                                 />

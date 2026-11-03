@@ -241,6 +241,20 @@ export class PageFlipAdapter {
         }
     }
 
+    /**
+     * Forgets the touch page-flip is tracking, so a second finger (a pinch) cannot become a corner fold,
+     * a swipe or a tap flip. page-flip has no public API for this; the fields are those of page-flip 2.0.x.
+     */
+    public cancelUserTouch() {
+        const flip = this.pageFlip as { getUI?: () => { touchPoint?: unknown } | null; isUserTouch?: boolean; isUserMove?: boolean; userStop?: (point: { x: number; y: number }) => void } | null;
+        const ui = flip?.getUI?.();
+        if (ui && 'touchPoint' in ui) ui.touchPoint = null;
+        if (!flip?.isUserTouch) return;
+        // A fold already following the finger settles back (or completes) as on release; an untouched one is dropped.
+        if (flip.isUserMove && flip.userStop) flip.userStop({ x: 0, y: 0 });
+        else flip.isUserTouch = false;
+    }
+
     public update() {
         if (this.pageFlip && this.bookContainer.clientWidth > 0 && this.bookContainer.clientHeight > 0) {
             const keep = this.store.currentPage.peek();
