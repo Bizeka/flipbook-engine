@@ -7,7 +7,7 @@
 
 import { defineComponent, h, ref, onMounted, onBeforeUnmount, onUpdated, watch, camelize, PropType } from 'vue';
 import { FlipbookEngine, FlipbookEngineOptions, FlipbookPageAsset } from '../index';
-import { OPTION_KEY_SET, changedOptions, cloneData, sameValue } from '../core/wrapperOptions';
+import { OPTION_KEY_SET, changedOptions, cloneData, sameValue, WRAPPER_EVENTS } from '../core/wrapperOptions';
 
 type FlipbookVueOptions = Omit<FlipbookEngineOptions, 'theme'> & { theme?: 'auto' | 'light' | 'dark' };
 
@@ -35,11 +35,12 @@ export const Flipbook = defineComponent({
             default: () => ({})
         }
     },
-    emits: ['pageChange'],
+    // Every forwarded engine event is a Vue event: `@error`, `@hotspot-open` (or `@hotspotOpen`).
+    emits: [...WRAPPER_EVENTS],
     setup(props, { attrs, emit, expose }) {
         const containerRef = ref<HTMLElement | null>(null);
         let engine: FlipbookEngine | null = null;
-        let unsubscribeChange: (() => void) | undefined;
+        let unsubscribers: Array<() => void> = [];
 
         const attrOptions = (): Record<string, unknown> => {
             const found: Record<string, unknown> = {};
@@ -61,14 +62,15 @@ export const Flipbook = defineComponent({
 
             appliedOptions = currentOptions();
             engine = new FlipbookEngine(containerRef.value, appliedOptions);
-            unsubscribeChange = engine.on('pageChange', (e: any) => emit('pageChange', e));
+            unsubscribers = WRAPPER_EVENTS.map((name) => engine!.on(name, (e: any) => emit(name, e)));
             appliedPages = cloneData(props.pages);
             appliedUrl = props.pdfUrl;
             engine.setPages(props.pages, props.pdfUrl).catch(console.error);
         });
 
         onBeforeUnmount(() => {
-            unsubscribeChange?.();
+            unsubscribers.forEach((off) => off());
+            unsubscribers = [];
             engine?.destroy();
             engine = null;
         });
