@@ -11,6 +11,7 @@ export default defineConfig({
     jsx: 'automatic',
     jsxImportSource: '@serenity-is/domwise'
   },
+  resolve: { alias: [{ find: /^(.*)\/loadPdfJs$/, replacement: resolve(__dirname, 'src/core/loadPdfJs.iife.ts') }] },
   plugins: [cspSafePageFlip()],
   build: {
     lib: {

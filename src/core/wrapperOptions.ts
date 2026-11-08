@@ -51,7 +51,7 @@ export const OPTION_KEYS = [
     'showShare', 'showThumbs', 'showToc', 'toc', 'showArrows', 'primaryColor', 'soundEnabled', 'soundUrl', 'flippingTime',
     'maxShadowOpacity', 'backgroundColor', 'backgroundImage', 'background', 'whiteLabel', 'watermarkUrl', 'theme', 'locale',
     'messages', 'className', 'cssVariables', 'onDownload', 'onShare', 'singleMode', 'isSingleMode', 'autoPlay', 'autoPlayInterval',
-    'pdfRenderScale', 'pdfRenderQuality', 'pdfRenderFormat', 'pdfRenderConcurrency', 'pdfRenderCacheSize', 'pdfWorkerSrc',
+    'pdfRenderScale', 'pdfRenderQuality', 'pdfRenderFormat', 'pdfRenderConcurrency', 'pdfRenderCacheSize', 'pdfWorkerSrc', 'pageSource',
     'pdfPageMode', 'deepLink', 'startPage', 'rememberPage', 'bookmarks', 'notes', 'hotspots', 'annotations', 'plugins'
 ] as const satisfies readonly (keyof FlipbookEngineOptions)[];
 

@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- New `PageSource` interface and `pageSource` option. The engine now opens a document URL through a page source (page count and sizes, page images, text, search with highlight rectangles, destroy). The default is the existing PDF.js renderer, so `pdfUrl`, image mode, the `pdfRender*` options, `pdfWorkerSrc` and the browser build behave as before. A custom source can serve pages from a backend. The interface types are exported; the iframe bridge cannot pass a `pageSource`.
+- PDF.js is loaded with a dynamic `import()` only when a document URL is opened, so importing the package in Node or during server-side rendering no longer throws `DOMMatrix is not defined`. The browser (IIFE) build still reads the `pdfjsLib` global.
+
 ## 1.2.7 - 2026-11-04
 
 - Fixed pinch-out and panning on phones in single-page view. The previous and next arrows sit at mid-height on both edges, which is where two fingers land when a zoomed page is pinched back out. A finger that starts on an arrow belongs to the button, not to the page, so the pinch was ignored and the page stayed zoomed. In two-page view the book sits higher, which is why the same gesture worked there. While the page is zoomed the arrows are now hidden and let touches through; they return at the fit zoom level.
