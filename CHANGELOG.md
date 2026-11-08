@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- React and Vue wrappers now forward every public engine event, not only `pageChange`: `init`, `zoomChange`, `thumbsToggle`, `tocToggle`, `singlePageModeChange`, `orientationChange`, `progress`, `error`, `deepLinkChange`, `bookmarkChange`, `noteChange`, `searchChange`, `searchProgress`, `hotspotActivate`, `hotspotOpen`, `hotspotClose`, `annotationActivate` and `annotationChange`. React takes `onError`, `onHotspotOpen` and so on as props (always the latest callback, no re-subscribe per render); Vue emits `error`, `hotspotOpen` and so on, usable as `@error` and `@hotspot-open`. They are not engine options and are not passed to the engine.
+
 ## 1.2.7 - 2026-11-04
 
 - Fixed pinch-out and panning on phones in single-page view. The previous and next arrows sit at mid-height on both edges, which is where two fingers land when a zoomed page is pinched back out. A finger that starts on an arrow belongs to the button, not to the page, so the pinch was ignored and the page stayed zoomed. In two-page view the book sits higher, which is why the same gesture worked there. While the page is zoomed the arrows are now hidden and let touches through; they return at the fit zoom level.

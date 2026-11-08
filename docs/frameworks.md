@@ -46,7 +46,7 @@ function App() {
 - Every [engine option](api-reference.md#constructor-options) is a prop (`allowDownload`, `showThumbs`, `theme`, `hotspots`, and so on).
 - `pdfUrl` and `pages` are the source, as for `engine.init(pdfUrl, pages)`.
 - `className` and `style` apply to the host `div`, which fills its parent (`minHeight` 400px). Give the parent a height.
-- `onPageChange` receives the `pageChange` event. The latest function is always the one called.
+- Engine events are props named `on` plus the event name: `onPageChange`, `onError`, `onHotspotOpen`, `onHotspotClose`, `onAnnotationActivate`, `onNoteChange`, `onSearchChange`, and so on for every [supported event](api-reference.md#supported-events) except `destroy`. The latest function is always the one called, and changing it does not re-subscribe. They are not engine options.
 
 ### What a re-render does
 
@@ -119,16 +119,16 @@ function onPageChange(event) {
 - Engine options can be passed one by one (`:allowDownload="false"`, `:showThumbs="true"`, kebab-case such as `show-thumbs` works too) or together as `:options="{ ... }"`. When both give the same option, `options` wins. Pass booleans and numbers with `:`; a bare `allow-download` is the empty string.
 - `pdfUrl` and `pages` are the source.
 - `class`, `style`, `id` and other HTML attributes go to the host `div`, which fills its parent (`minHeight` 400px).
-- `@page-change` receives the `pageChange` event.
+- Every [supported event](api-reference.md#supported-events) except `destroy` is a Vue event, in kebab-case or camelCase: `@page-change`, `@error`, `@hotspot-open`, `@hotspot-close`, `@annotation-activate`, `@note-change`, `@search-change`, and so on. The wrapper subscribes once per engine and unsubscribes on unmount.
 
 As in React, an update sends only the options that changed, and a new `pages` array with equal contents does not reload the book. An edit inside the `options` object (for example pushing a hotspot) is re-sent whole.
 
 ### Exposed methods
 
-`getCurrentPage()`, `getTotalPages()`, `goToPage(index)`, `nextPage()`, `prevPage()` (plus `flipNext`, `flipPrev`, `turnToPage`), and `getEngine()` (also `engine()`), which returns the `FlipbookEngine` instance (`null` before mount). Use `book.value.getEngine().on('error', ...)` for events the wrapper does not forward.
+`getCurrentPage()`, `getTotalPages()`, `goToPage(index)`, `nextPage()`, `prevPage()` (plus `flipNext`, `flipPrev`, `turnToPage`), and `getEngine()` (also `engine()`), which returns the `FlipbookEngine` instance (`null` before mount). `getEngine().on(...)` remains available for anything else.
 
 ---
 
 ## Other events
 
-The wrappers forward `pageChange` only. Subscribe to any other [event](api-reference.md#supported-events) through the engine (`engine.on(...)`), as shown above.
+The wrappers forward every [event](api-reference.md#supported-events) except `destroy`: React as `onError`, `onHotspotOpen`, ... props, Vue as `@error`, `@hotspot-open`, ... listeners. `destroy` happens when the component unmounts. You can still subscribe through the engine (`engine.on(...)`), as shown above.

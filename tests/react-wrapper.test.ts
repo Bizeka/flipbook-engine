@@ -92,3 +92,39 @@ test('React wrapper exposes core navigation methods through its ref', async () =
 });
 
 
+
+test('React wrapper forwards engine events to the latest handlers and keeps them out of the options', async () => {
+  const host = createHost();
+  const root = createRoot(host);
+  const ref = React.createRef<any>();
+  const calls: string[] = [];
+  const pages = [{ normal: 'a.png', low: 'a.png', thumb: 'a.png' }];
+  const render = (tag: string) => root.render(React.createElement(Flipbook, {
+    ref,
+    pages,
+    onError: (e: any) => calls.push(tag + ':error:' + e.code),
+    onHotspotOpen: (e: any) => calls.push(tag + ':hotspotOpen:' + e.pageIndex)
+  }));
+  render('first');
+  await pagesIn(host, 1);
+  const engine = ref.current.engine;
+  const updates: unknown[] = [];
+  const originalUpdate = engine.updateOptions.bind(engine);
+  engine.updateOptions = (o: unknown) => { updates.push(o); return originalUpdate(o); };
+
+  engine.emit('error', { code: 'PDF_LOAD_FAILED', message: 'x' });
+  render('second');
+  await settle();
+  engine.emit('error', { code: 'PDF_RENDER_FAILED', message: 'y' });
+  engine.emit('hotspotOpen', { hotspot: {}, pageIndex: 3 });
+
+  assert.deepEqual(calls, ['first:error:PDF_LOAD_FAILED', 'second:error:PDF_RENDER_FAILED', 'second:hotspotOpen:3']);
+  assert.deepEqual(updates.filter((o: any) => 'onError' in o || 'onHotspotOpen' in o), []);
+
+  root.unmount();
+  await settle();
+  const before = calls.length;
+  engine.emit('error', { code: 'PDF_LOAD_FAILED', message: 'z' });
+  assert.equal(calls.length, before);
+  host.remove();
+});

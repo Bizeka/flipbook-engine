@@ -171,6 +171,8 @@ const unsubscribe = engine.on('pageChange', ({ currentPage, pageNumber, totalPag
 
 ### Supported Events
 
+The React and Vue wrappers forward all of these except `destroy` (React: `onPageChange`, `onError`, `onHotspotOpen`, ...; Vue: `@page-change`, `@error`, `@hotspot-open`, ...). See [Frameworks](frameworks.md).
+
 - **`pageChange`**: Emitted when page is changed.
   - Payload: `{ currentPage: number; pageNumber: number; totalPages: number; isSingle: boolean }`
 - **`zoomChange`**: Emitted when zoom factor changes.
