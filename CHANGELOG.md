@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Fixed swiping from a page arrow. A horizontal swipe that starts on the previous or next arrow is now a page swipe and turns the page, as it does on the page itself; before, the touch was treated as a button press and nothing happened. A plain tap still activates the arrow once.
+
 ## 1.2.7 - 2026-11-04
 
 - Fixed pinch-out and panning on phones in single-page view. The previous and next arrows sit at mid-height on both edges, which is where two fingers land when a zoomed page is pinched back out. A finger that starts on an arrow belongs to the button, not to the page, so the pinch was ignored and the page stayed zoomed. In two-page view the book sits higher, which is why the same gesture worked there. While the page is zoomed the arrows are now hidden and let touches through; they return at the fit zoom level.
