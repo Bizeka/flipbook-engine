@@ -46,11 +46,35 @@ When instantiating `new FlipbookEngine(selector, options)`, you can configure th
 | `pdfRenderFormat` | `string` | `'image/webp'` | Image format of rendered PDF pages. |
 | `imageTiers` | `boolean \| { zoomThresholds?, narrowMaxWidth?, select? }` | off | Chooses between a page's `low`, `normal` and optional `large` image by screen width and zoom. Off by default: without it the viewer behaves exactly as before. `true` uses the defaults: screens up to `narrowMaxWidth` (1024 px) show `low` while unzoomed; the zoomed page shows `normal` above the first `zoomThresholds` value (1.05) and `large` above the second (1.75); `large` falls back to `normal` when a page has none. Only the zoomed page loads `large`, and it returns to a smaller image when zoom ends. The choice is re-applied after a width change or rotation (debounced; height-only changes are ignored) and, during a pinch, only once the gesture has ended. `select(context)` receives `{ zoom, viewportWidth, narrow, pageZoomed }` and may return `'low'`, `'normal'` or `'large'` (anything else keeps the built-in choice). Functions cannot cross the iframe bridge, so over `postMessage` only the data fields (`true` or the object without `select`) can be sent; set `select` in the page that creates the engine. Best set at construction. Has no effect on PDF-rendered pages. |
 | `pdfWorkerSrc` | `string` | `null` | URL of the PDF.js worker, which the host serves (see the README). |
+| `pageSource` | `PageSource` | PDF.js | Custom source of pages for a document URL passed to `init`, used instead of PDF.js. See [Page source](#page-source). Not available through the iframe bridge. |
 | `backgroundColor`, `backgroundImage` | `string` | `null` | Legacy shorthand for the light-theme `background`; prefer `background`. |
 | `onDownload` | `(url: string) => void` | `null` | Called with the PDF URL when the toolbar Download control is used; it replaces the default, which opens the PDF in a new tab. |
 | `plugins` | `FlipbookPlugin[]` | `[]` | Plugins installed before the first render; see [Plugin architecture](./plugin-architecture.md). |
 
 The host providers and note options (`searchProvider`, `noteProvider`, `annotationProvider`, `noteEditor`, `optimisticNotes`, `noteColors`, `noteGroups`, `noteGroupProvider`, `noteDocuments`, `notePinSize`, `searchHighlightStyle`, `textLayerProvider`, `textSelection`) are described under [Host backend providers](#host-backend-providers), [Personal coordinate notes](#personal-coordinate-notes) and [Note pins, search highlights, colours and groups](#note-pins-search-highlights-colours-and-groups).
+
+---
+
+## Page source
+
+`init(url)` opens the document through a `PageSource`. Without the `pageSource` option the engine uses PDF.js, which it loads with a dynamic `import()` only at that moment; image-only viewers never load it. Provide your own to serve pages from a backend:
+
+```ts
+import type { PageSource } from 'flipbookengine';
+
+const pageSource: PageSource = {
+  loadDocument: async (url, signal) => pageCount,          // 1-based pages from here on
+  getPageLayouts: async (mode) => [{ width, height, split: false }],
+  calculateViewportDimensions: async (baseShortSide, firstPageLayout) => ({ width, height }),
+  renderPageToDataUrl: async (pageNumber, signal, request) => imageUrl, // request.tier / request.scale are hints
+  extractPageText: async (pageNumber) => text,
+  searchText: async (query, options) => [{ sourcePageNumber, matches, snippet, highlights }],
+  destroy() {}
+};
+new FlipbookEngine('#book', { pageSource }).init('/documents/42');
+```
+
+The URL given to `init` is passed to `loadDocument`. The engine calls `destroy()` when it is destroyed or re-initialised and calls `loadDocument` again for the next document, so keep per-document state inside `loadDocument`. `pdfRender*` options and `pdfWorkerSrc` apply to the PDF.js source only. The iframe bridge (`embed`) can only carry serializable data, so it cannot pass a `pageSource`; set it in the page that hosts the engine instead.
 
 ---
 

@@ -64,7 +64,7 @@ React Strict Mode mounts, unmounts and mounts again in development; the wrapper 
 
 ### Server rendering
 
-The viewer is browser-only. Importing the package on a server fails, because PDF.js reads browser globals such as `DOMMatrix` while it loads. In Next.js, Remix, Nuxt and similar frameworks, load the component on the client only:
+Importing the package on a server no longer fails: PDF.js, which reads browser globals such as `DOMMatrix`, is loaded with a dynamic `import()` only when a PDF is opened in the browser. The viewer itself still needs the DOM, so in Next.js, Remix, Nuxt and similar frameworks keep rendering it on the client only:
 
 ```tsx
 // Next.js
