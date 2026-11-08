@@ -38,6 +38,8 @@ import './styles/flipbook-engine.css';
 import { FlipbookEmbedBridge, type FlipbookEmbedOptions } from './embed';
 import { chooseImageTier, pickTierSrc, resolveImageTiers, type FlipbookImageTierOptions } from './core/imageTiers';
 import { FlipbookPluginRegistry, type FlipbookPlugin } from './plugins';
+import { FlipbookDrawingController, type FlipbookDrawingChange, type FlipbookDrawingError } from './plugins/drawings';
+import { resolveDrawingOptions, type FlipbookDrawingOptions, type FlipbookDrawingProvider, type FlipbookStroke } from './model/drawings';
 
 export interface FlipbookEngineOptions {
     textLayerProvider?: FlipbookTextLayerProvider;
@@ -119,6 +121,14 @@ export interface FlipbookEngineOptions {
     annotations?: FlipbookAnnotation[];
     /** Plugins installed before the first viewer render. */
     plugins?: FlipbookPlugin[];
+    /** Free drawing and highlighting: the stroke store and API. Off by default; `true` uses the defaults. The drawing UI is not part of this option yet. */
+    drawing?: boolean | FlipbookDrawingOptions;
+    /** Host storage for strokes (load, save, clearPage). Without it strokes stay in memory unless `drawingStorage` is `'local'`. */
+    drawingProvider?: FlipbookDrawingProvider;
+    /** Where strokes live when there is no `drawingProvider`: `'memory'` (default) or `'local'` (localStorage, for demos). */
+    drawingStorage?: 'memory' | 'local';
+    /** Identifies the document for drawings. Falls back to a string `rememberPage`, then to the PDF url or first page image. */
+    documentId?: string;
 }
 
 export interface PageImages extends FlipbookPageAsset {
@@ -151,6 +161,9 @@ export interface FlipbookEngineEventMap {
     hotspotClose: { hotspot: FlipbookHotspot; pageIndex: number };
     annotationActivate: { annotation: FlipbookAnnotation; pageIndex: number };
     annotationChange: { annotation: FlipbookAnnotation; action: 'save' | 'delete' };
+    drawingChange: FlipbookDrawingChange;
+    drawingError: FlipbookDrawingError;
+    drawingModeChange: { active: boolean };
 }
 
 export type FlipbookEngineEventName = keyof FlipbookEngineEventMap;
@@ -202,6 +215,11 @@ export class FlipbookEngine {
     private readonly tierLoaded = new WeakSet<HTMLImageElement>();
     private pdfLazyStop: (() => void) | null = null;
     private hasActiveSession = false;
+    private drawingController: FlipbookDrawingController | null = null;
+    private drawingControllerDocument = '';
+    private drawingMode = false;
+    private drawingDocumentId = '';
+    private drawingDocumentSource = { pdfUrl: '', firstPage: undefined as string | undefined };
     private readonly pdfPageRequests = new Map<number, Promise<string>>();
     private readonly pdfRenderedPages = new Set<number>();
     private readonly pdfRenderedSources = new Map<number, string>();
@@ -312,6 +330,8 @@ export class FlipbookEngine {
         // 1. Initialize State
         this.store.init(this.options, resolvedPages.length, resolvedPages, !!pdfUrl, !imageList?.length && !!pdfUrl);
         this.lastPageKey = this.resolveLastPageKey(pdfUrl, resolvedPages[0]?.normal);
+        this.drawingDocumentId = this.resolveDocumentId(pdfUrl, resolvedPages[0]?.normal);
+        this.syncDrawing();
         this.applyInitialDeepLink();
         this.applyResumePage();
         if (this.options.noteGroupProvider) {
@@ -439,6 +459,7 @@ export class FlipbookEngine {
                 this.captureEventState();
                 this.hasActiveSession = true;
                 this.emit('init', { totalPages: resolvedPages.length });
+                this.loadVisibleDrawings();
                 resolve();
             }, 10);
         });
@@ -1008,6 +1029,7 @@ export class FlipbookEngine {
     }
 
     public updateOptions(options: Partial<FlipbookEngineOptions>) {
+        const drawingChanged = 'drawing' in options || 'documentId' in options;
         if ('annotationProvider' in options) this.store.canAnnotate.value = !!options.annotationProvider;
         if ('searchProvider' in options) this.store.searchAvailable.value = !!options.searchProvider || this.store.isPdfMode.value;
         const deepLinkChanged = options.deepLink !== undefined && options.deepLink !== this.options.deepLink;
@@ -1044,10 +1066,84 @@ export class FlipbookEngine {
         if ('noteGroups' in options) this.store.noteGroups.value = normalizeNoteGroups(options.noteGroups);
         if (options.searchHighlightStyle !== undefined) this.store.searchHighlightStyle.value = normalizeSearchHighlightStyle(options.searchHighlightStyle);
 
+        if (drawingChanged && this.hasActiveSession) {
+            this.drawingDocumentId = this.resolveDocumentId(this.drawingDocumentSource.pdfUrl, this.drawingDocumentSource.firstPage);
+            this.syncDrawing();
+            this.loadVisibleDrawings();
+        }
+
         if (this.container) {
             applyThemeConfiguration(this.container, this.options);
         }
     }
+
+    private resolveDocumentId(pdfUrl: string, firstPage?: string): string {
+        this.drawingDocumentSource = { pdfUrl, firstPage };
+        const explicit = typeof this.options.documentId === 'string' ? this.options.documentId.trim() : '';
+        const remembered = typeof this.options.rememberPage === 'string' ? this.options.rememberPage.trim() : '';
+        return explicit || remembered || pdfUrl || firstPage || 'default';
+    }
+
+    /** Creates or drops the drawing controller to match the `drawing` option and the current document. */
+    private syncDrawing(): void {
+        const enabled = !!resolveDrawingOptions(this.options.drawing);
+        const current = this.drawingController;
+        if (current && (!enabled || this.drawingControllerDocument !== this.drawingDocumentId)) {
+            void current.destroy();
+            this.drawingController = null;
+            if (this.drawingMode) { this.drawingMode = false; this.emit('drawingModeChange', { active: false }); }
+        }
+        if (!enabled || this.drawingController) return;
+        this.drawingControllerDocument = this.drawingDocumentId;
+        this.drawingController = new FlipbookDrawingController({
+            documentId: this.drawingDocumentId,
+            getProvider: () => this.options.drawingProvider,
+            getStorage: () => this.options.drawingStorage === 'local' ? 'local' : 'memory',
+            getOptions: () => resolveDrawingOptions(this.options.drawing),
+            onChange: (change) => this.emit('drawingChange', change),
+            onError: (error) => this.emit('drawingError', error)
+        });
+    }
+
+    /** Loads strokes for the pages in view (the current page, plus its neighbour in a two-page spread). */
+    private loadVisibleDrawings(): void {
+        const controller = this.drawingController;
+        if (!controller) return;
+        const total = this.store.totalPages.value;
+        const current = this.store.currentPage.value;
+        const pages = [current];
+        if (!this.store.isSingleMode.value) pages.push(current + 1);
+        void controller.loadPages(pages.filter((page) => page >= 0 && page < total));
+    }
+
+    /** True while drawing mode is on. */
+    public isDrawingMode(): boolean { return this.drawingMode; }
+
+    /** Turns drawing mode on or off. Needs the `drawing` option. The drawing layer that reacts to it comes in a later release. */
+    public setDrawingMode(on: boolean): void {
+        const next = !!on && !!this.drawingController;
+        if (next === this.drawingMode) return;
+        this.drawingMode = next;
+        this.emit('drawingModeChange', { active: next });
+    }
+
+    /** Strokes of one zero-based page, or of every page loaded so far. Empty when `drawing` is off. */
+    public getStrokes(pageIndex?: number): FlipbookStroke[] { return this.drawingController?.getStrokes(pageIndex) ?? []; }
+
+    /** Adds a stroke (normalised 0..1 points). Returns the stored stroke, or null when `drawing` is off or the stroke is invalid. */
+    public addStroke(stroke: Partial<FlipbookStroke> & Pick<FlipbookStroke, 'page' | 'tool' | 'color' | 'points'>): FlipbookStroke | null {
+        if (Number.isInteger(stroke?.page) && stroke.page >= this.store.totalPages.value) return null;
+        return this.drawingController?.add(stroke) ?? null;
+    }
+
+    /** Removes one stroke by id. */
+    public removeStroke(id: string): boolean { return this.drawingController?.remove(id) ?? false; }
+
+    /** Removes the strokes of a page, or of every loaded page. Returns how many were removed. */
+    public clearStrokes(pageIndex?: number): number { return this.drawingController?.clear(pageIndex) ?? 0; }
+
+    public undoStroke(): boolean { return this.drawingController?.undo() ?? false; }
+    public redoStroke(): boolean { return this.drawingController?.redo() ?? false; }
 
     private setupDeepLinkListener() {
         this.teardownDeepLinkListener();
@@ -1333,6 +1429,8 @@ export class FlipbookEngine {
                 });
                 this.updateDeepLink(state.currentPage);
                 this.saveLastPage(state.currentPage);
+                void this.drawingController?.flush();
+                this.loadVisibleDrawings();
             }
             if (state.zoom !== this.lastEventState.zoom || state.zoomActive !== this.lastEventState.zoomActive) {
                 this.emit('zoomChange', { zoom: state.zoom, isActive: state.zoomActive });
@@ -1381,6 +1479,8 @@ export class FlipbookEngine {
         this.lastPageKey = null;
         const hadSession = this.hasActiveSession || !!this.initAbortController || !!this.pageFlipAdapter || !!this.layoutManager || !!this.interactionManager || !!this.pdfRenderer;
         this.initGeneration++;
+        if (this.drawingMode) { this.drawingMode = false; this.emit('drawingModeChange', { active: false }); }
+        if (this.drawingController) { void this.drawingController.destroy(); this.drawingController = null; }
         this.optimisticEntries.clear();
         this.teardownDeepLinkListener();
         this.initAbortController?.abort();

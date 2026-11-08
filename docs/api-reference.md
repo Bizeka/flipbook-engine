@@ -196,6 +196,9 @@ const unsubscribe = engine.on('pageChange', ({ currentPage, pageNumber, totalPag
 - **`annotationChange`**: A coordinate note was saved or deleted. Payload: `{ annotation: FlipbookAnnotation; action: 'save' | 'delete' }`.
 - **`searchChange`**: The search results changed. Payload: `{ query: string; results: FlipbookSearchResult[] }`.
 - **`searchProgress`**: A search provider reported progress. Payload: `{ query: string; completed: number; total: number }`.
+- **`drawingChange`**: Strokes changed. Payload: `{ action: 'add' | 'remove' | 'clear' | 'undo' | 'redo' | 'load' | 'rollback'; pageIndex: number | null; pageNumber: number | null; strokes: FlipbookStroke[] }` (the affected strokes). See [Drawing](#drawing).
+- **`drawingError`**: A load, save, clear or storage request failed. Payload: `{ code: 'load' | 'save' | 'clear' | 'storage'; message: string; pageIndex?: number; cause?: unknown }`.
+- **`drawingModeChange`**: Drawing mode was switched. Payload: `{ active: boolean }`.
 - **`destroy`**: Emitted when the engine is destroyed.
 
 
@@ -264,6 +267,44 @@ Supply initial `notes` and `noteProvider(pageIndex, note, signal)` to persist th
 `optimisticNotes: true` (default `false`) makes `saveNote` and `saveAnnotation` apply the edit and resolve `true` at once, then persist in the background in order. If the provider rejects, the newest edit of that note rolls back to the last persisted state, `noteChange`/`annotationChange` fire again for the rollback, and the panel shows the save-failed message; an editor that already closed does not keep its draft, so use the default mode when drafts must survive failures.
 
 Contents, search and notes are mutually exclusive panels. Canvas arrows hide while a panel is open; the pager remains available. Contents has a close control. Secondary toolbar commands are in the accessible More actions menu; mobile navigation and primary controls occupy two rows.
+
+## Drawing
+
+Free drawing and highlighting. This release ships the stroke model, the provider interface, storage, events and methods; the drawing layer and tool panel (UI) are coming in a later release, so nothing is drawn on the pages yet. Off by default: without `drawing` nothing changes.
+
+Options:
+
+- `drawing`: `true` or `{ colors?: string[]; defaultTool?: 'highlight' | 'pen' | 'eraser'; defaultWidth?: number; defaultOpacity?: number; tools?: Array<'highlight' | 'pen' | 'eraser'> }`. The config is for the coming UI; defaults when a stroke omits them are width 15 and opacity 0.5 for `highlight`, width 3 and opacity 1 for `pen`.
+- `drawingProvider`: host storage, see below.
+- `drawingStorage`: `'memory'` (default) or `'local'`. Used only when there is no `drawingProvider`; `'local'` keeps strokes in `localStorage` (key `flipbook:drawings:<documentId>`), meant for demos. Storage errors are reported as `drawingError` with code `storage`.
+- `documentId`: identifies the document for drawings. When absent the engine uses a string `rememberPage`, then the PDF url, then the first page image.
+
+A stroke (`FlipbookStroke`): `{ id, page, tool: 'highlight' | 'pen', color, opacity (0..1), width (px at fit zoom), points: [x, y][] (0..1 of the page box), createdAt, updatedAt?, authorId? }`. `page` is a zero-based logical page index. Points are normalised so strokes survive zoom, layout and image tiers. Input is validated: coordinates are clamped to 0..1, an invalid stroke is rejected, and `simplifyPoints` (Ramer-Douglas-Peucker, tolerance 0.001) is exported for the UI to call on pointer-up.
+
+```ts
+interface FlipbookDrawingProvider {
+  load(ctx: { documentId: string; pages: number[] }, signal: AbortSignal): Promise<FlipbookStroke[]>;
+  save(ctx: { documentId: string }, changes: { added: FlipbookStroke[]; removed: string[] }, signal: AbortSignal): Promise<{ ids?: Record<string, string> }>;
+  clearPage?(ctx: { documentId: string; page: number }, signal: AbortSignal): Promise<void>;
+}
+```
+
+Behaviour:
+
+- Strokes load lazily for the visible spread (the current page and, in two-page view, the next); a page is requested once. The `signal` of `load` aborts on destroy.
+- Changes apply at once (optimistic), then one batched `save` is sent about 800 ms after the last change, on page change, and on destroy. Saves are not cancelled by destroy, so the last stroke is not lost; if the host page is unloading, the provider should send with `fetch(..., { keepalive: true })`. Batches are sent in order.
+- If `save` rejects, the strokes of that batch roll back, `drawingChange` fires with `action: 'rollback'`, `drawingError` fires with code `save`, and the undo history is cleared. `ids` in the result renames client ids to backend ids.
+- `clearStrokes(page)` calls `clearPage` when the provider has it, otherwise the stroke ids go through `save` as removals. A rejected `clearPage` restores the strokes (code `clear`).
+- Without a provider strokes live in memory (or in `localStorage`) and are lost when the page closes, unless the host stores them.
+
+Methods:
+
+- `setDrawingMode(on: boolean)` / `isDrawingMode()`: switches the mode and emits `drawingModeChange`. Does nothing without `drawing`. The mode has no visible effect until the UI ships.
+- `getStrokes(pageIndex?)`: copies of the loaded strokes of a page, or of all loaded pages.
+- `addStroke(stroke)`: validates and adds a stroke (`id`, `createdAt`, `width`, `opacity` are filled when missing); returns it, or `null` when drawing is off, the stroke is invalid or the page is outside the book.
+- `removeStroke(id)`, `clearStrokes(pageIndex?)` (returns how many were removed), `undoStroke()`, `redoStroke()` (return whether something changed). A new stroke clears the redo stack.
+
+The same methods are available through the `drawings` plugin API when it is installed (`callPluginApi('drawings', 'getStrokes')`). The iframe bridge forwards the three events; the provider cannot cross the iframe.
 
 ## Personal coordinate notes
 

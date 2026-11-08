@@ -57,3 +57,7 @@ export type { FlipbookEmbedOptions, FlipbookEmbedCommandName, FlipbookEmbedComma
 export type { FlipbookTextRun, FlipbookTextPage, FlipbookTextLayerProvider } from './model/text-layer';
 export { safeLinkUrl } from './model/safe-url';
 export type { FlipbookImageTier, FlipbookImageTierContext, FlipbookImageTierOptions } from './core/imageTiers';
+
+export type { FlipbookStroke, FlipbookDrawingTool, FlipbookDrawingToolName, FlipbookDrawingProvider, FlipbookDrawingOptions, FlipbookDrawingChanges, FlipbookDrawingSaveResult } from './model/drawings';
+export { normalizeStroke, simplifyPoints, DEFAULT_DRAWING_COLORS } from './model/drawings';
+export type { FlipbookDrawingChange, FlipbookDrawingChangeAction, FlipbookDrawingError } from './plugins/drawings';

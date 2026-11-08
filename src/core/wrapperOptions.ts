@@ -52,7 +52,8 @@ export const OPTION_KEYS = [
     'maxShadowOpacity', 'backgroundColor', 'backgroundImage', 'background', 'whiteLabel', 'watermarkUrl', 'theme', 'locale',
     'messages', 'className', 'cssVariables', 'onDownload', 'onShare', 'singleMode', 'isSingleMode', 'autoPlay', 'autoPlayInterval',
     'pdfRenderScale', 'pdfRenderQuality', 'pdfRenderFormat', 'pdfRenderConcurrency', 'pdfRenderCacheSize', 'pdfWorkerSrc',
-    'pdfPageMode', 'imageTiers', 'deepLink', 'startPage', 'rememberPage', 'bookmarks', 'notes', 'hotspots', 'annotations', 'plugins'
+    'pdfPageMode', 'imageTiers', 'deepLink', 'startPage', 'rememberPage', 'bookmarks', 'notes', 'hotspots', 'annotations', 'plugins',
+    'drawing', 'drawingProvider', 'drawingStorage', 'documentId'
 ] as const satisfies readonly (keyof FlipbookEngineOptions)[];
 
 type UnlistedOption = Exclude<keyof FlipbookEngineOptions, (typeof OPTION_KEYS)[number]>;
