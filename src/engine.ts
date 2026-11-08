@@ -36,6 +36,7 @@ import type { FlipbookAnnotation, FlipbookNoteColor, FlipbookNoteGroup, Flipbook
 import { normalizeNoteColors, normalizeNoteGroups, normalizeSearchHighlightStyle } from './model/annotations';
 import './styles/flipbook-engine.css';
 import { FlipbookEmbedBridge, type FlipbookEmbedOptions } from './embed';
+import { chooseImageTier, pickTierSrc, resolveImageTiers, type FlipbookImageTierOptions } from './core/imageTiers';
 import { FlipbookPluginRegistry, type FlipbookPlugin } from './plugins';
 
 export interface FlipbookEngineOptions {
@@ -95,6 +96,11 @@ export interface FlipbookEngineOptions {
     pdfRenderConcurrency?: number;
     pdfRenderCacheSize?: number;
     pdfWorkerSrc?: string;
+    /**
+     * Picks `low`, `normal` or `large` page images by screen width and zoom. Off by default; `true` uses the defaults.
+     * The `select` function cannot be sent through the iframe bridge.
+     */
+    imageTiers?: boolean | FlipbookImageTierOptions;
     /** Controls PDF page splitting: auto detects A3 landscape, single disables it, split splits every landscape page. */
     pdfPageMode?: PdfPageMode;
     /** Enables URL-based page deep links and browser history synchronization. */
@@ -189,6 +195,11 @@ export class FlipbookEngine {
     private lastEventState = { currentPage: 0, zoom: 1, zoomActive: false, showThumbs: false, showToc: false, isSingle: false, orientation: '' as '' | 'landscape' | 'portrait', activeHotspot: null as FlipbookHotspot | null };
     private eventSyncStop: (() => void) | null = null;
     private qualityObserver: IntersectionObserver | null = null;
+    private tierStop: (() => void) | null = null;
+    private tierTimer: ReturnType<typeof setTimeout> | null = null;
+    private tierResizeTimer: ReturnType<typeof setTimeout> | null = null;
+    private tierResizeStop: (() => void) | null = null;
+    private readonly tierLoaded = new WeakSet<HTMLImageElement>();
     private pdfLazyStop: (() => void) | null = null;
     private hasActiveSession = false;
     private readonly pdfPageRequests = new Map<number, Promise<string>>();
@@ -215,6 +226,7 @@ export class FlipbookEngine {
             deepLink: false,
             ...options
         };
+        this.store.imageTiers.value = resolveImageTiers(this.options.imageTiers);
         this.setupEventSync();
         (options.plugins ?? []).forEach((plugin) => this.installPlugin(plugin));
     }
@@ -1000,6 +1012,10 @@ export class FlipbookEngine {
         if ('searchProvider' in options) this.store.searchAvailable.value = !!options.searchProvider || this.store.isPdfMode.value;
         const deepLinkChanged = options.deepLink !== undefined && options.deepLink !== this.options.deepLink;
         this.options = { ...this.options, ...options };
+        if ('imageTiers' in options) {
+            this.store.imageTiers.value = resolveImageTiers(options.imageTiers);
+            this.applyImageTiers();
+        }
         if (deepLinkChanged) {
             if (this.options.deepLink) this.setupDeepLinkListener();
             else this.teardownDeepLinkListener();
@@ -1164,11 +1180,17 @@ export class FlipbookEngine {
         this.teardownQualityLoading();
         if (!this.container) return;
 
+        this.setupImageTierSync();
         const images = Array.from(this.container.querySelectorAll<HTMLImageElement>('img[data-src], img[data-pdf-page]'));
         const upgrade = (image: HTMLImageElement) => {
             const pdfPage = Number(image.dataset.pdfPage);
             if (Number.isInteger(pdfPage) && pdfPage > 0) {
                 void this.renderPdfPage(pdfPage).catch(() => {});
+                return;
+            }
+            if (this.store.imageTiers.peek() && image.dataset.tierNormal) {
+                this.tierLoaded.add(image);
+                this.applyImageTier(image);
                 return;
             }
             const highQualitySrc = image.dataset.src;
@@ -1208,6 +1230,83 @@ export class FlipbookEngine {
     private teardownQualityLoading() {
         this.qualityObserver?.disconnect();
         this.qualityObserver = null;
+        this.tierStop?.();
+        this.tierStop = null;
+        this.tierResizeStop?.();
+        this.tierResizeStop = null;
+        if (this.tierTimer) clearTimeout(this.tierTimer);
+        if (this.tierResizeTimer) clearTimeout(this.tierResizeTimer);
+        this.tierTimer = this.tierResizeTimer = null;
+    }
+
+    /**
+     * Keeps image tiers current. The zoom level used for the decision is committed only after the gesture has ended
+     * (a swap in the middle of a pinch brings back the stutter), and a width change re-applies it after a debounce.
+     * Height-only changes (browser bars sliding on phones) are ignored.
+     */
+    private setupImageTierSync() {
+        const view = this.container?.ownerDocument.defaultView;
+        if (!view) return;
+        const commit = () => {
+            this.tierTimer = null;
+            if (this.interactionManager?.isGesturing) { this.tierTimer = setTimeout(commit, 120); return; }
+            const scale = this.store.zoomState.peek().scale;
+            if (this.store.tierZoom.peek() === scale) return;
+            this.store.tierZoom.value = scale;
+            this.applyImageTiers();
+        };
+        this.tierStop = effect(() => {
+            this.store.zoomState.value.scale;
+            if (!this.store.imageTiers.peek()) return;
+            if (this.tierTimer) clearTimeout(this.tierTimer);
+            this.tierTimer = setTimeout(commit, 120);
+        });
+        let lastWidth = view.innerWidth;
+        this.store.viewportWidth.value = lastWidth;
+        const onResize = () => {
+            if (this.tierResizeTimer) clearTimeout(this.tierResizeTimer);
+            this.tierResizeTimer = setTimeout(() => {
+                this.tierResizeTimer = null;
+                const width = view.innerWidth;
+                if (width === lastWidth) return;
+                lastWidth = width;
+                this.store.viewportWidth.value = width;
+                this.applyImageTiers();
+            }, 200);
+        };
+        view.addEventListener('resize', onResize);
+        view.addEventListener('orientationchange', onResize);
+        this.tierResizeStop = () => {
+            view.removeEventListener('resize', onResize);
+            view.removeEventListener('orientationchange', onResize);
+        };
+    }
+
+    /** Page indexes on screen in the two-page layout, where zoom applies to the whole spread. */
+    private visibleSpread(): number[] {
+        const current = this.store.currentPage.peek();
+        if (current === 0) return [0];
+        const left = current % 2 === 1 ? current : current - 1;
+        return [left, left + 1];
+    }
+
+    private applyImageTier(image: HTMLImageElement) {
+        const config = this.store.imageTiers.peek();
+        if (!config) return;
+        const index = Number(image.closest<HTMLElement>('[data-idx]')?.dataset.idx);
+        const zoom = this.store.tierZoom.peek();
+        const pageZoomed = zoom > 1 && (this.store.isSingleMode.peek() ? index === this.store.currentPage.peek() : this.visibleSpread().includes(index));
+        const tier = chooseImageTier(config, { zoom, viewportWidth: this.store.viewportWidth.peek(), pageZoomed });
+        const src = pickTierSrc({ low: image.dataset.tierLow, normal: image.dataset.tierNormal || '', large: image.dataset.tierLarge }, tier);
+        if (src && image.getAttribute('src') !== src) image.src = src;
+    }
+
+    /** Re-picks the tier of every page image that has already been loaded; images still waiting load at the right tier. */
+    private applyImageTiers() {
+        if (!this.container || !this.store.imageTiers.peek()) return;
+        this.container.querySelectorAll<HTMLImageElement>('img[data-tier-normal]').forEach((image) => {
+            if (this.tierLoaded.has(image)) this.applyImageTier(image);
+        });
     }
     private setupEventSync() {
         this.eventSyncStop = effect(() => {

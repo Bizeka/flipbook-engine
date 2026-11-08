@@ -50,7 +50,7 @@ function App() {
 
 ### What a re-render does
 
-A re-render sends the engine only the options that changed (compared by identity), so the book keeps what the reader changed in the viewer: bookmarks, notes, the thumbnail rail and the single-page layout. A new `pages` array with equal contents does not reload the book; a change in any page, or in `pdfUrl`, does. Pass stable references for object options such as `hotspots`, `messages` and `toc` (`useMemo`), or they are re-sent on every render.
+A re-render sends the engine only the options that changed (compared by identity), so the book keeps what the reader changed in the viewer: bookmarks, notes, the thumbnail rail and the single-page layout. A new `pages` array with equal contents does not reload the book; a change in any page, or in `pdfUrl`, does. `imageTiers` is an ordinary option (`imageTiers` prop in React and Vue); an inline object is compared by value, so it is not re-sent on every render, but a `select` function should be a stable reference. Pass stable references for object options such as `hotspots`, `messages` and `toc` (`useMemo`), or they are re-sent on every render.
 
 ### Ref
 
