@@ -1,5 +1,5 @@
 /**
- * @license FlipbookEngine v1.0.0
+ * @license FlipbookEngine
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 import type { FlipbookEngine } from '../engine';

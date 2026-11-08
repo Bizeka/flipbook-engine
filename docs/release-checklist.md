@@ -14,19 +14,19 @@ Use this checklist for every phase commit and every published release.
 ## Before a release
 
 - [ ] Update the version in `package.json` and `package-lock.json`.
-- [ ] Update every published version reference in README files, CHANGELOG, API documentation, migration guides, examples, and license/source headers.
+- [ ] Update every published version reference in README files, CHANGELOG, API documentation, migration guides, and examples. Source and bundle headers take their version from `package.json` at build time; do not write it by hand.
 - [ ] Add a CHANGELOG entry describing features, fixes, API changes, and test coverage.
 - [ ] Document every new or changed API in the API reference and README examples.
 - [ ] Mark all breaking changes explicitly, explain the impact, and provide migration guidance.
 - [ ] Verify wrapper exports, generated declarations, package entry points, and framework integrations.
-- [ ] Run `npm run typecheck`, `npm test`, `npm run build`, and `npm run pack:check`.
+- [ ] Run `npm run typecheck`, `npm test`, `npm run build`, `npm run check:dist`, and `npm run pack:check`.
 - [ ] Confirm `npm pkg get version` matches the intended release.
 - [ ] Inspect the `npm pack --dry-run` file list and package size.
 - [ ] Confirm both local repositories have clean working trees and the intended commits are on the correct branches.
-- [ ] Create and push the matching Git tag (for example, `v1.0.0`).
-- [ ] Create or update the GitHub Release from that tag and verify the Latest designation.
-- [ ] Push commits and tags before handing off the manual npm publish step.
-- [ ] Publish to npm manually with maintainer credentials; verify the registry version afterward.
+- [ ] Merge the release pull request into `main`.
+- [ ] Create and push the matching Git tag (for example, `v1.2.7`); the Release workflow refuses a tag that differs from `package.json`.
+- [ ] Publish the GitHub Release from that tag and verify the Latest designation. Publishing the release runs the Release workflow, which verifies the package and publishes it to npm through trusted publishing; there is no manual `npm publish`.
+- [ ] Watch the Release workflow and verify the registry version afterward.
 - [ ] Record all commands, results, release URLs, and follow-up items in local `development-notes/`.
 
 ## After publishing

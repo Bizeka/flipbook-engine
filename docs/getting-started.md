@@ -17,6 +17,14 @@ Or reference it directly via CDN (such as unpkg) in your HTML:
 <script src="https://unpkg.com/flipbookengine/dist/flipbook-engine.iife.js"></script>
 ```
 
+The browser bundle needs PDF.js in a global `pdfjsLib` before it loads (`pdfjs-dist` 5 ships as an ES module only, so most pages are simpler with the ES module build and an import map, as in the README), and exposes everything under one global namespace, so the class is `FlipbookEngine.FlipbookEngine`:
+
+```javascript
+const engine = new FlipbookEngine.FlipbookEngine('#viewer', { showThumbs: false });
+```
+
+For production, pin the version in the URL (for example `flipbookengine@1.2.7`), and read it at runtime with `FlipbookEngine.FlipbookEngine.version` (or `engine.version`).
+
 ## Setup Container
 
 Create an element in your HTML that will contain the flipbook viewer. Ensure the container has explicit dimensions:
@@ -31,7 +39,7 @@ Import `FlipbookEngine` (if using ESM) and instantiate it:
 
 ```javascript
 import { FlipbookEngine } from 'flipbookengine';
-import 'flipbookengine/dist/flipbook-engine.css';
+import 'flipbookengine/styles.css';
 
 const engine = new FlipbookEngine('#viewer', {
   allowDownload: true,

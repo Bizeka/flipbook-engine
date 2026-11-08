@@ -44,40 +44,42 @@
     <!-- Target container for the viewer -->
     <div id="viewer-container"></div>
 
-    <!-- Include compiled library script -->
-    <script src="../dist/flipbook-engine.iife.js"></script>
-    <script>
-        // Once the DOM is ready, initialize the engine
-        document.addEventListener('DOMContentLoaded', () => {
-            const engine = new FlipbookEngine('#viewer-container', {
-                allowDownload: true,
-                showThumbs: true,
-                primaryColor: '#7367f0', // Purple accent
-                theme: 'light'
-            });
+    <!-- PDF.js is a peer of the viewer; map it for the browser (serve this folder over http, for example with `npm run dev`) -->
+    <script type="importmap">
+        { "imports": { "pdfjs-dist": "https://unpkg.com/pdfjs-dist@5.4.530/build/pdf.min.mjs" } }
+    </script>
 
-            // Pass sample image resources (replacing with dummy URLs for demonstration)
-            engine.init('sample.pdf', [
-                {
-                    kind: 'cover',
-                    pageNumber: 1,
-                    normal: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=1000&auto=format&fit=crop&q=80',
-                    low: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500&auto=format&fit=crop&q=80',
-                    thumb: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=150&auto=format&fit=crop&q=80'
-                },
-                {
-                    kind: 'single',
-                    pageNumber: 2,
-                    normal: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=1000&auto=format&fit=crop&q=80',
-                    low: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=500&auto=format&fit=crop&q=80',
-                    thumb: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=150&auto=format&fit=crop&q=80'
-                }
-            ]);
+    <script type="module">
+        import { FlipbookEngine } from '../dist/flipbook-engine.js';
+        // Module scripts run after the page is parsed, so the container exists
+        const engine = new FlipbookEngine('#viewer-container', {
+            allowDownload: true,
+            showThumbs: true,
+            primaryColor: '#7367f0', // Purple accent
+            theme: 'light'
+        });
 
-            // Optional: Subscribe to page changes
-            engine.on('pageChange', (event) => {
-                console.log('Active page index changed to:', event.currentPage);
-            });
+        // Pass sample image resources (replacing with dummy URLs for demonstration)
+        engine.init('', [
+            {
+                kind: 'cover',
+                pageNumber: 1,
+                normal: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=1000&auto=format&fit=crop&q=80',
+                low: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500&auto=format&fit=crop&q=80',
+                thumb: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=150&auto=format&fit=crop&q=80'
+            },
+            {
+                kind: 'single',
+                pageNumber: 2,
+                normal: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=1000&auto=format&fit=crop&q=80',
+                low: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=500&auto=format&fit=crop&q=80',
+                thumb: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=150&auto=format&fit=crop&q=80'
+            }
+        ]);
+
+        // Optional: Subscribe to page changes
+        engine.on('pageChange', (event) => {
+            console.log('Active page index changed to:', event.currentPage);
         });
     </script>
 </body>

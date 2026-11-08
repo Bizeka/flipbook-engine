@@ -5,6 +5,8 @@
  * https://flipbookengine.com
  */
 
+export { VERSION } from './version';
+
 export {
   FlipbookEngine,
   type FlipbookEngineOptions,

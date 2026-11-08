@@ -7,7 +7,8 @@ Thanks for your interest in FlipbookEngine.
 1. Install dependencies with `npm install`
 2. Run local development with `npm run dev`
 3. Run type checks with `npm run typecheck`
-4. Keep changes focused and documented
+4. Run the unit tests with `npm test`; browser tests (`npm run test:e2e`) need `npm run build` first
+5. Keep changes focused and documented
 
 ## Contribution Scope
 

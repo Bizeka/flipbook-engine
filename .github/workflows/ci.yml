@@ -34,6 +34,8 @@ jobs:
         run: npm test
       - name: Build
         run: npm run build
+      - name: Check the build output
+        run: npm run check:dist
       - name: Verify package contents
         run: npm run pack:check
   browser-e2e:
