@@ -56,3 +56,4 @@ export type { FlipbookEmbedOptions, FlipbookEmbedCommandName, FlipbookEmbedComma
 
 export type { FlipbookTextRun, FlipbookTextPage, FlipbookTextLayerProvider } from './model/text-layer';
 export { safeLinkUrl } from './model/safe-url';
+export type { FlipbookImageTier, FlipbookImageTierContext, FlipbookImageTierOptions } from './core/imageTiers';

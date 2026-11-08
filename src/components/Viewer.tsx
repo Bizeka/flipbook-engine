@@ -22,6 +22,7 @@ import type { FlipbookHotspot } from '../model/hotspots';
 import type { FlipbookAnnotation } from '../model/annotations';
 import { NotePlacementLayer, bindNoteGestures } from './NotePlacementLayer';
 import { css, styled } from './style';
+import { chooseImageTier, pickTierSrc } from '../core/imageTiers';
 
 interface ViewerProps {
     store: FlipbookStore;
@@ -115,6 +116,9 @@ export function Viewer(props: ViewerProps) {
                                             data-pdf-page={page.assetId.startsWith('pdf-page-') ? (page.sourcePageNumber ?? page.pageNumber) : undefined}
                                             src={page.low || page.normal}
                                             data-src={page.normal}
+                                            data-tier-low={page.low}
+                                            data-tier-normal={page.normal}
+                                            data-tier-large={page.large}
                                             class={`page-content ${page.cropMode !== 'full' ? 'page-content--split page-content--' + page.cropMode : ''}`}
                                             alt={`Page ${index + 1}`}
                                         />
@@ -142,7 +146,12 @@ export function Viewer(props: ViewerProps) {
                                 <img
                                     data-pdf-page={page.assetId.startsWith('pdf-page-') ? (page.sourcePageNumber ?? page.pageNumber) : undefined}
                                     class={computed(() => `bk-single-img page-content ${page.cropMode !== 'full' ? 'page-content--split page-content--' + page.cropMode : ''}`)}
-                                    src={computed(() => zoomed.value ? page.normal : (page.low || page.normal))}
+                                    src={computed(() => {
+                                        const tiers = props.store.imageTiers.value;
+                                        if (!tiers) return zoomed.value ? page.normal : (page.low || page.normal);
+                                        const zoom = props.store.tierZoom.value;
+                                        return pickTierSrc(page, chooseImageTier(tiers, { zoom, viewportWidth: props.store.viewportWidth.value, pageZoomed: zoom > 1 }));
+                                    })}
                                     alt={`Page ${props.store.currentPage.value + 1}`}
                                     style={css("opacity: 1; transition: opacity 0.3s; box-shadow: var(--flipbook-shadow);")}
                                 />
