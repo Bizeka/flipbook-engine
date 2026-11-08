@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Image tiers, off by default. A page may now carry an optional `large` image next to `normal`, `low` and `thumb`; it falls back to `normal`. The new `imageTiers` option (`true` or `{ zoomThresholds, narrowMaxWidth, select }`) chooses the tier from screen width and zoom with one shared decision for single-page and two-page views: narrow screens show `low` while unzoomed, and `large` loads only on the zoomed page above the upper zoom threshold. The choice is re-applied on a debounced width change or rotation (height-only changes are ignored), and images are swapped only after a pinch gesture has ended. Without `imageTiers` nothing changes. `imageTiers` is accepted by the React and Vue wrappers and by `updateOptions` through the iframe bridge (a `select` function cannot cross the iframe).
+- Fixed swiping from a page arrow. A horizontal swipe that starts on the previous or next arrow is now a page swipe and turns the page, as it does on the page itself; before, the touch was treated as a button press and nothing happened. A plain tap still activates the arrow once.
 
 ## 1.2.7 - 2026-11-04
 
