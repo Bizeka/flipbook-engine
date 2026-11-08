@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.2.7 - 2026-11-04
+
+- Fixed pinch-out and panning on phones in single-page view. The previous and next arrows sit at mid-height on both edges, which is where two fingers land when a zoomed page is pinched back out. A finger that starts on an arrow belongs to the button, not to the page, so the pinch was ignored and the page stayed zoomed. In two-page view the book sits higher, which is why the same gesture worked there. While the page is zoomed the arrows are now hidden and let touches through; they return at the fit zoom level.
+- The version is now readable from the package: every bundle starts with a `FlipbookEngine vX.Y.Z` banner taken from package.json at build time (the source headers used to say `v1.0.0` in every release), and the reader exposes it as `FlipbookEngine.version`, `engine.version` and the `VERSION` export. `npm run check:dist` fails when the bundle does not carry the package version.
+- React and Vue wrappers:
+  - A re-render no longer re-sends every option. Only changed options reach the engine, so a parent that re-renders on `onPageChange` no longer resets the reader's bookmarks, notes, thumbnail rail or single-page layout back to the props.
+  - A new `pages` array with equal contents no longer reloads the whole book (the documented inline `pages={[...]}` did that on every render). A real change in a page or in `pdfUrl` still does, including an in-place edit in Vue.
+  - React: `onPageChange` is always the latest callback, not the one from the first render.
+  - Vue: engine options now work as plain props (`:allowDownload="false"`, `show-thumbs`), as the README always showed; before, they were ignored. `class`, `style`, `id` and other attributes go to the host element. The `options` object still works and wins over a plain prop.
+  - Both refs gain `getCurrentPage()` and `getTotalPages()`, which the documentation already used.
+  - Peer ranges now match what the wrappers need: React 16.14 or newer (the build uses `react/jsx-runtime`) and Vue 3.2 or newer (`expose`).
+- Documentation and examples:
+  - `basic.html` and `dark-theme.html` could not run: they used the browser bundle without loading PDF.js (`pdfjsLib is not defined`) and then called `new FlipbookEngine(...)` where that global is a namespace (the class is `FlipbookEngine.FlipbookEngine`). They now use the ES module build with an import map, like `note-ux.html` and the README. `dark-theme.html`, the README and `theming.md` used CSS variable names that do not exist; they now use the `--flipbook-*` names, and the `cssVariables` example is valid JavaScript.
+  - The CSS import is `flipbookengine/styles.css`; `flipbookengine/dist/...` is not exported by the package.
+  - `frameworks.md` is rewritten: props, ref methods, what a re-render does, and that the viewer must be loaded on the client only in server-rendering frameworks (PDF.js reads browser globals when it loads).
+  - The API reference lists the options, methods and events that were missing (`singleMode`, `autoPlay`, `pdfRender*`, `pdfWorkerSrc`, `onDownload`, `plugins`, `setPages`, `nextPage`, `prevPage`, annotation and plugin methods, `searchChange` and others), fixes a misplaced event payload and a paragraph that was in Turkish.
+  - The release checklist describes the real flow (GitHub Release, trusted publishing); CI and the release workflow run `check:dist`.
+- Double-tap zoom, wheel, mouse and trackpad behave as before.
+
 ## 1.2.6 - 2026-11-03
 
 - Smooth touch pinch-zoom and pan. The point under the fingers now stays under them, adding or lifting a finger no longer jumps, and the gesture runs without rebuilding or re-rasterising the page on every frame:

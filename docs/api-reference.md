@@ -38,6 +38,18 @@ When instantiating `new FlipbookEngine(selector, options)`, you can configure th
 | `notes` | `Record<number, string>` | `{}` | Initial page notes keyed by zero-based page index; the localized toolbar editor is host-storage agnostic. |
 | `hotspots` | `FlipbookHotspot[]` | `[]` | Normalized page overlays with accessible labels, media (image, video, audio, YouTube/Vimeo `embed`), galleries, plain-text content, and optional commerce links. |
 | `annotations` | `FlipbookAnnotation[]` | `[]` | Host-managed page note markers with normalized coordinates and plain-text popup content. |
+| `className` | `string` | `null` | Extra class names added to the viewer container. |
+| `singleMode` | `boolean` | auto | Starts in single-page layout (`true`) or two-page spreads (`false`). Left unset, the layout follows the viewport. Changeable with `updateOptions`; `isSingleMode` is an alias. |
+| `autoPlay` | `boolean` | `false` | Starts automatic page turning (see `autoPlayInterval`). |
+| `pdfRenderScale` | `number` | `1.5` | PDF.js render scale for page images. |
+| `pdfRenderQuality` | `number` | `0.85` | Image quality (0 to 1) for lossy page formats. |
+| `pdfRenderFormat` | `string` | `'image/webp'` | Image format of rendered PDF pages. |
+| `pdfWorkerSrc` | `string` | `null` | URL of the PDF.js worker, which the host serves (see the README). |
+| `backgroundColor`, `backgroundImage` | `string` | `null` | Legacy shorthand for the light-theme `background`; prefer `background`. |
+| `onDownload` | `(url: string) => void` | `null` | Called with the PDF URL when the toolbar Download control is used; it replaces the default, which opens the PDF in a new tab. |
+| `plugins` | `FlipbookPlugin[]` | `[]` | Plugins installed before the first render; see [Plugin architecture](./plugin-architecture.md). |
+
+The host providers and note options (`searchProvider`, `noteProvider`, `annotationProvider`, `noteEditor`, `optimisticNotes`, `noteColors`, `noteGroups`, `noteGroupProvider`, `noteDocuments`, `notePinSize`, `searchHighlightStyle`, `textLayerProvider`, `textSelection`) are described under [Host backend providers](#host-backend-providers), [Personal coordinate notes](#personal-coordinate-notes) and [Note pins, search highlights, colours and groups](#note-pins-search-highlights-colours-and-groups).
 
 ---
 
@@ -49,11 +61,17 @@ Initializes and mounts the viewer into the container element. Returns a `Promise
 ### `goToPage(pageIndex: number)`
 Programmatically turns to the specified 0-based page index.
 
+### `nextPage()` / `prevPage()`
+Turns to the next or previous page (or spread).
+
 ### `getCurrentPage()`
 Returns the 0-based index of the currently active page.
 
 ### `getTotalPages()`
 Returns the total count of normalized pages.
+
+### `version`
+The package version this build was made from, as a string (`engine.version`, `FlipbookEngine.version`, or the `VERSION` export). It reads `development` when the reader runs from source.
 
 ### `getZoom()`
 Returns the current zoom scale (usually `1` to `5`).
@@ -66,6 +84,9 @@ Enforces single page layout (typically for mobile viewports) or spread mode.
 
 ### `toggleFullscreen()`
 Toggles browser fullscreen.
+
+### `setPages(pages?: FlipbookPageAsset[], pdfUrl?: string)`
+Replaces the source after initialization. With `pages` it rebuilds the book from them; with only `pdfUrl` it loads that PDF. With neither it does nothing, so the current book stays. The React and Vue wrappers call it when their source changes.
 
 ### `updateOptions(options: Partial<FlipbookEngineOptions>)`
 Updates options dynamically at runtime.
@@ -94,6 +115,12 @@ book.addEventListener('dblclick', (event) => {
   if (point) addHotspotAt(point.pageIndex, point.x, point.y);
 });
 ```
+
+### `getAnnotations(pageIndex = getCurrentPage())` / `activateAnnotation(id)` / `closeAnnotation()`
+Reads the host-managed coordinate notes of a page, opens one note's popup (emitting `annotationActivate`), or closes the open popup.
+
+### `installPlugin(plugin)` / `uninstallPlugin(name)` / `getPluginNames()` / `callPluginApi(plugin, api, ...args)`
+Install or remove a plugin at runtime, list installed plugins, and call a plugin's namespaced API. See [Plugin architecture](./plugin-architecture.md).
 
 ### `connectEmbed(options?: FlipbookEmbedOptions)`
 Connects an origin-validated postMessage bridge for iframe integrations. Call this from the document loaded inside the iframe.
@@ -151,9 +178,9 @@ const unsubscribe = engine.on('pageChange', ({ currentPage, pageNumber, totalPag
 - **`singlePageModeChange`**: Emitted when switching layout mode.
   - Payload: `{ isSingle: boolean }`
 - **`thumbsToggle`**: Emitted when thumbnail rail is toggled.
+  - Payload: `{ showThumbs: boolean }`
 - **`tocToggle`**: Emitted when the table of contents panel is toggled.
   - Payload: `{ showToc: boolean }`
-  - Payload: `{ showThumbs: boolean }`
 - **`init`**: Emitted after the viewer is ready. Payload: `{ totalPages: number }`
 - **`progress`**: Emitted during PDF loading/rendering. Payload: `{ phase: 'loading' | 'rendering'; completed: number; total: number }`
 - **`orientationChange`**: Emitted when layout orientation changes. Payload: `{ orientation: 'landscape' | 'portrait' }`.
@@ -163,6 +190,11 @@ const unsubscribe = engine.on('pageChange', ({ currentPage, pageNumber, totalPag
 - **`error`**: Emitted when PDF loading/rendering fails. Payload: `{ code: 'PDF_LOAD_FAILED' | 'PDF_RENDER_FAILED'; message: string; cause?: unknown }`
 - **`hotspotOpen`**: A hotspot popup opened (same moment as `hotspotActivate`). Payload: `{ hotspot: FlipbookHotspot; pageIndex: number }`.
 - **`hotspotClose`**: A hotspot popup closed: by the reader, by `closeHotspot()`, by opening another hotspot, or because the hotspot was removed. Payload: `{ hotspot: FlipbookHotspot; pageIndex: number }`.
+- **`hotspotActivate`**: A hotspot was activated. Payload: `{ hotspot: FlipbookHotspot; pageIndex: number }`.
+- **`annotationActivate`**: A coordinate-note marker was opened. Payload: `{ annotation: FlipbookAnnotation; pageIndex: number }`.
+- **`annotationChange`**: A coordinate note was saved or deleted. Payload: `{ annotation: FlipbookAnnotation; action: 'save' | 'delete' }`.
+- **`searchChange`**: The search results changed. Payload: `{ query: string; results: FlipbookSearchResult[] }`.
+- **`searchProgress`**: A search provider reported progress. Payload: `{ query: string; completed: number; total: number }`.
 - **`destroy`**: Emitted when the engine is destroyed.
 
 
@@ -209,7 +241,7 @@ const engine = new FlipbookEngine('#viewer', {
 
 ### Page annotations
 
-Host uygulamaları, kullanıcı notunu sayfa üzerindeki normalize koordinata bağlamak için `annotations` seçeneğini kullanabilir. Marker tıklaması popup açar ve `annotationActivate` olayı yayınlanır. Bu sözleşme şimdilik host-managed'dir; annotation kayıtlarının backend koordinatlarına taşınması tüketici uygulamanın sorumluluğundadır.
+Hosts can attach a note to a normalized page coordinate with the `annotations` option. Clicking a marker opens a popup and emits `annotationActivate`. The contract is host-managed: moving annotation records to and from backend coordinates is the consuming application's responsibility.
 
 ```ts
 const engine = new FlipbookEngine('#viewer', {
@@ -234,13 +266,13 @@ Contents, search and notes are mutually exclusive panels. Canvas arrows hide whi
 
 ## Personal coordinate notes
 
-`annotationProvider(annotation, action, signal)` persists native coordinate notes (`action` is `save` or `delete`). Initial `annotations` load existing notes. `beginAnnotation()` enters a dedicated placement mode; `placeAnnotation(pageIndex,x,y)` uses normalized logical-page coordinates in [0,1]. `saveAnnotation()` commits only after the host succeeds. Multiple note IDs may share a page. The host remains responsible for authentication, ownership and document identity. Right click and a stationary touch/pen hold open an editor at the selected point; movement beyond10px or another pointer cancels long press. A placement overlay consumes page-flip gestures. Escape cancels placement. Markers are available in both single-page and spread views.
+`annotationProvider(annotation, action, signal)` persists native coordinate notes (`action` is `save` or `delete`). Initial `annotations` load existing notes. `beginAnnotation()` enters a dedicated placement mode; `placeAnnotation(pageIndex,x,y)` uses normalized logical-page coordinates in [0,1]. `saveAnnotation()` commits only after the host succeeds. Multiple note IDs may share a page. The host remains responsible for authentication, ownership and document identity. Right click and a stationary touch/pen hold open an editor at the selected point; movement beyond 10px or another pointer cancels long press. A placement overlay consumes page-flip gestures. Escape cancels placement. Markers are available in both single-page and spread views.
 
 The My notes panel includes existing page notes and coordinate notes, navigation, an empty state and a total count. The toolbar shows the count and highlights pages containing notes. Selecting a marker opens a readable popover outside the scaled paper; editing and deletion remain in that popover. Delete requires a second explicit action.
 
 `noteEditor(container,value,signal)` is an optional host editor factory returning `getValue`, `setReadOnly` and `destroy`. `value` contains plain `text` and an optional structured `document`; the base engine retains a textarea fallback and has no Tiptap dependency. Legacy page notes can supply `noteDocuments`; noteProvider receives the document as an optional fourth argument. The built-in viewer renders only doc/paragraph/text/hardBreak nodes with bold, italic, font-size and hex foreground/background marks. It never renders raw note HTML.
 
-When the viewer owns keyboard focus: arrows/PageUp/PageDown navigate, Home/End jump, +/- zoom,0 resets, N places a note, Shift+N opens My notes, / searches, I opens contents, T toggles thumbnails, F toggles fullscreen, and ? shows help. Text inputs and rich editors keep their own shortcuts. Toolbar arrows move focus among visible commands; Tab/Shift+Tab preserve native focus order. Closing panels returns focus. Pinch zoom and one-finger pan suppress page turning; only predominantly horizontal unzoomed single-page swipes turn pages. Ctrl/wheel zoom is scoped to the paper. Native touch behavior still requires real-device acceptance.
+When the viewer owns keyboard focus: arrows/PageUp/PageDown navigate, Home/End jump, +/- zoom, 0 resets, N places a note, Shift+N opens My notes, / searches, I opens contents, T toggles thumbnails, F toggles fullscreen, and ? shows help. Text inputs and rich editors keep their own shortcuts. Toolbar arrows move focus among visible commands; Tab/Shift+Tab preserve native focus order. Closing panels returns focus. Pinch zoom and one-finger pan suppress page turning; only predominantly horizontal unzoomed single-page swipes turn pages. Ctrl/wheel zoom is scoped to the paper. Native touch behavior still requires real-device acceptance.
 
 ## Backend text layer API
 

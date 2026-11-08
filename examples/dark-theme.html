@@ -44,39 +44,41 @@
     <!-- Target container for the viewer -->
     <div id="viewer-container"></div>
 
-    <!-- Include compiled library script -->
-    <script src="../dist/flipbook-engine.iife.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const engine = new FlipbookEngine('#viewer-container', {
-                allowDownload: true,
-                showThumbs: false,
-                theme: 'dark', // Force dark theme mode
-                primaryColor: '#10b981', // Emerald Green accent
-                cssVariables: {
-                    // Custom background color overrides
-                    mainbgcolor: '#020617',     // Deepest navy/black canvas
-                    thumbrailbgcolor: '#0f172a' // Dark thumb rail background
-                }
-            });
+    <!-- PDF.js is a peer of the viewer; map it for the browser (serve this folder over http, for example with `npm run dev`) -->
+    <script type="importmap">
+        { "imports": { "pdfjs-dist": "https://unpkg.com/pdfjs-dist@5.4.530/build/pdf.min.mjs" } }
+    </script>
 
-            engine.init('sample.pdf', [
-                {
-                    kind: 'cover',
-                    pageNumber: 1,
-                    normal: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=1000&auto=format&fit=crop&q=80',
-                    low: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=500&auto=format&fit=crop&q=80',
-                    thumb: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=150&auto=format&fit=crop&q=80'
-                },
-                {
-                    kind: 'single',
-                    pageNumber: 2,
-                    normal: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=1000&auto=format&fit=crop&q=80',
-                    low: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=500&auto=format&fit=crop&q=80',
-                    thumb: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=150&auto=format&fit=crop&q=80'
-                }
-            ]);
+    <script type="module">
+        import { FlipbookEngine } from '../dist/flipbook-engine.js';
+        const engine = new FlipbookEngine('#viewer-container', {
+            allowDownload: true,
+            showThumbs: false,
+            theme: 'dark', // Force dark theme mode
+            primaryColor: '#10b981', // Emerald Green accent
+            cssVariables: {
+                // Custom background color overrides
+                '--flipbook-bg-main': '#020617',      // Deepest navy/black canvas
+                '--flipbook-thumbrail-bg': '#0f172a'  // Dark thumb rail background
+            }
         });
+
+        engine.init('', [
+            {
+                kind: 'cover',
+                pageNumber: 1,
+                normal: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=1000&auto=format&fit=crop&q=80',
+                low: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=500&auto=format&fit=crop&q=80',
+                thumb: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=150&auto=format&fit=crop&q=80'
+            },
+            {
+                kind: 'single',
+                pageNumber: 2,
+                normal: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=1000&auto=format&fit=crop&q=80',
+                low: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=500&auto=format&fit=crop&q=80',
+                thumb: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=150&auto=format&fit=crop&q=80'
+            }
+        ]);
     </script>
 </body>
 </html>

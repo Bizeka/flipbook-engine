@@ -1,7 +1,8 @@
+import { VERSION } from './version';
 import { loadTextLayers } from './core/TextLayerLoader';
 import type { FlipbookTextLayerProvider } from './model/text-layer';
 /**
- * @license FlipbookEngine v1.0.0
+ * @license FlipbookEngine
  * Copyright (c) 2026 Murat Dogan
  *
  * This source code is dual-licensed under the AGPLv3 and a Commercial License.
@@ -162,6 +163,8 @@ function createAnnotationId(): string {
 const MIN_VIEWER_HEIGHT = 390;
 
 export class FlipbookEngine {
+    /** The package version this build was made from. */
+    public static readonly version: string = VERSION;
     private searchSequence = 0;
     private textLayerStop: (() => void) | null = null;
     private static readonly DEFAULT_PAGE_VIEWPORT = { width: 420, height: 594 };
@@ -921,6 +924,10 @@ export class FlipbookEngine {
             if (!signal.aborted) this.store.notesFailed.value = true;
             return false;
         } finally { if (!signal.aborted) this.store.notesSaving.value = false; }
+    }
+
+    public get version(): string {
+        return VERSION;
     }
 
     public getZoom(): number {

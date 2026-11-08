@@ -8,15 +8,17 @@ The styling system is driven by standard CSS variables. You can override these v
 
 ```css
 :root {
-  --mainbgcolor: #f3f6fb;          /* Main canvas background */
-  --surfacebgcolor: #ffffff;       /* Overlay elements background */
-  --panelbgcolor: #172033;         /* Settings panel background */
-  --flipbook-accent: #7367f0;          /* Buttons and accent color */
-  --thumbrailbgcolor: #0f172a;     /* Thumbnails container background */
-  --bordercolor: #e2e8f0;          /* Border and separations color */
-  --textcolor: #1e293b;            /* General text color */
+  --flipbook-bg-main: #f3f6fb;        /* Main canvas background */
+  --flipbook-bg-surface: #ffffff;     /* Overlay elements background */
+  --flipbook-bg-panel: #172033;       /* Toolbar and panel background */
+  --flipbook-accent: #7367f0;         /* Buttons and accent color */
+  --flipbook-thumbrail-bg: #0f172a;   /* Thumbnails container background */
+  --flipbook-border: #e2e8f0;         /* Border and separations color */
+  --flipbook-text-main: #1e293b;      /* General text color */
 }
 ```
+
+Other variables follow the same `--flipbook-*` naming: `--flipbook-bg-surface-alt`, `--flipbook-bg-panel-soft`, `--flipbook-text-muted`, `--flipbook-toolbar-text`, `--flipbook-accent-text`, `--flipbook-shadow`, `--flipbook-bookpage-bg`, `--flipbook-radius-sm`, `--flipbook-radius-md`, `--flipbook-toolbar-height`, `--flipbook-presentation-gutter` and `--flipbook-font-family`. The complete list is at the top of `flipbookengine/styles.css`.
 
 ## Dark Mode
 
@@ -32,13 +34,13 @@ FlipbookEngine is compatible with Bootstrap 5 setups and automatically responds 
 
 ## Instance Overrides
 
-To style a single instance differently from the rest of your app, pass the `cssVariables` object to options:
+To style a single instance differently from the rest of your app, pass the `cssVariables` object to options. Names may be written with or without the leading `--`:
 
 ```javascript
 const engine = new FlipbookEngine('#viewer', {
   cssVariables: {
-    mainbgcolor: '#0f172a',
-    flipbook-accent: '#10b981'
+    '--flipbook-bg-main': '#0f172a',
+    '--flipbook-accent': '#10b981'
   }
 });
 ```
@@ -60,6 +62,7 @@ Hosts may style or query these classes; they keep their names and meaning within
 | `.bz-page` with `data-idx`, `.bz-page-content` | One page of the book and its content box; `data-idx` is the zero-based page index |
 | `.bk-single-view`, `.bk-single-page` with `data-idx` | Single-page view and its page |
 | `.bk-page-stack` (+ `--left`, `--right`) | Leaf edges beside the spread |
+| `.bk-nav-arrows`, `.bk-nav-arrow` (+ `bk-nav-prev`, `bk-nav-next`) | Previous and next arrows over the page; they are hidden and let touches through while the page is zoomed |
 | `.bk-thumbs`, `.thumb-item` (+ `active`) | Thumbnail rail and items |
 | `.bk-hotspot`, `.bk-hotspot-popup` | Hotspot button (plus the host's `className` and `data-*`) and its popup |
 | `.bk-annotation-marker` (+ `active`), `.bk-note-bubble` | Coordinate-note pin and its hover bubble |
