@@ -1,4 +1,4 @@
-import type { FlipbookEngineOptions } from '../engine';
+import type { FlipbookEngineOptions, FlipbookEngineEventName, FlipbookEngineEventMap } from '../engine';
 
 /**
  * Helpers shared by the React and Vue wrappers.
@@ -52,7 +52,7 @@ export const OPTION_KEYS = [
     'maxShadowOpacity', 'backgroundColor', 'backgroundImage', 'background', 'whiteLabel', 'watermarkUrl', 'theme', 'locale',
     'messages', 'className', 'cssVariables', 'onDownload', 'onShare', 'singleMode', 'isSingleMode', 'autoPlay', 'autoPlayInterval',
     'pdfRenderScale', 'pdfRenderQuality', 'pdfRenderFormat', 'pdfRenderConcurrency', 'pdfRenderCacheSize', 'pdfWorkerSrc', 'pageSource',
-    'pdfPageMode', 'deepLink', 'startPage', 'rememberPage', 'bookmarks', 'notes', 'hotspots', 'annotations', 'plugins'
+    'pdfPageMode', 'imageTiers', 'deepLink', 'startPage', 'rememberPage', 'bookmarks', 'notes', 'hotspots', 'annotations', 'plugins'
 ] as const satisfies readonly (keyof FlipbookEngineOptions)[];
 
 type UnlistedOption = Exclude<keyof FlipbookEngineOptions, (typeof OPTION_KEYS)[number]>;
@@ -60,3 +60,33 @@ const everyOptionIsListed: [UnlistedOption] extends [never] ? true : never = tru
 void everyOptionIsListed;
 
 export const OPTION_KEY_SET: ReadonlySet<string> = new Set<string>(OPTION_KEYS);
+
+/**
+ * The engine events the wrappers forward (every public event except `destroy`, which the wrapper itself ends with).
+ * They are not engine options, so they are never part of OPTION_KEYS and never reach the engine as options.
+ */
+export const WRAPPER_EVENTS = [
+    'init', 'pageChange', 'zoomChange', 'thumbsToggle', 'tocToggle', 'singlePageModeChange', 'orientationChange',
+    'progress', 'error', 'deepLinkChange', 'bookmarkChange', 'noteChange', 'searchChange', 'searchProgress',
+    'hotspotActivate', 'hotspotOpen', 'hotspotClose', 'annotationActivate', 'annotationChange'
+] as const satisfies readonly FlipbookEngineEventName[];
+
+export type WrapperEventName = (typeof WRAPPER_EVENTS)[number];
+
+/** `hotspotOpen` becomes the React prop `onHotspotOpen`. */
+export const eventPropName = (event: string) => 'on' + event.charAt(0).toUpperCase() + event.slice(1);
+
+export type WrapperEventHandlers = { [E in WrapperEventName as `on${Capitalize<E>}`]?: (payload: FlipbookEngineEventMap[E]) => void };
+
+const EVENT_PROP_NAMES = new Set<string>(WRAPPER_EVENTS.map(eventPropName));
+
+/** Splits a props object into the event handlers and everything else. */
+export function splitEventProps<T extends Record<string, any>>(props: T): { handlers: Record<string, ((payload: any) => void) | undefined>; rest: Record<string, any> } {
+    const handlers: Record<string, ((payload: any) => void) | undefined> = {};
+    const rest: Record<string, any> = {};
+    for (const key of Object.keys(props)) {
+        if (EVENT_PROP_NAMES.has(key)) handlers[key] = props[key];
+        else rest[key] = props[key];
+    }
+    return { handlers, rest };
+}

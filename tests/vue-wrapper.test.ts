@@ -73,3 +73,30 @@ test('Vue wrapper supports image-only pages and exposes navigation', async () =>
   app.unmount();
   host.remove();
 });
+
+test('Vue wrapper emits engine events with kebab-case listeners and unsubscribes on unmount', async () => {
+  const host = createHost();
+  const calls: string[] = [];
+  const book = { value: null as any };
+  const app = createApp({
+    setup: () => () => h(Flipbook, {
+      ref: (r: any) => { book.value = r; },
+      pages: [{ normal: 'a.png', low: 'a.png', thumb: 'a.png' }],
+      onError: (e: any) => calls.push('error:' + e.code),
+      onHotspotOpen: (e: any) => calls.push('hotspotOpen:' + e.pageIndex),
+      onAnnotationActivate: (e: any) => calls.push('annotationActivate:' + e.pageIndex)
+    })
+  });
+  app.mount(host);
+  await settle();
+  const engine = book.value.getEngine();
+  engine.emit('error', { code: 'PDF_LOAD_FAILED', message: 'x' });
+  engine.emit('hotspotOpen', { hotspot: {}, pageIndex: 2 });
+  engine.emit('annotationActivate', { annotation: {}, pageIndex: 1 });
+  assert.deepEqual(calls, ['error:PDF_LOAD_FAILED', 'hotspotOpen:2', 'annotationActivate:1']);
+
+  app.unmount();
+  engine.emit('error', { code: 'PDF_LOAD_FAILED', message: 'y' });
+  assert.equal(calls.length, 3);
+  host.remove();
+});

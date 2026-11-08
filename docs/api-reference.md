@@ -44,6 +44,7 @@ When instantiating `new FlipbookEngine(selector, options)`, you can configure th
 | `pdfRenderScale` | `number` | `1.5` | PDF.js render scale for page images. |
 | `pdfRenderQuality` | `number` | `0.85` | Image quality (0 to 1) for lossy page formats. |
 | `pdfRenderFormat` | `string` | `'image/webp'` | Image format of rendered PDF pages. |
+| `imageTiers` | `boolean \| { zoomThresholds?, narrowMaxWidth?, select? }` | off | Chooses between a page's `low`, `normal` and optional `large` image by screen width and zoom. Off by default: without it the viewer behaves exactly as before. `true` uses the defaults: screens up to `narrowMaxWidth` (1024 px) show `low` while unzoomed; the zoomed page shows `normal` above the first `zoomThresholds` value (1.05) and `large` above the second (1.75); `large` falls back to `normal` when a page has none. Only the zoomed page loads `large`, and it returns to a smaller image when zoom ends. The choice is re-applied after a width change or rotation (debounced; height-only changes are ignored) and, during a pinch, only once the gesture has ended. `select(context)` receives `{ zoom, viewportWidth, narrow, pageZoomed }` and may return `'low'`, `'normal'` or `'large'` (anything else keeps the built-in choice). Functions cannot cross the iframe bridge, so over `postMessage` only the data fields (`true` or the object without `select`) can be sent; set `select` in the page that creates the engine. Best set at construction. Has no effect on PDF-rendered pages. |
 | `pdfWorkerSrc` | `string` | `null` | URL of the PDF.js worker, which the host serves (see the README). |
 | `pageSource` | `PageSource` | PDF.js | Custom source of pages for a document URL passed to `init`, used instead of PDF.js. See [Page source](#page-source). Not available through the iframe bridge. |
 | `backgroundColor`, `backgroundImage` | `string` | `null` | Legacy shorthand for the light-theme `background`; prefer `background`. |
@@ -194,6 +195,8 @@ const unsubscribe = engine.on('pageChange', ({ currentPage, pageNumber, totalPag
 ```
 
 ### Supported Events
+
+The React and Vue wrappers forward all of these except `destroy` (React: `onPageChange`, `onError`, `onHotspotOpen`, ...; Vue: `@page-change`, `@error`, `@hotspot-open`, ...). See [Frameworks](frameworks.md).
 
 - **`pageChange`**: Emitted when page is changed.
   - Payload: `{ currentPage: number; pageNumber: number; totalPages: number; isSingle: boolean }`

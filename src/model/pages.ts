@@ -16,6 +16,8 @@ export interface FlipbookPageAsset {
   kind?: FlipbookPageKind;
   splitDirection?: FlipbookSplitDirection;
   normal: string;
+  /** Optional high-resolution image for zoomed pages (needs `imageTiers`); falls back to `normal`. */
+  large?: string;
   low: string;
   thumb: string;
 }
@@ -28,6 +30,7 @@ export interface NormalizedFlipbookPage {
   sourcePageNumber?: number;
   cropMode: FlipbookCropMode;
   normal: string;
+  large?: string;
   low: string;
   thumb: string;
 }
@@ -79,6 +82,7 @@ export function normalizeFlipbookPages(assets: FlipbookPageAsset[]): NormalizedF
           sourcePageNumber: pageNumber,
           cropMode: cropModes[spreadIndex] ?? 'full',
           normal: asset.normal,
+          large: asset.large,
           low: asset.low,
           thumb: asset.thumb
         });
@@ -96,6 +100,7 @@ export function normalizeFlipbookPages(assets: FlipbookPageAsset[]): NormalizedF
       sourcePageNumber: pageNumber,
       cropMode: 'full',
       normal: asset.normal,
+      large: asset.large,
       low: asset.low,
       thumb: asset.thumb
     });
