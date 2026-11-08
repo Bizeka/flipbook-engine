@@ -115,6 +115,9 @@ export class InteractionManager {
      * reuse its texture instead of re-rasterising the pages every frame; dropping it at the end
      * re-rasterises once at the final scale.
      */
+    /** True while a pinch or pan is in progress. */
+    public get isGesturing(): boolean { return this.gesturing; }
+
     private setGesturing(on: boolean) {
         if (this.gesturing === on) return;
         this.gesturing = on;

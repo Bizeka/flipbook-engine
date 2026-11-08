@@ -29,11 +29,13 @@ export interface FlipbookStore {
     flipState: Signal<FlipState>; themeMode: Signal<FlipbookThemeMode>; allowDownload: Signal<boolean>; showShare: Signal<boolean>; bookmarkedPages: Signal<ReadonlySet<number>>; pageNotes: Signal<ReadonlyMap<number, string>>;
     hasDownloadUrl: Signal<boolean>; isPdfMode: Signal<boolean>; primaryColor: Signal<string>; whiteLabel: Signal<boolean>;
     isZoomed: Signal<boolean>; isAutoPlaying: Signal<boolean>; autoPlayInterval: Signal<number>;
-    soundEnabled: Signal<boolean>; searchQuery: Signal<string>; searchResults: Signal<FlipbookSearchResult[]>; hotspots: Signal<FlipbookHotspot[]>; activeHotspotId: Signal<string | null>; annotations: Signal<FlipbookAnnotation[]>; activeAnnotationId: Signal<string | null>; locale: Signal<string>; messages: Signal<Partial<Record<string, PartialFlipbookMessages>>>; zoomState: Signal<ZoomState>; pages: Signal<NormalizedFlipbookPage[]>; toc: Signal<FlipbookTocEntry[]>;
+    soundEnabled: Signal<boolean>; searchQuery: Signal<string>; searchResults: Signal<FlipbookSearchResult[]>; hotspots: Signal<FlipbookHotspot[]>; activeHotspotId: Signal<string | null>; annotations: Signal<FlipbookAnnotation[]>; activeAnnotationId: Signal<string | null>; locale: Signal<string>; messages: Signal<Partial<Record<string, PartialFlipbookMessages>>>; zoomState: Signal<ZoomState>; imageTiers: Signal<ResolvedImageTiers | null>; tierZoom: Signal<number>; viewportWidth: Signal<number>; pages: Signal<NormalizedFlipbookPage[]>; toc: Signal<FlipbookTocEntry[]>;
     isDoublePageLayout: ReadonlySignal<boolean>; isFrontCover: ReadonlySignal<boolean>; isBackCover: ReadonlySignal<boolean>;
     init(options: FlipbookEngineOptions, total: number, mappedPages: NormalizedFlipbookPage[], hasPdfUrl: boolean, isPdfMode?: boolean): void;
     reset(): void;
 }
+
+import type { ResolvedImageTiers } from '../core/imageTiers';
 
 const initialZoomState = (): ZoomState => ({ isActive: false, translateX: 0, translateY: 0, isDragging: false, scale: 1 });
 
@@ -61,6 +63,7 @@ export function createFlipbookStore(): FlipbookStore {
     const annotations = signal<FlipbookAnnotation[]>([]), activeAnnotationId = signal<string | null>(null);
     const locale = signal('en');
     const messages = signal<Partial<Record<string, PartialFlipbookMessages>>>({});
+    const imageTiers = signal<ResolvedImageTiers | null>(null), tierZoom = signal(1), viewportWidth = signal(typeof window !== 'undefined' ? window.innerWidth : 1280);
     const zoomState = signal<ZoomState>(initialZoomState()), pages = signal<NormalizedFlipbookPage[]>([]), toc = signal<FlipbookTocEntry[]>([]);
     const isDoublePageLayout = computed(() => !isSingleMode.value && orientation.value === 'landscape');
     const isFrontCover = computed(() => isDoublePageLayout.value && currentPage.value === 0);
@@ -127,7 +130,7 @@ export function createFlipbookStore(): FlipbookStore {
         soundEnabled.value = true;
         locale.value = 'en';
         messages.value = {};
-        zoomState.value = initialZoomState();
+        zoomState.value = initialZoomState(); tierZoom.value = 1;
         pages.value = [];
         toc.value = [];
         bookmarkedPages.value = new Set();
@@ -139,7 +142,7 @@ export function createFlipbookStore(): FlipbookStore {
         annotations.value = [];
         activeAnnotationId.value = null;
     };
-    return { noteColors, noteGroups, noteGroupFilter, searchHighlightStyle, hoverAnnotationId, textAvailable, textPages, textSelection, pageNoteDocuments, noteEditor, canAnnotate, placingNote, pendingAnnotation, notesView, searchAvailable, searchBusy, searchProgress, searchFailed, notesSaving, notesFailed, currentPage, totalPages, isSingleMode, showThumbs, showToc, showNotes, showSearch, showArrows, orientation, flipState, themeMode, allowDownload, showShare, bookmarkedPages, pageNotes, hasDownloadUrl, isPdfMode, primaryColor, whiteLabel, isZoomed, isAutoPlaying, autoPlayInterval, soundEnabled, searchQuery, searchResults, hotspots, activeHotspotId, annotations, activeAnnotationId, locale, messages, zoomState, pages, toc, isDoublePageLayout, isFrontCover, isBackCover, init, reset };
+    return { noteColors, noteGroups, noteGroupFilter, searchHighlightStyle, hoverAnnotationId, textAvailable, textPages, textSelection, pageNoteDocuments, noteEditor, canAnnotate, placingNote, pendingAnnotation, notesView, searchAvailable, searchBusy, searchProgress, searchFailed, notesSaving, notesFailed, currentPage, totalPages, isSingleMode, showThumbs, showToc, showNotes, showSearch, showArrows, orientation, flipState, themeMode, allowDownload, showShare, bookmarkedPages, pageNotes, hasDownloadUrl, isPdfMode, primaryColor, whiteLabel, isZoomed, isAutoPlaying, autoPlayInterval, soundEnabled, searchQuery, searchResults, hotspots, activeHotspotId, annotations, activeAnnotationId, locale, messages, zoomState, imageTiers, tierZoom, viewportWidth, pages, toc, isDoublePageLayout, isFrontCover, isBackCover, init, reset };
 }
 
 // Compatibility exports for consumers of the former internal singleton module.
