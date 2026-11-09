@@ -1,4 +1,5 @@
-import * as pdfjsLib from 'pdfjs-dist';
+import { loadPdfJs } from './loadPdfJs';
+import type { PageSource, PageImageRequest } from './PageSource';
 import type { NormalizedFlipbookPage } from '../model/pages';
 import type { FlipbookSearchOptions, FlipbookSearchHighlight } from '../model/search';
 import { PdfRenderCache } from './PdfRenderCache';
@@ -43,7 +44,8 @@ function textWidthRatio(text: string, start: number, end: number): number {
     return (width(text.slice(0, end)) - width(text.slice(0, start))) / total;
 }
 
-export class PdfRenderer {
+export class PdfRenderer implements PageSource {
+    private pdfjs: any = null;
     private pdfDoc: any = null;
     private loadingTask: any = null;
     private options: Required<PdfRenderOptions>;
@@ -63,15 +65,22 @@ export class PdfRenderer {
             cacheSize
         };
         this.cache = new PdfRenderCache(this.options.cacheSize);
-        if (this.options.workerSrc) {
-            pdfjsLib.GlobalWorkerOptions.workerSrc = this.options.workerSrc;
+    }
+
+    private async getPdfJs(): Promise<any> {
+        if (!this.pdfjs) {
+            this.pdfjs = await loadPdfJs();
+            if (this.options.workerSrc) this.pdfjs.GlobalWorkerOptions.workerSrc = this.options.workerSrc;
         }
+        return this.pdfjs;
     }
 
     /** Loads a PDF document and cancels PDF.js loading when the signal aborts. */
     public async loadDocument(pdfUrl: string, signal?: AbortSignal): Promise<number> {
         this.throwIfAborted(signal);
         this.cache.clear();
+        const pdfjsLib = await this.getPdfJs();
+        this.throwIfAborted(signal);
         const loadingTask = pdfjsLib.getDocument(pdfUrl);
         this.loadingTask = loadingTask;
         const abortLoading = () => loadingTask.destroy?.();
@@ -90,7 +99,7 @@ export class PdfRenderer {
     }
 
     /** Renders a specific page to a Data URL. The page index is 1-based. */
-    public async renderPageToDataUrl(pageIndex: number, signal?: AbortSignal): Promise<string> {
+    public async renderPageToDataUrl(pageIndex: number, signal?: AbortSignal, _request?: PageImageRequest): Promise<string> {
         if (!this.pdfDoc) throw new Error('PDF document is not loaded.');
         this.throwIfAborted(signal);
         const cached = this.cache.get(pageIndex);

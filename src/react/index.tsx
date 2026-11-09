@@ -8,15 +8,14 @@
 /** @jsxImportSource react */
 import React, { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import { FlipbookEngine, FlipbookEngineOptions, FlipbookPageAsset } from '../index';
-import { changedOptions, sameValue } from '../core/wrapperOptions';
+import { changedOptions, sameValue, splitEventProps, eventPropName, WRAPPER_EVENTS, WrapperEventHandlers } from '../core/wrapperOptions';
 
-export interface FlipbookProps extends Omit<FlipbookEngineOptions, 'theme'> {
+export interface FlipbookProps extends Omit<FlipbookEngineOptions, 'theme'>, WrapperEventHandlers {
     className?: string;
     style?: React.CSSProperties;
     pdfUrl?: string;
     pages?: FlipbookPageAsset[];
     theme?: 'auto' | 'light' | 'dark';
-    onPageChange?: (e: { currentPage: number; totalPages: number }) => void;
 }
 
 export interface FlipbookRef {
@@ -43,17 +42,18 @@ export const Flipbook = forwardRef<FlipbookRef, FlipbookProps>(({
     style,
     pdfUrl,
     pages,
-    onPageChange,
-    ...options
+    ...props
 }, ref) => {
+    // Event handlers are not engine options: they are kept apart so they never reach the engine as options.
+    const { handlers, rest: options } = splitEventProps(props);
     const containerRef = useRef<HTMLDivElement>(null);
     const engineRef = useRef<FlipbookEngine | null>(null);
     const stablePages = useStable(pages);
     // The latest callback, so a handler that closes over state is never stale.
-    const onPageChangeRef = useRef(onPageChange);
-    onPageChangeRef.current = onPageChange;
+    const handlersRef = useRef(handlers);
+    handlersRef.current = handlers;
     // The options the engine currently holds; later renders send only what changed.
-    const appliedOptions = useRef<typeof options | null>(null);
+    const appliedOptions = useRef<Record<string, any> | null>(null);
 
     useImperativeHandle(ref, () => ({
         get engine() { return engineRef.current; },
@@ -72,13 +72,14 @@ export const Flipbook = forwardRef<FlipbookRef, FlipbookProps>(({
     useEffect(() => {
         if (!containerRef.current) return;
 
-        const engine = new FlipbookEngine(containerRef.current, options);
+        const engine = new FlipbookEngine(containerRef.current, options as FlipbookEngineOptions);
         engineRef.current = engine;
         appliedOptions.current = options;
-        const unsubscribeChange = engine.on('pageChange', (e: any) => onPageChangeRef.current?.(e));
+        // One subscription per event for the life of the engine; the call goes to the latest handler.
+        const unsubscribers = WRAPPER_EVENTS.map((name) => engine.on(name, (e: any) => handlersRef.current[eventPropName(name)]?.(e)));
 
         return () => {
-            unsubscribeChange();
+            unsubscribers.forEach((off) => off());
             engine.destroy();
             engineRef.current = null;
         };
@@ -100,7 +101,7 @@ export const Flipbook = forwardRef<FlipbookRef, FlipbookProps>(({
         if (!engine) return;
         const changed = changedOptions(appliedOptions.current, options);
         appliedOptions.current = options;
-        if (Object.keys(changed).length > 0) engine.updateOptions(changed);
+        if (Object.keys(changed).length > 0) engine.updateOptions(changed as Partial<FlipbookEngineOptions>);
     });
 
     return <div ref={containerRef} className={className} style={{ width: '100%', height: '100%', minHeight: '400px', ...style }} />;

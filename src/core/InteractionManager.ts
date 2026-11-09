@@ -152,11 +152,16 @@ export class InteractionManager {
         const signal = this.listenerAbortController.signal;
         const interactive = (target: EventTarget | null) => (target as Element)?.closest('button,a,input,textarea,select,[contenteditable="true"]');
         const points = (touches: TouchList) => Array.from(touches).slice(0, 2).map((touch): ZoomPoint => ({ x: touch.clientX, y: touch.clientY }));
-        const reset = () => { tracking = false; multi = false; base = null; this.touchStartX = null; this.setGesturing(false); };
+        // A finger that starts on a page arrow belongs to the button, but a horizontal swipe from it still turns the page.
+        let arrowStart: { x: number; y: number } | null = null;
+        const onArrow = (target: EventTarget | null) => !!(target as Element)?.closest?.('.bk-nav-arrow');
+        const reset = () => { arrowStart = null; tracking = false; multi = false; base = null; this.touchStartX = null; this.setGesturing(false); };
         this.container.addEventListener('touchstart', event => {
             if (interactive(event.target) || this.store.textSelection.value || this.store.placingNote.value || this.store.pendingAnnotation.value || this.store.activeAnnotationId.value) {
                 if (event.touches.length === 1) reset();
                 this.touchStartX = null;
+                if (event.touches.length === 1 && onArrow(event.target)) arrowStart = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+                else arrowStart = null;
                 return;
             }
             const count = event.touches.length;
@@ -164,7 +169,7 @@ export class InteractionManager {
             else if (count >= 2) {
                 // page-flip saw the first finger; drop its pending corner fold or swipe so the pinch cannot turn the page.
                 if (!multi) this.pageFlipAdapter.cancelUserTouch?.();
-                multi = true; this.touchStartX = null;
+                multi = true; this.touchStartX = null; arrowStart = null;
             }
             tracking = true;
             const zoomed = this.store.zoomState.peek().isActive;
@@ -187,6 +192,15 @@ export class InteractionManager {
         }, { capture: true, passive: false, signal });
         const finish = (event: TouchEvent) => {
             const zoomed = this.store.zoomState.peek().isActive;
+            if (arrowStart && !zoomed && !event.touches.length && event.changedTouches.length === 1 && !this.store.placingNote.value && !this.store.pendingAnnotation.value && !this.store.activeAnnotationId.value) {
+                const dx = event.changedTouches[0].clientX - arrowStart.x, dy = event.changedTouches[0].clientY - arrowStart.y;
+                if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+                    dx > 0 ? this.pageFlipAdapter.turnToPrevPage() : this.pageFlipAdapter.turnToNextPage();
+                    // The swipe is not a tap: stop the browser from also clicking the arrow.
+                    if (event.cancelable) event.preventDefault();
+                }
+            }
+            arrowStart = null;
             if (tracking && !multi && !this.store.placingNote.value && !this.store.pendingAnnotation.value && !this.store.activeAnnotationId.value && this.touchStartX !== null && !zoomed && this.store.isSingleMode.value && event.changedTouches.length === 1) {
                 const dx = event.changedTouches[0].clientX - this.touchStartX, dy = event.changedTouches[0].clientY - startY;
                 if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.4) dx > 0 ? this.pageFlipAdapter.turnToPrevPage() : this.pageFlipAdapter.turnToNextPage();
@@ -216,7 +230,7 @@ export class InteractionManager {
             const pan = scale > 1 ? this.clampPan(this.store.zoomState.value.translateX, this.store.zoomState.value.translateY, scale) : { x: 0, y: 0 };
             this.store.zoomState.value = { ...this.store.zoomState.value, scale, isActive: scale > 1, translateX: pan.x, translateY: pan.y };
         }, { signal });
-        this.container.addEventListener('touchend', finish, { capture: true, passive: true, signal });
+        this.container.addEventListener('touchend', finish, { capture: true, passive: false, signal });
         this.container.addEventListener('touchcancel', reset, { capture: true, signal });
     }
     public zoomIn() {
