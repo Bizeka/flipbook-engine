@@ -478,7 +478,7 @@ A hotspot can render a single image/video/audio preview through `media`, a selec
 
 ### Page annotations
 
-Host uygulamaları, kullanıcı notunu sayfa üzerindeki normalize koordinata bağlamak için `annotations` seçeneğini kullanabilir. Marker tıklaması popup açar ve `annotationActivate` olayı yayınlanır. Bu sözleşme şimdilik host-managed'dir; annotation kayıtlarının backend koordinatlarına taşınması tüketici uygulamanın sorumluluğundadır.
+Host applications can use the `annotations` option to attach a user note to a normalized coordinate on a page. Clicking a marker opens a popup and emits the `annotationActivate` event. For now this contract is host-managed: moving annotation records to backend coordinates is the responsibility of the consuming application.
 
 ```ts
 const engine = new FlipbookEngine('#viewer', {
