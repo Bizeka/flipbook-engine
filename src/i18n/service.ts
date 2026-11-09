@@ -68,6 +68,23 @@ export interface FlipbookMessages {
   allGroups: string;
   /** Fallback swatch label; {n} is the 1-based position. */
   noteColorLabel: string;
+  drawingPen: string;
+  drawingPanel: string;
+  drawingHighlight: string;
+  drawingBoardPen: string;
+  drawingMode: string;
+  drawingColor: string;
+  drawingColorLabel: string;
+  drawingOpacity: string;
+  drawingWidth: string;
+  drawingPreview: string;
+  drawingEraser: string;
+  drawingUndo: string;
+  drawingRedo: string;
+  drawingClear: string;
+  drawingClearConfirm: string;
+  drawingClearYes: string;
+  drawingClose: string;
 }
 
 export const builtInMessages = {

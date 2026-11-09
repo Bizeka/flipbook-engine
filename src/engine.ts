@@ -121,7 +121,7 @@ export interface FlipbookEngineOptions {
     annotations?: FlipbookAnnotation[];
     /** Plugins installed before the first viewer render. */
     plugins?: FlipbookPlugin[];
-    /** Free drawing and highlighting: the stroke store and API. Off by default; `true` uses the defaults. The drawing UI is not part of this option yet. */
+    /** Free drawing and highlighting: the stroke store and API. Off by default; `true` uses the defaults. When on, the toolbar shows a Pen button that opens the drawing panel. */
     drawing?: boolean | FlipbookDrawingOptions;
     /** Host storage for strokes (load, save, clearPage). Without it strokes stay in memory unless `drawingStorage` is `'local'`. */
     drawingProvider?: FlipbookDrawingProvider;
@@ -394,6 +394,14 @@ export class FlipbookEngine {
             },
             onEraseStroke: (id: string) => { this.removeStroke(id); },
             onExitDrawing: () => this.setDrawingMode(false),
+            onToggleDrawing: () => {
+                if (!this.drawingMode) { this.store.showToc.value = false; this.store.showSearch.value = false; this.store.showNotes.value = false; }
+                this.setDrawingMode(!this.drawingMode);
+            },
+            onDrawingTool: (change: Partial<FlipbookDrawingToolState>) => { this.setDrawingTool(change); },
+            onDrawingUndo: () => { this.undoStroke(); },
+            onDrawingRedo: () => { this.redoStroke(); },
+            onDrawingClear: () => { for (const page of this.visiblePages()) this.clearStrokes(page); },
             onSaveAnnotation: (annotation: FlipbookAnnotation) => this.saveAnnotation(annotation),
             onDeleteAnnotation: (annotation: FlipbookAnnotation) => this.saveAnnotation(annotation, 'delete'),
             onSaveNote: (note: string, document?: FlipbookNoteDocument) => this.saveNote(this.getCurrentPage(), note, document),
@@ -1099,9 +1107,12 @@ export class FlipbookEngine {
             this.drawingController = null;
             if (this.drawingMode) { this.drawingMode = false; this.store.drawingMode.value = false; this.emit('drawingModeChange', { active: false }); }
         }
+        const config = resolveDrawingOptions(this.options.drawing);
+        this.store.drawingConfig.value = config ? { colors: config.colors, tools: config.tools } : null;
         if (!enabled) { this.store.drawingMode.value = false; this.store.drawingTool.value = null; this.store.drawingStrokes.value = new Map(); }
         if (!enabled || this.drawingController) return;
         this.store.drawingStrokes.value = new Map();
+        this.store.drawingHistory.value = { undo: false, redo: false };
         const resolved = resolveDrawingOptions(this.options.drawing);
         if (resolved && !this.store.drawingTool.peek()) this.store.drawingTool.value = initialDrawingTool(resolved);
         this.drawingControllerDocument = this.drawingDocumentId;
@@ -1110,7 +1121,7 @@ export class FlipbookEngine {
             getProvider: () => this.options.drawingProvider,
             getStorage: () => this.options.drawingStorage === 'local' ? 'local' : 'memory',
             getOptions: () => resolveDrawingOptions(this.options.drawing),
-            onChange: (change) => { this.publishStrokes(change); this.emit('drawingChange', change); },
+            onChange: (change) => { this.publishStrokes(change); this.syncDrawingHistory(); this.emit('drawingChange', change); },
             onError: (error) => this.emit('drawingError', error)
         });
     }
@@ -1131,11 +1142,23 @@ export class FlipbookEngine {
     private loadVisibleDrawings(): void {
         const controller = this.drawingController;
         if (!controller) return;
+        void controller.loadPages(this.visiblePages());
+    }
+
+    /** The page, or the two pages of the spread, in view. */
+    private visiblePages(): number[] {
         const total = this.store.totalPages.value;
         const current = this.store.currentPage.value;
         const pages = [current];
         if (!this.store.isSingleMode.value) pages.push(current + 1);
-        void controller.loadPages(pages.filter((page) => page >= 0 && page < total));
+        return pages.filter((page) => page >= 0 && page < total);
+    }
+
+    private syncDrawingHistory(): void {
+        const controller = this.drawingController;
+        const undo = !!controller?.canUndo(), redo = !!controller?.canRedo();
+        const current = this.store.drawingHistory.peek();
+        if (current.undo !== undo || current.redo !== redo) this.store.drawingHistory.value = { undo, redo };
     }
 
     /** True while drawing mode is on. */

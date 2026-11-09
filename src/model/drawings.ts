@@ -48,7 +48,7 @@ export interface ResolvedFlipbookDrawingOptions {
     tools: FlipbookDrawingToolName[];
 }
 
-export const DEFAULT_DRAWING_COLORS = ['#ffeb3b', '#4caf50', '#2196f3', '#ff9800', '#e91e63', '#212121'];
+export const DEFAULT_DRAWING_COLORS = ['#ffeb3b', '#4caf50', '#00bcd4', '#e91e63', '#f44336', '#212121'];
 export const MAX_STROKE_POINTS = 5000;
 export const SIMPLIFY_TOLERANCE = 0.001;
 const MAX_WIDTH = 200;

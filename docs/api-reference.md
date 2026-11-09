@@ -270,11 +270,11 @@ Contents, search and notes are mutually exclusive panels. Canvas arrows hide whi
 
 ## Drawing
 
-Free drawing and highlighting. The engine ships the stroke model, the provider interface, storage, events and methods, and a drawing layer on every page. The tool panel is not part of the engine yet, so a host switches the mode and the tool through the methods below. Off by default: without `drawing` nothing changes.
+Free drawing and highlighting. The engine ships the stroke model, the provider interface, storage, events and methods, a drawing layer on every page and a tool panel behind a Pen button in the toolbar. Off by default: without `drawing` nothing changes and no Pen button is shown. The feature guide, with a provider example, is [drawing.md](drawing.md).
 
 Options:
 
-- `drawing`: `true` or `{ colors?: string[]; defaultTool?: 'highlight' | 'pen' | 'eraser'; defaultWidth?: number; defaultOpacity?: number; tools?: Array<'highlight' | 'pen' | 'eraser'> }`. The config sets the initial tool (`defaultTool`, the first of `colors`) and the allowed tools; defaults when a stroke omits them are width 15 and opacity 0.5 for `highlight`, width 3 and opacity 1 for `pen`.
+- `drawing`: `true` or `{ colors?: string[]; defaultTool?: 'highlight' | 'pen' | 'eraser'; defaultWidth?: number; defaultOpacity?: number; tools?: Array<'highlight' | 'pen' | 'eraser'> }`. The config sets the initial tool (`defaultTool`, the first of `colors`), the colour swatches of the panel (`colors`, default yellow, green, cyan, pink, red and black: `#ffeb3b`, `#4caf50`, `#00bcd4`, `#e91e63`, `#f44336`, `#212121`) and the allowed tools (the panel shows only those); defaults when a stroke omits them are width 15 and opacity 0.5 for `highlight`, width 3 and opacity 1 for `pen`.
 - `drawingProvider`: host storage, see below.
 - `drawingStorage`: `'memory'` (default) or `'local'`. Used only when there is no `drawingProvider`; `'local'` keeps strokes in `localStorage` (key `flipbook:drawings:<documentId>`), meant for demos. Storage errors are reported as `drawingError` with code `storage`.
 - `documentId`: identifies the document for drawings. When absent the engine uses a string `rememberPage`, then the PDF url, then the first page image.
@@ -313,12 +313,26 @@ While drawing mode is on:
 
 - One pointer draws (mouse, touch or pen), with pointer capture and coalesced events where the browser has them. A live preview follows the pointer; on release the points are simplified (tolerance 0.001) and the stroke is added with `addStroke`, so `drawingChange` and the provider see it like any other stroke. The mouse draws with the primary button.
 - The `eraser` tool removes the topmost stroke under the pointer on tap or drag (hit test on the stroke's polyline with a tolerance of half the stroke width plus 8 px).
-- Page turns by drag, swipe, corner fold and click, keyboard page keys, double-tap zoom, text selection, note placement and auto play are off. Turning on the mode closes an open note popover and ends text selection and note placement. The page arrows and toolbar buttons are ordinary controls and still work.
+- Page turns by drag, swipe, corner fold and click, keyboard page keys, double-tap zoom, text selection, note placement and auto play are off. Turning on the mode closes an open note popover and ends text selection and note placement. The page arrows and toolbar page buttons are explicit controls and still work; the page change flushes pending saves (see below).
 - Two fingers never draw: a second finger drops the stroke in progress and the gesture is the usual pinch zoom and pan. One finger drag while zoomed draws instead of panning; pan with two fingers (or the wheel and arrow keys with a mouse or keyboard).
 - When a pen is in use, touch does not draw (palm rejection) for 0.8 s after the last pen event.
-- `Escape` leaves drawing mode.
+- `Escape` leaves drawing mode (and closes the panel).
+- A page change, made with an arrow, a toolbar button, the thumbnails or the API, keeps the mode on and flushes pending saves, so strokes of the page you leave reach the provider at once instead of after the 800 ms debounce.
 
 Drawing input uses Pointer Events. Pen pressure is not used.
+
+### Drawing panel
+
+With `drawing` on, the toolbar shows a Pen button (`aria-pressed` follows drawing mode). It turns drawing mode on and off, and the panel is open exactly while the mode is on, so `setDrawingMode(true)` opens it too and closing the panel (the close button or `Escape`) leaves the mode. Opening it closes the contents, search and notes panels. The panel has:
+
+- mode: Highlight or Board pen (only the tools allowed by `drawing.tools`);
+- colour swatches (`drawing.colors`), a radio group;
+- opacity, 10 to 100 % (highlight starts at 50 %), and width (highlight 4 to 48 px, starting at 15; pen 1 to 16 px, starting at 3);
+- a live preview of the stroke (hidden on phone width);
+- the eraser toggle, undo, redo and Clear page. Clear page asks for a confirmation in the panel and clears the visible page (both pages of a two-page spread) as one undo step;
+- a close button.
+
+Every control goes through `setDrawingTool`, so `getDrawingTool()` always matches the panel and a host that sets the tool by code moves the panel too. The panel is keyboard reachable (Tab; arrow keys on the sliders), has `aria-label`s, moves focus into the panel when it opens and back to the Pen button when it closes. `Escape` first cancels a pending clear confirmation, then closes the panel. On widths up to 767 px the panel is a compact bottom sheet of at most 42 % of the reader height, so the page stays in view. Colours come from the `--flipbook-*` theme variables, so it follows light and dark themes. Texts are in the locale messages `drawingPen`, `drawingPanel`, `drawingHighlight`, `drawingBoardPen`, `drawingMode`, `drawingColor`, `drawingColorLabel` (with `{color}`), `drawingOpacity`, `drawingWidth`, `drawingPreview`, `drawingEraser`, `drawingUndo`, `drawingRedo`, `drawingClear`, `drawingClearConfirm`, `drawingClearYes` and `drawingClose`; Turkish and English are built in, other locales fall back to English.
 
 The same methods are available through the `drawings` plugin API when it is installed (`callPluginApi('drawings', 'getStrokes')`, plus `setMode`, `getTool` and `setTool`). The iframe bridge forwards the three events; the provider cannot cross the iframe.
 

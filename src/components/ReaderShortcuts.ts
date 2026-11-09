@@ -32,7 +32,7 @@ export function ReaderShortcuts(root: HTMLElement, store: FlipbookStore, command
         if (event.key === 'Escape') {
             event.preventDefault();
             // Each press closes only the top-most layer.
-            if (store.drawingMode.value) commands.onExitDrawing();
+            if (store.drawingMode.value) { commands.onExitDrawing(); root.querySelector<HTMLElement>('.bk-btn--pen')?.focus(); return; }
             else if (store.placingNote.value) store.placingNote.value = false;
             else if (store.pendingAnnotation.value || store.activeAnnotationId.value) commands.onAnnotationClose();
             else if (store.showSearch.value) store.showSearch.value = false;

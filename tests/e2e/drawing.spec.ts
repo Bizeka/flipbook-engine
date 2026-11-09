@@ -156,3 +156,111 @@ test.describe('touch', () => {
     expect(await strokeCount(page)).toBe(0);
   });
 });
+
+test.describe('drawing panel', () => {
+  test.use({ viewport: { width: 1000, height: 700 } });
+
+  test('the Pen button opens the panel; colour, highlight, draw, undo, redo and clear work', async ({ page }) => {
+    await open(page);
+    const pen = page.locator('#one .bk-btn--pen');
+    const panel = page.locator('#one .bk-draw-panel');
+    await expect(panel).toBeHidden();
+    await pen.click();
+    await expect(panel).toBeVisible();
+    await expect(pen).toHaveAttribute('aria-pressed', 'true');
+    expect(await page.evaluate(() => (window as any).__engine.isDrawingMode())).toBe(true);
+    await expect(panel.locator('.bk-draw-swatch')).toHaveCount(6);
+
+    // Pick the pink swatch and the highlight mode, set the opacity to 40 %.
+    await panel.locator('.bk-draw-mode').nth(1).click();
+    await panel.locator('.bk-draw-mode').nth(0).click();
+    await panel.locator('.bk-draw-swatch').nth(3).click();
+    await panel.locator('.bk-draw-opacity').fill('40');
+    const tool = await page.evaluate(() => (window as any).__engine.getDrawingTool());
+    expect(tool).toMatchObject({ tool: 'highlight', color: '#e91e63', opacity: 0.4, width: 15 });
+
+    const box = (await page.locator('#one .bk-single-page').first().boundingBox())!;
+    const draw = async (y: number) => { await page.mouse.move(box.x + 40, box.y + y); await page.mouse.down(); await page.mouse.move(box.x + 160, box.y + y + 6, { steps: 5 }); await page.mouse.up(); };
+    await draw(80);
+    await draw(160);
+    const paths = page.locator('#one .bk-single-page .bk-drawing-svg--highlight path');
+    await expect(paths).toHaveCount(2);
+    expect(await paths.first().getAttribute('stroke')).toBe('#e91e63');
+    expect(await paths.first().getAttribute('stroke-opacity')).toBe('0.4');
+    expect(await currentPage(page)).toBe(0);
+
+    await panel.locator('.bk-draw-undo').click();
+    await expect(paths).toHaveCount(1);
+    await panel.locator('.bk-draw-redo').click();
+    await expect(paths).toHaveCount(2);
+
+    // Clear page asks first.
+    await panel.locator('.bk-draw-clear').click();
+    await expect(panel.locator('.bk-draw-confirm')).toBeVisible();
+    await panel.locator('.bk-draw-confirm-no').click();
+    await expect(paths).toHaveCount(2);
+    await panel.locator('.bk-draw-clear').click();
+    await panel.locator('.bk-draw-confirm-yes').click();
+    await expect(paths).toHaveCount(0);
+    expect(await strokeCount(page)).toBe(0);
+    // Clearing is one undo step.
+    await panel.locator('.bk-draw-undo').click();
+    await expect(paths).toHaveCount(2);
+    await panel.locator('.bk-draw-redo').click();
+    await expect(paths).toHaveCount(0);
+
+    // The eraser from the panel removes a stroke by tap.
+    await draw(120);
+    await expect(paths).toHaveCount(1);
+    await panel.locator('.bk-draw-eraser').click();
+    await expect(panel.locator('.bk-draw-eraser')).toHaveAttribute('aria-pressed', 'true');
+    await page.mouse.click(box.x + 100, box.y + 123);
+    await expect(paths).toHaveCount(0);
+  });
+
+  test('Escape closes the panel and returns focus to the Pen button', async ({ page }) => {
+    await open(page);
+    await page.locator('#one .bk-btn--pen').click();
+    await expect(page.locator('#one .bk-draw-panel')).toBeVisible();
+    await page.locator('#one .bk-draw-clear').focus();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('#one .bk-draw-confirm')).toBeVisible();
+    // The first Escape only cancels the pending clear.
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#one .bk-draw-confirm')).toHaveCount(0);
+    expect(await page.evaluate(() => (window as any).__engine.isDrawingMode())).toBe(true);
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#one .bk-draw-panel')).toBeHidden();
+    expect(await page.evaluate(() => (window as any).__engine.isDrawingMode())).toBe(false);
+    await expect(page.locator('#one .bk-btn--pen')).toBeFocused();
+  });
+
+  test('the page arrow still turns the page in drawing mode', async ({ page }) => {
+    await open(page);
+    await page.locator('#one .bk-btn--pen').click();
+    await page.locator('#one .bk-btn-group--center .bk-btn:last-child').click();
+    await expect.poll(() => currentPage(page)).toBe(1);
+    expect(await page.evaluate(() => (window as any).__engine.isDrawingMode())).toBe(true);
+  });
+});
+
+test.describe('drawing panel on a phone', () => {
+  test.use({ viewport: { width: 390, height: 780 } });
+
+  test('the panel is a bottom sheet that leaves the page visible', async ({ page }) => {
+    await open(page);
+    await page.evaluate(() => { document.getElementById('one')!.style.width = '100%'; });
+    await page.locator('#one .bk-btn--pen').click();
+    const panel = page.locator('#one .bk-draw-panel');
+    await expect(panel).toBeVisible();
+    const area = (await page.locator('#one .bk-main-area').boundingBox())!;
+    const sheet = (await panel.boundingBox())!;
+    expect(sheet.height).toBeLessThan(area.height * 0.5);
+    expect(sheet.y + sheet.height).toBeLessThanOrEqual(area.y + area.height + 1);
+    expect(sheet.x).toBeGreaterThanOrEqual(area.x);
+    expect(sheet.x + sheet.width).toBeLessThanOrEqual(area.x + area.width + 1);
+    expect(area.width).toBeLessThanOrEqual(390);
+    await panel.locator('.bk-draw-close').click();
+    await expect(panel).toBeHidden();
+  });
+});

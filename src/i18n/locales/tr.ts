@@ -49,5 +49,9 @@ export const trMessages = {
   addNote: 'Konuma not ekle', pageHasNote: 'Bu sayfada not var', page: 'Sayfa', noteSaved: 'Kaydedildi',
   confirmDeleteNote: 'Bu not silinsin mi?', cancel: 'Vazgeç', placeNote: 'Not eklemek için sayfada bir yere tıklayın veya dokunun.',
   keyboardShortcuts: 'Klavye kısayolları', textSelection: 'Metin seçimi', resetZoom: 'Sayfaya sığdır',
-  noteColor: 'Not rengi', noteGroup: 'Not grubu', noGroup: 'Grupsuz', allGroups: 'Tüm gruplar', noteColorLabel: '{n}. Grup'
+  noteColor: 'Not rengi', noteGroup: 'Not grubu', noGroup: 'Grupsuz', allGroups: 'Tüm gruplar', noteColorLabel: '{n}. Grup',
+  drawingPen: 'Kalem', drawingPanel: 'Çizim araçları', drawingHighlight: 'Fosforlu', drawingBoardPen: 'Tahta kalemi', drawingMode: 'Mod',
+  drawingColor: 'Renk', drawingColorLabel: 'Renk {color}', drawingOpacity: 'Saydamlık', drawingWidth: 'Kalınlık', drawingPreview: 'Önizleme',
+  drawingEraser: 'Silgi', drawingUndo: 'Geri al', drawingRedo: 'Yinele', drawingClear: 'Sayfayı temizle', drawingClearConfirm: 'Bu sayfadaki tüm çizimler silinsin mi?',
+  drawingClearYes: 'Temizle', drawingClose: 'Çizim araçlarını kapat'
 } as const;
