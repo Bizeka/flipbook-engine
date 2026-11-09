@@ -83,7 +83,7 @@ export class InteractionManager {
         let initialTy = 0;
 
         this.container.addEventListener('mousedown', (e) => {
-            if (e.button !== 0 || this.store.textSelection.value || this.store.placingNote.value || (e.target as Element).closest('button,a,input,textarea,select,[contenteditable=true]')) return;
+            if (e.button !== 0 || this.store.drawingMode.value || this.store.textSelection.value || this.store.placingNote.value || (e.target as Element).closest('button,a,input,textarea,select,[contenteditable=true]')) return;
             if (this.store.zoomState.value.isActive) {
                 e.preventDefault(); e.stopPropagation();
                 isDragging = true;
@@ -160,6 +160,12 @@ export class InteractionManager {
                 return;
             }
             const count = event.touches.length;
+            if (this.store.drawingMode.value && count === 1) {
+                // One finger draws. Nothing here tracks it, so it can be no swipe, double tap, pan or page turn.
+                reset();
+                return;
+            }
+            if (count >= 2 && this.store.drawingMode.value) this.store.drawingCancel.value++;
             if (count === 1) { multi = false; this.touchStartX = event.touches[0].clientX; startY = event.touches[0].clientY; }
             else if (count >= 2) {
                 // page-flip saw the first finger; drop its pending corner fold or swipe so the pinch cannot turn the page.

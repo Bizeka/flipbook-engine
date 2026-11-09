@@ -31,6 +31,7 @@ import type { FlipbookSearchOptions } from '../model/search';
 import type { FlipbookHotspot } from '../model/hotspots';
 import type { FlipbookAnnotation } from '../model/annotations';
 import type { FlipbookStore } from '../state/store';
+import type { FlipbookDrawingToolState } from '../model/drawings';
 import type { PageFlipAdapter } from '../adapters/PageFlipAdapter';
 import type { InteractionManager } from '../core/InteractionManager';
 import type { FlipbookPluginRegistry } from '../plugins';
@@ -50,6 +51,9 @@ interface AppProps {
     onSelectNote: (pageIndex: number) => void;
     onBeginAnnotation: () => void;
     onPlaceAnnotation: (pageIndex: number, x: number, y: number) => void;
+    onDrawStroke: (pageIndex: number, points: Array<[number, number]>, tool: FlipbookDrawingToolState) => void;
+    onEraseStroke: (strokeId: string) => void;
+    onExitDrawing: () => void;
     onSaveAnnotation: (annotation: FlipbookAnnotation) => Promise<boolean>;
     onDeleteAnnotation: (annotation: FlipbookAnnotation) => Promise<boolean>;
     onSaveNote: (note: string, document?: FlipbookNoteDocument) => Promise<boolean>;
@@ -139,6 +143,8 @@ export function App(props: AppProps) {
                     onAnnotationActivate={props.onAnnotationActivate}
                     onAnnotationClose={props.onAnnotationClose}
                     onPlaceAnnotation={props.onPlaceAnnotation}
+                    onDrawStroke={props.onDrawStroke}
+                    onEraseStroke={props.onEraseStroke}
                     signal={props.signal}
                 />
 

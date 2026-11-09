@@ -77,7 +77,7 @@ export function resolveDrawingOptions(value: unknown): ResolvedFlipbookDrawingOp
 
 function finite(value: unknown): value is number { return typeof value === 'number' && Number.isFinite(value); }
 function clamp(value: number, min: number, max: number): number { return Math.min(max, Math.max(min, value)); }
-function cleanColor(value: unknown): string | null {
+export function cleanColor(value: unknown): string | null {
     if (typeof value !== 'string') return null;
     const color = value.trim();
     return color && color.length <= 64 && !UNSAFE_COLOR.test(color) ? color : null;
@@ -181,4 +181,82 @@ function rdp(points: Array<[number, number]>, epsilon: number): Array<[number, n
 /** Simplifies a finished stroke (call on pointer-up). */
 export function simplifyStroke(stroke: FlipbookStroke, tolerance = SIMPLIFY_TOLERANCE): FlipbookStroke {
     return { ...stroke, points: simplifyPoints(stroke.points, tolerance) };
+}
+
+/** The tool state the pointer layer draws with. The eraser keeps colour, width and opacity so switching back is lossless. */
+export interface FlipbookDrawingToolState {
+    tool: FlipbookDrawingToolName;
+    color: string;
+    width: number;
+    opacity: number;
+}
+
+/** Initial tool state for a drawing config: default tool, first colour, and that tool's default width and opacity. */
+export function initialDrawingTool(options: ResolvedFlipbookDrawingOptions): FlipbookDrawingToolState {
+    const tool = options.defaultTool;
+    const defaults = strokeDefaults(tool === 'eraser' ? 'highlight' : tool, options);
+    return { tool, color: options.colors[0], width: defaults.width, opacity: defaults.opacity };
+}
+
+/**
+ * Applies a partial tool change. Invalid values are ignored. Switching to another drawing tool without an explicit
+ * width or opacity takes that tool's defaults. A tool the config does not allow is ignored.
+ */
+export function mergeDrawingTool(current: FlipbookDrawingToolState, change: Partial<FlipbookDrawingToolState> | null | undefined, options: ResolvedFlipbookDrawingOptions | null): FlipbookDrawingToolState {
+    if (!change || typeof change !== 'object') return current;
+    const next = { ...current };
+    const allowed = options?.tools ?? TOOLS;
+    if (change.tool && TOOLS.includes(change.tool) && allowed.includes(change.tool)) next.tool = change.tool;
+    const color = cleanColor(change.color);
+    if (color) next.color = color;
+    const switched = next.tool !== current.tool && next.tool !== 'eraser';
+    const defaults = switched ? strokeDefaults(next.tool as FlipbookDrawingTool, options) : null;
+    if (finite(change.width) && change.width > 0) next.width = Math.min(MAX_WIDTH, change.width);
+    else if (defaults) next.width = defaults.width;
+    if (finite(change.opacity)) next.opacity = clamp(change.opacity, MIN_OPACITY, 1);
+    else if (defaults) next.opacity = defaults.opacity;
+    return next;
+}
+
+/** Maps a pointer position to 0..1 of a page box (clamped). Returns null for an empty box. */
+export function pointToPage(clientX: number, clientY: number, box: { left: number; top: number; width: number; height: number }): [number, number] | null {
+    if (!(box.width > 0) || !(box.height > 0)) return null;
+    return [clamp((clientX - box.left) / box.width, 0, 1), clamp((clientY - box.top) / box.height, 0, 1)];
+}
+
+/** SVG path data for a stroke in 0..1 page space. A single point becomes a zero-length segment, drawn as a dot by round caps. */
+export function strokePathData(points: ReadonlyArray<readonly [number, number]>): string {
+    if (!points.length) return '';
+    const round = (value: number) => Math.round(value * 100000) / 100000;
+    const first = points[0];
+    let data = 'M' + round(first[0]) + ' ' + round(first[1]);
+    if (points.length === 1) return data + 'L' + round(first[0]) + ' ' + round(first[1]);
+    for (let index = 1; index < points.length; index++) data += 'L' + round(points[index][0]) + ' ' + round(points[index][1]);
+    return data;
+}
+
+/**
+ * True when (x, y), both 0..1 of the page box, lies within `tolerancePx` of the stroke's polyline or its own half width.
+ * Distances are measured in pixels of the given page box so a tall page does not make the hit area an ellipse.
+ */
+export function hitTestStroke(stroke: Pick<FlipbookStroke, 'points' | 'width'>, x: number, y: number, box: { width: number; height: number }, tolerancePx = 0): boolean {
+    const reach = stroke.width / 2 + Math.max(0, tolerancePx);
+    const px = x * box.width;
+    const py = y * box.height;
+    const pixel = (point: [number, number]): [number, number] => [point[0] * box.width, point[1] * box.height];
+    const points = stroke.points;
+    if (!points.length) return false;
+    if (points.length === 1) return Math.hypot(px - pixel(points[0])[0], py - pixel(points[0])[1]) <= reach;
+    for (let index = 1; index < points.length; index++) {
+        if (distanceToSegment([px, py], pixel(points[index - 1]), pixel(points[index])) <= reach) return true;
+    }
+    return false;
+}
+
+/** The topmost (latest drawn) stroke under the point, or null. */
+export function strokeAtPoint(strokes: ReadonlyArray<FlipbookStroke>, x: number, y: number, box: { width: number; height: number }, tolerancePx = 0): FlipbookStroke | null {
+    for (let index = strokes.length - 1; index >= 0; index--) {
+        if (hitTestStroke(strokes[index], x, y, box, tolerancePx)) return strokes[index];
+    }
+    return null;
 }

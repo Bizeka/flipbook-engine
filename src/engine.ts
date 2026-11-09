@@ -39,7 +39,7 @@ import { FlipbookEmbedBridge, type FlipbookEmbedOptions } from './embed';
 import { chooseImageTier, pickTierSrc, resolveImageTiers, type FlipbookImageTierOptions } from './core/imageTiers';
 import { FlipbookPluginRegistry, type FlipbookPlugin } from './plugins';
 import { FlipbookDrawingController, type FlipbookDrawingChange, type FlipbookDrawingError } from './plugins/drawings';
-import { resolveDrawingOptions, type FlipbookDrawingOptions, type FlipbookDrawingProvider, type FlipbookStroke } from './model/drawings';
+import { initialDrawingTool, mergeDrawingTool, resolveDrawingOptions, type FlipbookDrawingToolState, type FlipbookDrawingOptions, type FlipbookDrawingProvider, type FlipbookStroke } from './model/drawings';
 
 export interface FlipbookEngineOptions {
     textLayerProvider?: FlipbookTextLayerProvider;
@@ -388,6 +388,12 @@ export class FlipbookEngine {
             onSelectNote: (pageIndex: number) => { this.goToPage(pageIndex); this.store.notesView.value = 'page'; },
             onBeginAnnotation: () => this.beginAnnotation(),
             onPlaceAnnotation: (pageIndex: number, x: number, y: number) => this.placeAnnotation(pageIndex, x, y),
+            onDrawStroke: (page: number, points: Array<[number, number]>, tool: FlipbookDrawingToolState) => {
+                if (tool.tool === 'eraser') return;
+                this.addStroke({ page, tool: tool.tool, color: tool.color, width: tool.width, opacity: tool.opacity, points });
+            },
+            onEraseStroke: (id: string) => { this.removeStroke(id); },
+            onExitDrawing: () => this.setDrawingMode(false),
             onSaveAnnotation: (annotation: FlipbookAnnotation) => this.saveAnnotation(annotation),
             onDeleteAnnotation: (annotation: FlipbookAnnotation) => this.saveAnnotation(annotation, 'delete'),
             onSaveNote: (note: string, document?: FlipbookNoteDocument) => this.saveNote(this.getCurrentPage(), note, document),
@@ -1091,18 +1097,34 @@ export class FlipbookEngine {
         if (current && (!enabled || this.drawingControllerDocument !== this.drawingDocumentId)) {
             void current.destroy();
             this.drawingController = null;
-            if (this.drawingMode) { this.drawingMode = false; this.emit('drawingModeChange', { active: false }); }
+            if (this.drawingMode) { this.drawingMode = false; this.store.drawingMode.value = false; this.emit('drawingModeChange', { active: false }); }
         }
+        if (!enabled) { this.store.drawingMode.value = false; this.store.drawingTool.value = null; this.store.drawingStrokes.value = new Map(); }
         if (!enabled || this.drawingController) return;
+        this.store.drawingStrokes.value = new Map();
+        const resolved = resolveDrawingOptions(this.options.drawing);
+        if (resolved && !this.store.drawingTool.peek()) this.store.drawingTool.value = initialDrawingTool(resolved);
         this.drawingControllerDocument = this.drawingDocumentId;
         this.drawingController = new FlipbookDrawingController({
             documentId: this.drawingDocumentId,
             getProvider: () => this.options.drawingProvider,
             getStorage: () => this.options.drawingStorage === 'local' ? 'local' : 'memory',
             getOptions: () => resolveDrawingOptions(this.options.drawing),
-            onChange: (change) => this.emit('drawingChange', change),
+            onChange: (change) => { this.publishStrokes(change); this.emit('drawingChange', change); },
             onError: (error) => this.emit('drawingError', error)
         });
+    }
+
+    /** Mirrors the changed pages of the controller into the store, which the drawing layers render from. */
+    private publishStrokes(change: FlipbookDrawingChange): void {
+        const controller = this.drawingController;
+        if (!controller) return;
+        const pages = new Set(change.strokes.map((stroke) => stroke.page));
+        if (change.pageIndex !== null) pages.add(change.pageIndex);
+        if (!pages.size) return;
+        const next = new Map(this.store.drawingStrokes.peek());
+        pages.forEach((page) => next.set(page, controller.getStrokes(page)));
+        this.store.drawingStrokes.value = next;
     }
 
     /** Loads strokes for the pages in view (the current page, plus its neighbour in a two-page spread). */
@@ -1119,12 +1141,43 @@ export class FlipbookEngine {
     /** True while drawing mode is on. */
     public isDrawingMode(): boolean { return this.drawingMode; }
 
-    /** Turns drawing mode on or off. Needs the `drawing` option. The drawing layer that reacts to it comes in a later release. */
+    /**
+     * Turns drawing mode on or off. Needs the `drawing` option. While on, one pointer draws with the current tool and
+     * page turns, swipes, double-tap zoom, text selection, note placement and auto play are off; pinch zoom still works.
+     */
     public setDrawingMode(on: boolean): void {
         const next = !!on && !!this.drawingController;
         if (next === this.drawingMode) return;
         this.drawingMode = next;
+        this.store.drawingMode.value = next;
+        if (next) {
+            this.store.textSelection.value = false;
+            this.store.placingNote.value = false;
+            this.store.pendingAnnotation.value = null;
+            this.store.activeAnnotationId.value = null;
+            this.store.hoverAnnotationId.value = null;
+            this.store.isAutoPlaying.value = false;
+        }
         this.emit('drawingModeChange', { active: next });
+    }
+
+    /** The tool, colour, width and opacity new strokes are drawn with. Null when `drawing` is off. */
+    public getDrawingTool(): FlipbookDrawingToolState | null {
+        const tool = this.store.drawingTool.peek();
+        return tool ? { ...tool } : null;
+    }
+
+    /**
+     * Changes the drawing tool. Every field is optional and invalid values are ignored. Switching to another drawing tool
+     * without a width or opacity takes that tool's defaults; the eraser keeps the last colour, width and opacity.
+     */
+    public setDrawingTool(change: Partial<FlipbookDrawingToolState>): FlipbookDrawingToolState | null {
+        const current = this.store.drawingTool.peek();
+        const options = resolveDrawingOptions(this.options.drawing);
+        if (!current || !options) return null;
+        const next = mergeDrawingTool(current, change, options);
+        if (next !== current) this.store.drawingTool.value = next;
+        return { ...next };
     }
 
     /** Strokes of one zero-based page, or of every page loaded so far. Empty when `drawing` is off. */

@@ -37,7 +37,7 @@ export function bindNoteGestures(element: HTMLElement, store: FlipbookStore, pla
     };
     element.addEventListener('pointerdown', event => {
         cancel();
-        if (store.textSelection.value || !store.canAnnotate.value || store.placingNote.value || (event.target as Element).closest(controls)) return;
+        if (store.drawingMode.value || store.textSelection.value || !store.canAnnotate.value || store.placingNote.value || (event.target as Element).closest(controls)) return;
         if (event.button === 2) { event.stopPropagation(); return; }
         if (event.pointerType === 'mouse' || !event.isPrimary) return;
         startX = event.clientX; startY = event.clientY; held = false;
@@ -52,7 +52,7 @@ export function bindNoteGestures(element: HTMLElement, store: FlipbookStore, pla
     element.addEventListener('touchend', event => { if (Date.now() < blockedClickUntil) { event.preventDefault(); event.stopImmediatePropagation(); } }, { capture: true, passive: false, signal });
     element.addEventListener('pointercancel', () => { cancel(); held = false; }, { capture: true, signal });
     element.addEventListener('contextmenu', event => {
-        if (store.textSelection.value || !store.canAnnotate.value || (event.target as Element).closest(controls)) return;
+        if (store.drawingMode.value || store.textSelection.value || !store.canAnnotate.value || (event.target as Element).closest(controls)) return;
         event.preventDefault(); event.stopPropagation(); cancel();
         if (!held) pick(event.target, event.clientX, event.clientY);
     }, { capture: true, signal });

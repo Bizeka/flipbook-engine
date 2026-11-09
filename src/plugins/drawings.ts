@@ -361,7 +361,9 @@ export function createDrawingsPlugin(): FlipbookPlugin {
         clearStrokes: (page?: number) => engine.clearStrokes(page),
         undoStroke: () => engine.undoStroke(),
         redoStroke: () => engine.redoStroke(),
-        setMode: (on: boolean) => engine.setDrawingMode(on)
+        setMode: (on: boolean) => engine.setDrawingMode(on),
+        getTool: () => engine.getDrawingTool(),
+        setTool: (tool: Record<string, unknown>) => engine.setDrawingTool(tool as any)
     }));
 }
 

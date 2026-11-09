@@ -1489,3 +1489,10 @@
   left: 0;
   top: 0;
 }
+
+/* Drawing: strokes sit above the page image and below hotspots; highlights multiply with the page. */
+.bk-drawing-layer { display: contents; }
+.bk-drawing-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; z-index: 4; }
+.bk-drawing-svg--highlight { z-index: 3; mix-blend-mode: multiply; }
+.bk-drawing-input { display: none; position: absolute; inset: 0; z-index: 60; touch-action: none; cursor: crosshair; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.bk-book-wrapper.is-drawing .bk-drawing-input { display: block; }

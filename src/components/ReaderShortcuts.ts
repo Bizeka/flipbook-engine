@@ -7,7 +7,7 @@ import { showReaderHelp } from './ReaderHelp';
 
 export function ReaderShortcuts(root: HTMLElement, store: FlipbookStore, commands: {
     pageFlipAdapterRef: { current: PageFlipAdapter | null }; interactionManagerRef: { current: InteractionManager | null };
-    onBeginAnnotation: () => void; onToggleNotes: () => void; onToggleFullscreen: () => void; onAnnotationClose: () => void;
+    onBeginAnnotation: () => void; onExitDrawing: () => void; onToggleNotes: () => void; onToggleFullscreen: () => void; onAnnotationClose: () => void;
 }, signal: AbortSignal) {
     signal = domSignal(root, signal);
     root.setAttribute('aria-keyshortcuts', 'ArrowLeft ArrowRight ArrowUp ArrowDown PageUp PageDown Home End + - 0 n Shift+n / i t f Escape');
@@ -32,7 +32,8 @@ export function ReaderShortcuts(root: HTMLElement, store: FlipbookStore, command
         if (event.key === 'Escape') {
             event.preventDefault();
             // Each press closes only the top-most layer.
-            if (store.placingNote.value) store.placingNote.value = false;
+            if (store.drawingMode.value) commands.onExitDrawing();
+            else if (store.placingNote.value) store.placingNote.value = false;
             else if (store.pendingAnnotation.value || store.activeAnnotationId.value) commands.onAnnotationClose();
             else if (store.showSearch.value) store.showSearch.value = false;
             else if (store.showNotes.value) store.showNotes.value = false;
@@ -52,10 +53,13 @@ export function ReaderShortcuts(root: HTMLElement, store: FlipbookStore, command
         const panel = store.showNotes.value || store.showSearch.value || store.showToc.value || !!store.pendingAnnotation.value || !!store.activeAnnotationId.value;
         const key = event.key.toLowerCase();
         if (store.textSelection.value && event.shiftKey && ['arrowleft', 'arrowright', 'arrowup', 'arrowdown', 'home', 'end'].includes(key)) return;
+        if (store.drawingMode.value && key === 'n') return;
         if (key === 'n') { event.preventDefault(); if (event.shiftKey || !store.canAnnotate.value) commands.onToggleNotes(); else commands.onBeginAnnotation(); return; }
         if (panel || store.placingNote.value) return;
         const pan = { arrowleft: [80, 0], arrowright: [-80, 0], arrowup: [0, 80], arrowdown: [0, -80] }[key];
         if (pan && store.zoomState.value.isActive) { commands.interactionManagerRef.current?.panBy(pan[0], pan[1]); event.preventDefault(); return; }
+        // Page turns are off while drawing; zoom and panning keys still work.
+        if (store.drawingMode.value && ['arrowleft', 'arrowright', 'pageup', 'pagedown', 'home', 'end'].includes(key)) return;
         switch (key) {
             case 'arrowleft': case 'pageup': commands.pageFlipAdapterRef.current?.turnToPrevPage(); break;
             case 'arrowright': case 'pagedown': commands.pageFlipAdapterRef.current?.turnToNextPage(); break;

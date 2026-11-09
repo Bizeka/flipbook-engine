@@ -270,11 +270,11 @@ Contents, search and notes are mutually exclusive panels. Canvas arrows hide whi
 
 ## Drawing
 
-Free drawing and highlighting. This release ships the stroke model, the provider interface, storage, events and methods; the drawing layer and tool panel (UI) are coming in a later release, so nothing is drawn on the pages yet. Off by default: without `drawing` nothing changes.
+Free drawing and highlighting. The engine ships the stroke model, the provider interface, storage, events and methods, and a drawing layer on every page. The tool panel is not part of the engine yet, so a host switches the mode and the tool through the methods below. Off by default: without `drawing` nothing changes.
 
 Options:
 
-- `drawing`: `true` or `{ colors?: string[]; defaultTool?: 'highlight' | 'pen' | 'eraser'; defaultWidth?: number; defaultOpacity?: number; tools?: Array<'highlight' | 'pen' | 'eraser'> }`. The config is for the coming UI; defaults when a stroke omits them are width 15 and opacity 0.5 for `highlight`, width 3 and opacity 1 for `pen`.
+- `drawing`: `true` or `{ colors?: string[]; defaultTool?: 'highlight' | 'pen' | 'eraser'; defaultWidth?: number; defaultOpacity?: number; tools?: Array<'highlight' | 'pen' | 'eraser'> }`. The config sets the initial tool (`defaultTool`, the first of `colors`) and the allowed tools; defaults when a stroke omits them are width 15 and opacity 0.5 for `highlight`, width 3 and opacity 1 for `pen`.
 - `drawingProvider`: host storage, see below.
 - `drawingStorage`: `'memory'` (default) or `'local'`. Used only when there is no `drawingProvider`; `'local'` keeps strokes in `localStorage` (key `flipbook:drawings:<documentId>`), meant for demos. Storage errors are reported as `drawingError` with code `storage`.
 - `documentId`: identifies the document for drawings. When absent the engine uses a string `rememberPage`, then the PDF url, then the first page image.
@@ -299,12 +299,28 @@ Behaviour:
 
 Methods:
 
-- `setDrawingMode(on: boolean)` / `isDrawingMode()`: switches the mode and emits `drawingModeChange`. Does nothing without `drawing`. The mode has no visible effect until the UI ships.
+- `setDrawingMode(on: boolean)` / `isDrawingMode()`: switches the mode and emits `drawingModeChange`. Does nothing without `drawing`. See [Drawing mode](#drawing-mode).
+- `setDrawingTool({ tool?, color?, width?, opacity? })` / `getDrawingTool()`: the tool new strokes are drawn with (`tool` is `'highlight'`, `'pen'` or `'eraser'`). Every field is optional and invalid values are ignored. Switching to another drawing tool without a width or opacity takes that tool's defaults (highlight 15 px at 0.5, pen 3 px at 1); the eraser keeps the last colour, width and opacity. A tool outside `drawing.tools` is ignored. `setDrawingTool` returns the resulting tool, or `null` without `drawing`.
 - `getStrokes(pageIndex?)`: copies of the loaded strokes of a page, or of all loaded pages.
 - `addStroke(stroke)`: validates and adds a stroke (`id`, `createdAt`, `width`, `opacity` are filled when missing); returns it, or `null` when drawing is off, the stroke is invalid or the page is outside the book.
 - `removeStroke(id)`, `clearStrokes(pageIndex?)` (returns how many were removed), `undoStroke()`, `redoStroke()` (return whether something changed). A new stroke clears the redo stack.
 
-The same methods are available through the `drawings` plugin API when it is installed (`callPluginApi('drawings', 'getStrokes')`). The iframe bridge forwards the three events; the provider cannot cross the iframe.
+### Drawing mode
+
+Each page has an SVG layer above the page image and below hotspots and note pins. Strokes are drawn in 0..1 page space, so they stay on the page through zoom, single and two-page view, image tiers and PDF pages. A stroke's `width` is in CSS px at fit zoom and grows with the zoomed page. Highlights are drawn with `mix-blend-mode: multiply` and the stroke opacity; pens are opaque. Only the visible spread and one spread on each side keep their strokes in the DOM.
+
+While drawing mode is on:
+
+- One pointer draws (mouse, touch or pen), with pointer capture and coalesced events where the browser has them. A live preview follows the pointer; on release the points are simplified (tolerance 0.001) and the stroke is added with `addStroke`, so `drawingChange` and the provider see it like any other stroke. The mouse draws with the primary button.
+- The `eraser` tool removes the topmost stroke under the pointer on tap or drag (hit test on the stroke's polyline with a tolerance of half the stroke width plus 8 px).
+- Page turns by drag, swipe, corner fold and click, keyboard page keys, double-tap zoom, text selection, note placement and auto play are off. Turning on the mode closes an open note popover and ends text selection and note placement. The page arrows and toolbar buttons are ordinary controls and still work.
+- Two fingers never draw: a second finger drops the stroke in progress and the gesture is the usual pinch zoom and pan. One finger drag while zoomed draws instead of panning; pan with two fingers (or the wheel and arrow keys with a mouse or keyboard).
+- When a pen is in use, touch does not draw (palm rejection) for 0.8 s after the last pen event.
+- `Escape` leaves drawing mode.
+
+Drawing input uses Pointer Events. Pen pressure is not used.
+
+The same methods are available through the `drawings` plugin API when it is installed (`callPluginApi('drawings', 'getStrokes')`, plus `setMode`, `getTool` and `setTool`). The iframe bridge forwards the three events; the provider cannot cross the iframe.
 
 ## Personal coordinate notes
 

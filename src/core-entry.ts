@@ -35,6 +35,6 @@ export { resolveEmbedUrl } from './model/hotspots';
 export type { FlipbookTextRun, FlipbookTextPage, FlipbookTextLayerProvider } from './model/text-layer';
 export { safeLinkUrl } from './model/safe-url';
 
-export type { FlipbookStroke, FlipbookDrawingTool, FlipbookDrawingToolName, FlipbookDrawingProvider, FlipbookDrawingOptions, FlipbookDrawingChanges, FlipbookDrawingSaveResult } from './model/drawings';
+export type { FlipbookStroke, FlipbookDrawingToolState, FlipbookDrawingTool, FlipbookDrawingToolName, FlipbookDrawingProvider, FlipbookDrawingOptions, FlipbookDrawingChanges, FlipbookDrawingSaveResult } from './model/drawings';
 export { normalizeStroke, simplifyPoints, DEFAULT_DRAWING_COLORS } from './model/drawings';
 export type { FlipbookDrawingChange, FlipbookDrawingChangeAction, FlipbookDrawingError } from './plugins/drawings';
