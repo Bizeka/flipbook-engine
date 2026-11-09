@@ -145,7 +145,7 @@ const provider = useMemo(() => createRestDrawingProvider('/api/reader'), []);
 <Flipbook pdfUrl="/catalog.pdf" :pages="pages" :drawing="drawing" :drawingProvider="provider" documentId="catalog-2026" />
 ```
 
-The drawing events `drawingChange`, `drawingError` and `drawingModeChange` are engine events: subscribe through the engine (`flipbookRef.current?.engine?.on('drawingError', ...)` in React, `book.value.getEngine().on(...)` in Vue). The drawing methods (`setDrawingMode`, `setDrawingTool`, `getStrokes`, `undoStroke` and the rest) are engine methods too.
+The drawing events are forwarded like the other events: React `onDrawingChange`, `onDrawingError`, `onDrawingModeChange`; Vue `@drawing-change`, `@drawing-error`, `@drawing-mode-change`. The drawing methods (`setDrawingMode`, `setDrawingTool`, `getStrokes`, `undoStroke` and the rest) are engine methods too.
 
 ## Other events
 
