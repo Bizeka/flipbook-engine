@@ -15,7 +15,6 @@ import type { FlipbookTextLayerProvider } from './model/text-layer';
  *    you must purchase a Commercial License from:
  *    https://flipbookengine.com/pricing
  */
-import * as pdfjsLib from 'pdfjs-dist';
 import { effect } from '@preact/signals-core';
 import type { FlipbookSearchProvider, FlipbookNoteProvider, FlipbookAnnotationProvider, FlipbookSearchProgress } from './model/backend';
 import type { FlipbookNoteDocument, FlipbookNoteEditorFactory } from './model/note-editor';
@@ -28,7 +27,9 @@ import { isFlipbookPageAsset, normalizeFlipbookPages, type FlipbookPageAsset, ty
 import { safeLinkUrl } from './model/safe-url';
 import { applyThemeConfiguration, type FlipbookBackgrounds, type FlipbookThemeMode } from './theme/theme';
 import { resolveMessages, type FlipbookLocale, type PartialFlipbookMessages } from './i18n/service';
-import { PdfRenderer, type PdfPageLayout, type PdfPageMode } from './core/PdfRenderer';
+import type { PdfPageLayout, PdfPageMode } from './core/PdfRenderer';
+import { createPdfJsPageSource } from './core/pdfJsPageSource';
+import type { PageSource } from './core/PageSource';
 import { normalizeFlipbookToc, type FlipbookTocEntry } from './model/toc';
 import type { FlipbookSearchHighlight, FlipbookSearchOptions, FlipbookSearchResult } from './model/search';
 import type { FlipbookHotspot } from './model/hotspots';
@@ -98,6 +99,8 @@ export interface FlipbookEngineOptions {
     pdfRenderConcurrency?: number;
     pdfRenderCacheSize?: number;
     pdfWorkerSrc?: string;
+    /** Custom page source used instead of PDF.js when a document URL is opened. Not available through the iframe bridge. */
+    pageSource?: PageSource;
     /**
      * Picks `low`, `normal` or `large` page images by screen width and zoom. Off by default; `true` uses the defaults.
      * The `select` function cannot be sent through the iframe bridge.
@@ -196,7 +199,7 @@ export class FlipbookEngine {
     private layoutManager: LayoutManager | null = null;
     private interactionManager: InteractionManager | null = null;
 
-    private pdfRenderer: PdfRenderer | null = null;
+    private pageSource: PageSource | null = null;
     private optimisticQueue: Promise<void> = Promise.resolve();
     private readonly optimisticEntries = new Map<string, { version: number; pending: number; restore: () => void }>();
     private listeners: Partial<Record<FlipbookEngineEventName, Set<AnyFlipbookEventHandler>>> = {};
@@ -290,7 +293,7 @@ export class FlipbookEngine {
             if (abortController.signal.aborted) return;
             let pdfStage: 'load' | 'render' = 'load';
             try {
-                this.pdfRenderer = new PdfRenderer({
+                this.pageSource = this.options.pageSource ?? createPdfJsPageSource({
                     scale: this.options.pdfRenderScale,
                     quality: this.options.pdfRenderQuality,
                     format: this.options.pdfRenderFormat,
@@ -300,13 +303,13 @@ export class FlipbookEngine {
                 });
 
                 this.emit('progress', { phase: 'loading', completed: 0, total: 0 });
-                const totalPages = await this.pdfRenderer.loadDocument(pdfUrl, abortController.signal);
+                const totalPages = await this.pageSource.loadDocument(pdfUrl, abortController.signal);
                 pdfStage = 'render';
                 this.emit('progress', { phase: 'loading', completed: 1, total: totalPages });
-                const pageLayouts = await this.pdfRenderer.getPageLayouts(this.options.pdfPageMode);
+                const pageLayouts = await this.pageSource.getPageLayouts(this.options.pdfPageMode);
                 viewport = pageLayouts.length
-                    ? await this.pdfRenderer.calculateViewportDimensions(420, pageLayouts[0])
-                    : await this.pdfRenderer.calculateViewportDimensions();
+                    ? await this.pageSource.calculateViewportDimensions(420, pageLayouts[0])
+                    : await this.pageSource.calculateViewportDimensions();
                 resolvedPages = pageLayouts.length
                     ? this.createPdfPlaceholders(pageLayouts)
                     : Array.from({ length: totalPages }, (_, index) => this.createPdfPlaceholder(index + 1));
@@ -448,7 +451,7 @@ export class FlipbookEngine {
                 this.interactionManager.init();
                 interactionManagerRef.current = this.interactionManager;
                 this.setupPdfLazyLoading();
-                if (this.pdfRenderer && pdfUrl) {
+                if (this.pageSource && pdfUrl) {
                     try {
                         await this.renderPdfPage(1, abortController.signal);
                     } catch {
@@ -503,7 +506,7 @@ export class FlipbookEngine {
     }
 
     private renderPdfPage(pageNumber: number, signal?: AbortSignal): Promise<string> {
-        const renderer = this.pdfRenderer;
+        const renderer = this.pageSource;
         const generation = this.initGeneration;
         if (!renderer) return Promise.resolve('');
         const existing = this.pdfPageRequests.get(pageNumber);
@@ -564,7 +567,7 @@ export class FlipbookEngine {
     private setupPdfLazyLoading() {
         this.pdfLazyStop?.();
         this.pdfLazyStop = null;
-        if (!this.pdfRenderer) return;
+        if (!this.pageSource) return;
         this.pdfLazyStop = effect(() => {
             const currentIdx = this.store.currentPage.value;
             const pages = this.store.pages.value;
@@ -735,13 +738,13 @@ export class FlipbookEngine {
                 throw error;
             } finally { if (sequence === this.searchSequence) { this.store.searchBusy.value = false; this.store.searchProgress.value = null; } }
         }
-        if (!normalizedQuery || !this.pdfRenderer || !this.store.isPdfMode.value) {
+        if (!normalizedQuery || !this.pageSource || !this.store.isPdfMode.value) {
             this.store.searchQuery.value = normalizedQuery;
             this.store.searchResults.value = [];
             this.emit('searchChange', { query: normalizedQuery, results: [] });
             return [];
         }
-        const sourceResults = await this.pdfRenderer.searchText(normalizedQuery, options);
+        const sourceResults = await this.pageSource.searchText(normalizedQuery, options);
         if (sequence !== this.searchSequence) return [];
         const results: FlipbookSearchResult[] = [];
         sourceResults.forEach((source) => {
@@ -1025,7 +1028,7 @@ export class FlipbookEngine {
     public setSingleMode(isSingle: boolean) {
         this.options = { ...this.options, singleMode: isSingle, isSingleMode: isSingle };
         this.store.isSingleMode.value = isSingle;
-        if (isSingle && this.pdfRenderer) {
+        if (isSingle && this.pageSource) {
             setTimeout(() => {
                 const page = this.store.pages.value[this.store.currentPage.value];
                 const sourcePage = page?.sourcePageNumber ?? page?.pageNumber;
@@ -1530,7 +1533,7 @@ export class FlipbookEngine {
         this.textLayerStop?.(); this.textLayerStop = null;
         // Stop saving first: the store reset below would otherwise record page 0 as the last page.
         this.lastPageKey = null;
-        const hadSession = this.hasActiveSession || !!this.initAbortController || !!this.pageFlipAdapter || !!this.layoutManager || !!this.interactionManager || !!this.pdfRenderer;
+        const hadSession = this.hasActiveSession || !!this.initAbortController || !!this.pageFlipAdapter || !!this.layoutManager || !!this.interactionManager || !!this.pageSource;
         this.initGeneration++;
         if (this.drawingMode) { this.drawingMode = false; this.emit('drawingModeChange', { active: false }); }
         if (this.drawingController) { void this.drawingController.destroy(); this.drawingController = null; }
@@ -1559,14 +1562,14 @@ export class FlipbookEngine {
         this.pdfRenderedPages.clear();
         this.pdfRenderedSources.clear();
         this.pdfSourcePageCount = 0;
-        if (this.pdfRenderer) {
-            this.pdfRenderer.destroy();
+        if (this.pageSource) {
+            this.pageSource.destroy();
         }
 
         this.pageFlipAdapter = null;
         this.layoutManager = null;
         this.interactionManager = null;
-        this.pdfRenderer = null;
+        this.pageSource = null;
         this.eventsReady = false;
         this.hasActiveSession = false;
         this.store.reset();
