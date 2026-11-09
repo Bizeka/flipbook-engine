@@ -352,7 +352,7 @@
   z-index: 5;
 }
 
-/* Sol sayfanın sağ kenarı (Cilt payı) ve sol dış kenarı */
+/* Left page: right edge (gutter) and left outer edge */
 .bz-page--left .page-shadow {
   background: linear-gradient(to right, 
      rgba(0,0,0,0.1) 0%, 
@@ -362,7 +362,7 @@
   );
 }
 
-/* Sağ sayfanın sol kenarı (Cilt payı) ve sağ dış kenarı */
+/* Right page: left edge (gutter) and right outer edge */
 .bz-page--right .page-shadow {
   background: linear-gradient(to right, 
      rgba(0,0,0,0.4) 0%, 
@@ -372,7 +372,7 @@
   );
 }
 
-/* Kapaklarda iç gölgeyi kapat */
+/* No inner shadow on covers */
 .bz-page--cover .page-shadow {
   display: none !important;
 }
