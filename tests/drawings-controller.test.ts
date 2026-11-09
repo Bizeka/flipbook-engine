@@ -6,6 +6,11 @@ import { FlipbookEngine } from '../src/engine.ts';
 import { FlipbookDrawingController, type FlipbookDrawingChange, type FlipbookDrawingError } from '../src/plugins/drawings.ts';
 import type { FlipbookDrawingProvider, FlipbookStroke } from '../src/model/drawings.ts';
 
+// Node 18 and early 20 take an array, later versions an options object.
+const enableFakeTimeout = () => {
+  try { mock.timers.enable({ apis: ['setTimeout'] } as never); } catch { (mock.timers.enable as unknown as (a: string[]) => void)(['setTimeout']); }
+};
+
 const raw = (id: string, page = 0) => ({ id, page, tool: 'pen' as const, color: '#f00', points: [[0.1, 0.1], [0.5, 0.5]] as Array<[number, number]> });
 
 function setup(provider?: Partial<FlipbookDrawingProvider>, storage: 'memory' | 'local' = 'memory') {
@@ -72,7 +77,7 @@ test('clear removes a page and undo restores it as one step', () => {
 });
 
 test('saves are debounced and batched', async () => {
-  mock.timers.enable({ apis: ['setTimeout'] });
+  enableFakeTimeout();
   try {
     const saves: Array<{ added: string[]; removed: string[] }> = [];
     const { controller } = setup({ save: async (_ctx, changes) => { saves.push({ added: changes.added.map((s) => s.id), removed: changes.removed }); return {}; } });
@@ -93,7 +98,7 @@ test('saves are debounced and batched', async () => {
 });
 
 test('adding then removing before the save sends nothing', async () => {
-  mock.timers.enable({ apis: ['setTimeout'] });
+  enableFakeTimeout();
   try {
     let calls = 0;
     const { controller } = setup({ save: async () => { calls++; return {}; } });
