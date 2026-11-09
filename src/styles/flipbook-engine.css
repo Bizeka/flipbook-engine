@@ -1489,3 +1489,40 @@
   left: 0;
   top: 0;
 }
+
+/* Drawing: strokes sit above the page image and below hotspots; highlights multiply with the page. */
+.bk-drawing-layer { display: contents; }
+.bk-drawing-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; z-index: 4; }
+.bk-drawing-svg--highlight { z-index: 3; mix-blend-mode: multiply; }
+.bk-drawing-input { display: none; position: absolute; inset: 0; z-index: 60; touch-action: none; cursor: crosshair; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.bk-book-wrapper.is-drawing .bk-drawing-input { display: block; }
+/* Drawing panel: opens with drawing mode. Top right on wide screens, a compact bottom sheet on phones. */
+.bk-draw-panel { position: absolute; top: 8px; right: 8px; z-index: 70; display: none; flex-direction: column; gap: 10px; box-sizing: border-box; width: min(280px, calc(100% - 16px)); max-height: calc(100% - 16px); overflow: auto; padding: 12px; border: 1px solid var(--flipbook-border); border-radius: var(--flipbook-radius-md); background: color-mix(in srgb, var(--flipbook-bg-surface) 96%, transparent); color: var(--flipbook-text-main); box-shadow: 0 8px 24px var(--flipbook-shadow); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.bk-draw-heading-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.bk-draw-heading { font-size: .875rem; }
+.bk-draw-close { width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: inherit; cursor: pointer; font-size: 20px; }
+.bk-draw-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.bk-draw-items { display: contents; }
+.bk-draw-modes .bk-draw-mode { flex: 1 1 0; }
+.bk-draw-mode, .bk-draw-eraser, .bk-draw-undo, .bk-draw-redo, .bk-draw-clear, .bk-draw-confirm-yes, .bk-draw-confirm-no { min-height: 32px; border: 1px solid var(--flipbook-border); border-radius: var(--flipbook-radius-sm); padding: 5px 10px; background: transparent; color: var(--flipbook-text-main); cursor: pointer; font: inherit; font-size: .8125rem; }
+.bk-draw-mode[aria-pressed=true], .bk-draw-eraser[aria-pressed=true], .bk-draw-confirm-yes { border-color: var(--flipbook-accent); background: var(--flipbook-accent); color: var(--flipbook-accent-text); }
+.bk-draw-undo:disabled, .bk-draw-redo:disabled { opacity: .45; cursor: default; }
+.bk-draw-swatches { gap: 8px; }
+.bk-draw-swatch { width: 28px; height: 28px; padding: 0; border: 2px solid var(--flipbook-border); border-radius: 50%; cursor: pointer; }
+.bk-draw-swatch[aria-checked=true] { border-color: var(--flipbook-accent); box-shadow: 0 0 0 2px var(--flipbook-bg-surface), 0 0 0 4px var(--flipbook-accent); }
+.bk-draw-slider { display: flex; flex-direction: column; gap: 4px; font-size: .8125rem; }
+.bk-draw-slider-label { display: flex; justify-content: space-between; }
+.bk-draw-value { color: var(--flipbook-text-muted); }
+.bk-draw-slider input[type=range] { width: 100%; margin: 0; accent-color: var(--flipbook-accent); }
+.bk-draw-preview { width: 100%; height: auto; border: 1px solid var(--flipbook-border); border-radius: var(--flipbook-radius-sm); background: #ffffff; }
+.bk-draw-preview--highlight path { mix-blend-mode: multiply; }
+.bk-draw-clear-row > * { flex: 1 1 auto; }
+.bk-draw-confirm { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.bk-draw-confirm-text { flex: 1 1 100%; font-size: .8125rem; }
+.bk-draw-panel button:focus-visible, .bk-draw-panel input:focus-visible { outline: 2px solid var(--flipbook-accent); outline-offset: 2px; }
+@media (pointer: coarse) { .bk-draw-mode, .bk-draw-eraser, .bk-draw-undo, .bk-draw-redo, .bk-draw-clear, .bk-draw-confirm-yes, .bk-draw-confirm-no { min-height: 40px; } .bk-draw-swatch { width: 34px; height: 34px; } }
+@media (max-width: 767px) {
+  .bk-draw-panel { top: auto; left: 8px; right: 8px; bottom: 8px; width: auto; max-height: 42%; gap: 6px; padding: 8px; }
+  .bk-draw-preview { display: none; }
+}
+@media (max-height: 480px) { .bk-draw-panel { max-height: calc(100% - 16px); width: min(260px, 45%); } }

@@ -153,7 +153,8 @@ export class FlipbookEmbedBridge {
     hotspotActivate: true,
     hotspotOpen: true,
     hotspotClose: true,
-    annotationChange: true, annotationActivate: true
+    annotationChange: true, annotationActivate: true,
+    drawingChange: true, drawingError: true, drawingModeChange: true
   };
 
   private isAllowedOrigin(origin: string): boolean {

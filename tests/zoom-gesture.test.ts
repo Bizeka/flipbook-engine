@@ -170,6 +170,38 @@ test('double tap zooms into the tapped point and animates back out', () => {
   manager.destroy();
 });
 
+test('in drawing mode one finger is no swipe, double tap or pan, and two fingers still pinch', () => {
+  const { send, view, calls, store, manager } = setup(true);
+  store.drawingMode.value = true;
+  send('touchstart', [p(300, 300)]); send('touchend', [], [p(150, 300)]);
+  assert.deepEqual(calls, [], 'a one-finger swipe does not turn the page');
+  const tap = () => { send('touchstart', [p(260, 330)]); send('touchend', [], [p(260, 330)]); };
+  tap(); tap();
+  assert.equal(view().scale, 1, 'double tap does not zoom');
+  const down = send('touchstart', [p(150, 300)]);
+  assert.ok(!down.defaultPrevented, 'the first finger is left to the drawing layer');
+  const cancels = store.drawingCancel.value;
+  const a = p(150, 300), b = p(250, 300);
+  assert.ok(send('touchstart', [a, b], [b]).defaultPrevented);
+  assert.equal(store.drawingCancel.value, cancels + 1, 'the stroke in progress is told to stop');
+  send('touchmove', [p(100, 300), p(300, 300)]);
+  assert.ok(view().scale > 1, 'the pinch zooms');
+  send('touchend', [], [p(100, 300), p(300, 300)]);
+  manager.destroy();
+});
+
+test('in drawing mode a zoomed one-finger drag does not pan', () => {
+  const { send, view, store, manager } = setup();
+  store.zoomState.value = { ...store.zoomState.value, isActive: true, scale: 3 };
+  store.drawingMode.value = true;
+  const before = view();
+  send('touchstart', [p(100, 100)]);
+  const move = send('touchmove', [p(160, 140)]);
+  assert.ok(!move.defaultPrevented);
+  assert.deepEqual(view(), before);
+  manager.destroy();
+});
+
 test('page-flip forgets a pending touch when a pinch starts', () => {
   const adapter = Object.create(PageFlipAdapter.prototype) as PageFlipAdapter;
   const ui = { touchPoint: { point: { x: 1, y: 1 }, time: 0 } as unknown };

@@ -21,6 +21,8 @@ import { HotspotLayer } from './HotspotLayer';
 import type { FlipbookHotspot } from '../model/hotspots';
 import type { FlipbookAnnotation } from '../model/annotations';
 import { NotePlacementLayer, bindNoteGestures } from './NotePlacementLayer';
+import { DrawingLayer } from './DrawingLayer';
+import type { FlipbookDrawingToolState } from '../model/drawings';
 import { css, styled } from './style';
 import { chooseImageTier, pickTierSrc } from '../core/imageTiers';
 
@@ -34,6 +36,8 @@ interface ViewerProps {
     onAnnotationActivate: (annotation: FlipbookAnnotation) => void;
     onAnnotationClose: () => void;
     onPlaceAnnotation: (pageIndex: number, x: number, y: number) => void;
+    onDrawStroke: (pageIndex: number, points: Array<[number, number]>, tool: FlipbookDrawingToolState) => void;
+    onEraseStroke: (strokeId: string) => void;
     signal: AbortSignal;
 }
 
@@ -87,6 +91,7 @@ export function Viewer(props: ViewerProps) {
                 if (props.store.isFrontCover.value) classes += 'bk-is-cover ';
                 if (props.store.isBackCover.value) classes += 'bk-is-back-cover ';
                 if (zoomed.value) classes += 'zoomed ';
+                if (props.store.drawingMode.value) classes += 'is-drawing ';
                 return classes.trim();
             })}
             ref={(element: HTMLElement) => { props.bookWrapperRef(element); bindNoteGestures(element, props.store, props.onPlaceAnnotation, props.signal); }}
@@ -123,6 +128,7 @@ export function Viewer(props: ViewerProps) {
                                             alt={`Page ${index + 1}`}
                                         />
                                         <TextLayer store={props.store} pageIndex={index} signal={props.signal} />
+                                        <DrawingLayer store={props.store} pageIndex={index} onStroke={props.onDrawStroke} onErase={props.onEraseStroke} signal={props.signal} />
                                         <SearchHighlightLayer store={props.store} pageIndex={index} />
                                         <HotspotLayer store={props.store} pageIndex={index} onActivate={props.onHotspotActivate} onClose={props.onHotspotClose} onAnnotationActivate={props.onAnnotationActivate} onAnnotationClose={props.onAnnotationClose} />
                                         <div class="page-shadow"></div>
@@ -158,6 +164,7 @@ export function Viewer(props: ViewerProps) {
                                 {computed(() => props.store.isSingleMode.value ? (
                                     <>
                                         <TextLayer store={props.store} pageIndex={props.store.currentPage.value} signal={props.signal} />
+                                        <DrawingLayer store={props.store} pageIndex={props.store.currentPage.value} onStroke={props.onDrawStroke} onErase={props.onEraseStroke} signal={props.signal} />
                                         <SearchHighlightLayer store={props.store} pageIndex={props.store.currentPage.value} />
                                         <HotspotLayer store={props.store} pageIndex={props.store.currentPage.value} onActivate={props.onHotspotActivate} onClose={props.onHotspotClose} onAnnotationActivate={props.onAnnotationActivate} onAnnotationClose={props.onAnnotationClose} />
                                         <NotePlacementLayer store={props.store} pageIndex={props.store.currentPage.value} onPlace={props.onPlaceAnnotation} />

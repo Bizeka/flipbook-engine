@@ -222,6 +222,9 @@ The React and Vue wrappers forward all of these except `destroy` (React: `onPage
 - **`annotationChange`**: A coordinate note was saved or deleted. Payload: `{ annotation: FlipbookAnnotation; action: 'save' | 'delete' }`.
 - **`searchChange`**: The search results changed. Payload: `{ query: string; results: FlipbookSearchResult[] }`.
 - **`searchProgress`**: A search provider reported progress. Payload: `{ query: string; completed: number; total: number }`.
+- **`drawingChange`**: Strokes changed. Payload: `{ action: 'add' | 'remove' | 'clear' | 'undo' | 'redo' | 'load' | 'rollback'; pageIndex: number | null; pageNumber: number | null; strokes: FlipbookStroke[] }` (the affected strokes). See [Drawing](#drawing).
+- **`drawingError`**: A load, save, clear or storage request failed. Payload: `{ code: 'load' | 'save' | 'clear' | 'storage'; message: string; pageIndex?: number; cause?: unknown }`.
+- **`drawingModeChange`**: Drawing mode was switched. Payload: `{ active: boolean }`.
 - **`destroy`**: Emitted when the engine is destroyed.
 
 
@@ -290,6 +293,74 @@ Supply initial `notes` and `noteProvider(pageIndex, note, signal)` to persist th
 `optimisticNotes: true` (default `false`) makes `saveNote` and `saveAnnotation` apply the edit and resolve `true` at once, then persist in the background in order. If the provider rejects, the newest edit of that note rolls back to the last persisted state, `noteChange`/`annotationChange` fire again for the rollback, and the panel shows the save-failed message; an editor that already closed does not keep its draft, so use the default mode when drafts must survive failures.
 
 Contents, search and notes are mutually exclusive panels. Canvas arrows hide while a panel is open; the pager remains available. Contents has a close control. Secondary toolbar commands are in the accessible More actions menu; mobile navigation and primary controls occupy two rows.
+
+## Drawing
+
+Free drawing and highlighting. The engine ships the stroke model, the provider interface, storage, events and methods, a drawing layer on every page and a tool panel behind a Pen button in the toolbar. Off by default: without `drawing` nothing changes and no Pen button is shown. The feature guide, with a provider example, is [drawing.md](drawing.md).
+
+Options:
+
+- `drawing`: `true` or `{ colors?: string[]; defaultTool?: 'highlight' | 'pen' | 'eraser'; defaultWidth?: number; defaultOpacity?: number; tools?: Array<'highlight' | 'pen' | 'eraser'> }`. The config sets the initial tool (`defaultTool`, the first of `colors`), the colour swatches of the panel (`colors`, default yellow, green, cyan, pink, red and black: `#ffeb3b`, `#4caf50`, `#00bcd4`, `#e91e63`, `#f44336`, `#212121`) and the allowed tools (the panel shows only those); defaults when a stroke omits them are width 15 and opacity 0.5 for `highlight`, width 3 and opacity 1 for `pen`.
+- `drawingProvider`: host storage, see below.
+- `drawingStorage`: `'memory'` (default) or `'local'`. Used only when there is no `drawingProvider`; `'local'` keeps strokes in `localStorage` (key `flipbook:drawings:<documentId>`), meant for demos. Storage errors are reported as `drawingError` with code `storage`.
+- `documentId`: identifies the document for drawings. When absent the engine uses a string `rememberPage`, then the PDF url, then the first page image.
+
+A stroke (`FlipbookStroke`): `{ id, page, tool: 'highlight' | 'pen', color, opacity (0..1), width (px at fit zoom), points: [x, y][] (0..1 of the page box), createdAt, updatedAt?, authorId? }`. `page` is a zero-based logical page index. Points are normalised so strokes survive zoom, layout and image tiers. Input is validated: coordinates are clamped to 0..1, an invalid stroke is rejected, and `simplifyPoints` (Ramer-Douglas-Peucker, tolerance 0.001) is exported for the UI to call on pointer-up.
+
+```ts
+interface FlipbookDrawingProvider {
+  load(ctx: { documentId: string; pages: number[] }, signal: AbortSignal): Promise<FlipbookStroke[]>;
+  save(ctx: { documentId: string }, changes: { added: FlipbookStroke[]; removed: string[] }, signal: AbortSignal): Promise<{ ids?: Record<string, string> }>;
+  clearPage?(ctx: { documentId: string; page: number }, signal: AbortSignal): Promise<void>;
+}
+```
+
+Behaviour:
+
+- Strokes load lazily for the visible spread (the current page and, in two-page view, the next); a page is requested once. The `signal` of `load` aborts on destroy.
+- Changes apply at once (optimistic), then one batched `save` is sent about 800 ms after the last change, on page change, and on destroy. Saves are not cancelled by destroy, so the last stroke is not lost; if the host page is unloading, the provider should send with `fetch(..., { keepalive: true })`. Batches are sent in order.
+- If `save` rejects, the strokes of that batch roll back, `drawingChange` fires with `action: 'rollback'`, `drawingError` fires with code `save`, and the undo history is cleared. `ids` in the result renames client ids to backend ids.
+- `clearStrokes(page)` calls `clearPage` when the provider has it, otherwise the stroke ids go through `save` as removals. A rejected `clearPage` restores the strokes (code `clear`).
+- Without a provider strokes live in memory (or in `localStorage`) and are lost when the page closes, unless the host stores them.
+
+Methods:
+
+- `setDrawingMode(on: boolean)` / `isDrawingMode()`: switches the mode and emits `drawingModeChange`. Does nothing without `drawing`. See [Drawing mode](#drawing-mode).
+- `setDrawingTool({ tool?, color?, width?, opacity? })` / `getDrawingTool()`: the tool new strokes are drawn with (`tool` is `'highlight'`, `'pen'` or `'eraser'`). Every field is optional and invalid values are ignored. Switching to another drawing tool without a width or opacity takes that tool's defaults (highlight 15 px at 0.5, pen 3 px at 1); the eraser keeps the last colour, width and opacity. A tool outside `drawing.tools` is ignored. `setDrawingTool` returns the resulting tool, or `null` without `drawing`.
+- `getStrokes(pageIndex?)`: copies of the loaded strokes of a page, or of all loaded pages.
+- `addStroke(stroke)`: validates and adds a stroke (`id`, `createdAt`, `width`, `opacity` are filled when missing); returns it, or `null` when drawing is off, the stroke is invalid or the page is outside the book.
+- `removeStroke(id)`, `clearStrokes(pageIndex?)` (returns how many were removed), `undoStroke()`, `redoStroke()` (return whether something changed). A new stroke clears the redo stack.
+
+### Drawing mode
+
+Each page has an SVG layer above the page image and below hotspots and note pins. Strokes are drawn in 0..1 page space, so they stay on the page through zoom, single and two-page view, image tiers and PDF pages. A stroke's `width` is in CSS px at fit zoom and grows with the zoomed page. Highlights are drawn with `mix-blend-mode: multiply` and the stroke opacity; pens are opaque. Only the visible spread and one spread on each side keep their strokes in the DOM.
+
+While drawing mode is on:
+
+- One pointer draws (mouse, touch or pen), with pointer capture and coalesced events where the browser has them. A live preview follows the pointer; on release the points are simplified (tolerance 0.001) and the stroke is added with `addStroke`, so `drawingChange` and the provider see it like any other stroke. The mouse draws with the primary button.
+- The `eraser` tool removes the topmost stroke under the pointer on tap or drag (hit test on the stroke's polyline with a tolerance of half the stroke width plus 8 px).
+- Page turns by drag, swipe, corner fold and click, keyboard page keys, double-tap zoom, text selection, note placement and auto play are off. Turning on the mode closes an open note popover and ends text selection and note placement. The page arrows and toolbar page buttons are explicit controls and still work; the page change flushes pending saves (see below).
+- Two fingers never draw: a second finger drops the stroke in progress and the gesture is the usual pinch zoom and pan. One finger drag while zoomed draws instead of panning; pan with two fingers (or the wheel and arrow keys with a mouse or keyboard).
+- When a pen is in use, touch does not draw (palm rejection) for 0.8 s after the last pen event.
+- `Escape` leaves drawing mode (and closes the panel).
+- A page change, made with an arrow, a toolbar button, the thumbnails or the API, keeps the mode on and flushes pending saves, so strokes of the page you leave reach the provider at once instead of after the 800 ms debounce.
+
+Drawing input uses Pointer Events. Pen pressure is not used.
+
+### Drawing panel
+
+With `drawing` on, the toolbar shows a Pen button (`aria-pressed` follows drawing mode). It turns drawing mode on and off, and the panel is open exactly while the mode is on, so `setDrawingMode(true)` opens it too and closing the panel (the close button or `Escape`) leaves the mode. Opening it closes the contents, search and notes panels. The panel has:
+
+- mode: Highlight or Board pen (only the tools allowed by `drawing.tools`);
+- colour swatches (`drawing.colors`), a radio group;
+- opacity, 10 to 100 % (highlight starts at 50 %), and width (highlight 4 to 48 px, starting at 15; pen 1 to 16 px, starting at 3);
+- a live preview of the stroke (hidden on phone width);
+- the eraser toggle, undo, redo and Clear page. Clear page asks for a confirmation in the panel and clears the visible page (both pages of a two-page spread) as one undo step;
+- a close button.
+
+Every control goes through `setDrawingTool`, so `getDrawingTool()` always matches the panel and a host that sets the tool by code moves the panel too. The panel is keyboard reachable (Tab; arrow keys on the sliders), has `aria-label`s, moves focus into the panel when it opens and back to the Pen button when it closes. `Escape` first cancels a pending clear confirmation, then closes the panel. On widths up to 767 px the panel is a compact bottom sheet of at most 42 % of the reader height, so the page stays in view. Colours come from the `--flipbook-*` theme variables, so it follows light and dark themes. Texts are in the locale messages `drawingPen`, `drawingPanel`, `drawingHighlight`, `drawingBoardPen`, `drawingMode`, `drawingColor`, `drawingColorLabel` (with `{color}`), `drawingOpacity`, `drawingWidth`, `drawingPreview`, `drawingEraser`, `drawingUndo`, `drawingRedo`, `drawingClear`, `drawingClearConfirm`, `drawingClearYes` and `drawingClose`; Turkish and English are built in, other locales fall back to English.
+
+The same methods are available through the `drawings` plugin API when it is installed (`callPluginApi('drawings', 'getStrokes')`, plus `setMode`, `getTool` and `setTool`). The iframe bridge forwards the three events; the provider cannot cross the iframe.
 
 ## Personal coordinate notes
 

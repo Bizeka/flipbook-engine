@@ -49,5 +49,9 @@ export const enMessages = {
   addNote: 'Place a note', pageHasNote: 'This page has a note', page: 'Page', noteSaved: 'Saved',
   confirmDeleteNote: 'Delete this note?', cancel: 'Cancel', placeNote: 'Click or tap a place on the page for your note.',
   keyboardShortcuts: 'Keyboard shortcuts', textSelection: 'Select text', resetZoom: 'Fit page',
-  noteColor: 'Note colour', noteGroup: 'Note group', noGroup: 'No group', allGroups: 'All groups', noteColorLabel: 'Group {n}'
+  noteColor: 'Note colour', noteGroup: 'Note group', noGroup: 'No group', allGroups: 'All groups', noteColorLabel: 'Group {n}',
+  drawingPen: 'Pen', drawingPanel: 'Drawing tools', drawingHighlight: 'Highlight', drawingBoardPen: 'Board pen', drawingMode: 'Mode',
+  drawingColor: 'Colour', drawingColorLabel: 'Colour {color}', drawingOpacity: 'Opacity', drawingWidth: 'Width', drawingPreview: 'Preview',
+  drawingEraser: 'Eraser', drawingUndo: 'Undo', drawingRedo: 'Redo', drawingClear: 'Clear page', drawingClearConfirm: 'Clear all drawings on this page?',
+  drawingClearYes: 'Clear', drawingClose: 'Close drawing tools'
 } as const;

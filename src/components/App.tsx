@@ -27,10 +27,12 @@ import { Viewer } from './Viewer';
 import { NavigationArrows } from './NavigationArrows';
 import { SearchPanel } from './SearchPanel';
 import { PluginPanels } from './PluginPanels';
+import { DrawingPanel } from './DrawingPanel';
 import type { FlipbookSearchOptions } from '../model/search';
 import type { FlipbookHotspot } from '../model/hotspots';
 import type { FlipbookAnnotation } from '../model/annotations';
 import type { FlipbookStore } from '../state/store';
+import type { FlipbookDrawingToolState } from '../model/drawings';
 import type { PageFlipAdapter } from '../adapters/PageFlipAdapter';
 import type { InteractionManager } from '../core/InteractionManager';
 import type { FlipbookPluginRegistry } from '../plugins';
@@ -50,6 +52,14 @@ interface AppProps {
     onSelectNote: (pageIndex: number) => void;
     onBeginAnnotation: () => void;
     onPlaceAnnotation: (pageIndex: number, x: number, y: number) => void;
+    onDrawStroke: (pageIndex: number, points: Array<[number, number]>, tool: FlipbookDrawingToolState) => void;
+    onEraseStroke: (strokeId: string) => void;
+    onExitDrawing: () => void;
+    onToggleDrawing: () => void;
+    onDrawingTool: (change: Partial<FlipbookDrawingToolState>) => void;
+    onDrawingUndo: () => void;
+    onDrawingRedo: () => void;
+    onDrawingClear: () => void;
     onSaveAnnotation: (annotation: FlipbookAnnotation) => Promise<boolean>;
     onDeleteAnnotation: (annotation: FlipbookAnnotation) => Promise<boolean>;
     onSaveNote: (note: string, document?: FlipbookNoteDocument) => Promise<boolean>;
@@ -139,6 +149,8 @@ export function App(props: AppProps) {
                     onAnnotationActivate={props.onAnnotationActivate}
                     onAnnotationClose={props.onAnnotationClose}
                     onPlaceAnnotation={props.onPlaceAnnotation}
+                    onDrawStroke={props.onDrawStroke}
+                    onEraseStroke={props.onEraseStroke}
                     signal={props.signal}
                 />
 
@@ -157,6 +169,7 @@ export function App(props: AppProps) {
                 <NotesPanel store={props.store} signal={props.signal} onSelect={props.onSelectNote} onAnnotation={props.onAnnotationActivate} onAdd={props.onBeginAnnotation} onSave={props.onSaveNote} onClear={props.onClearNote} onClose={props.onCloseNotes} />
                 <AnnotationPopover store={props.store} signal={props.signal} onSave={props.onSaveAnnotation} onDelete={props.onDeleteAnnotation} onClose={props.onAnnotationClose} />
                 <AnnotationPlacement store={props.store} />
+                <DrawingPanel store={props.store} onTool={props.onDrawingTool} onUndo={props.onDrawingUndo} onRedo={props.onDrawingRedo} onClear={props.onDrawingClear} onClose={props.onExitDrawing} />
                 {props.pluginRegistry ? <PluginPanels registry={props.pluginRegistry} /> : null}
             </div>
 
@@ -171,6 +184,7 @@ export function App(props: AppProps) {
                 onShare={props.onShare}
                 onToggleBookmark={props.onToggleBookmark}
                 onToggleNotes={handleToggleNotes}
+                onToggleDrawing={props.onToggleDrawing}
                 onNextPage={handleNextPage}
                 onPrevPage={handlePrevPage}
                 onSoundToggle={() => props.store.soundEnabled.value = !props.store.soundEnabled.value}

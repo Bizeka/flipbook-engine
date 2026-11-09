@@ -52,7 +52,8 @@ export const OPTION_KEYS = [
     'maxShadowOpacity', 'backgroundColor', 'backgroundImage', 'background', 'whiteLabel', 'watermarkUrl', 'theme', 'locale',
     'messages', 'className', 'cssVariables', 'onDownload', 'onShare', 'singleMode', 'isSingleMode', 'autoPlay', 'autoPlayInterval',
     'pdfRenderScale', 'pdfRenderQuality', 'pdfRenderFormat', 'pdfRenderConcurrency', 'pdfRenderCacheSize', 'pdfWorkerSrc', 'pageSource',
-    'pdfPageMode', 'imageTiers', 'deepLink', 'startPage', 'rememberPage', 'bookmarks', 'notes', 'hotspots', 'annotations', 'plugins'
+    'pdfPageMode', 'imageTiers', 'deepLink', 'startPage', 'rememberPage', 'bookmarks', 'notes', 'hotspots', 'annotations', 'plugins',
+    'drawing', 'drawingProvider', 'drawingStorage', 'documentId'
 ] as const satisfies readonly (keyof FlipbookEngineOptions)[];
 
 type UnlistedOption = Exclude<keyof FlipbookEngineOptions, (typeof OPTION_KEYS)[number]>;
@@ -68,7 +69,8 @@ export const OPTION_KEY_SET: ReadonlySet<string> = new Set<string>(OPTION_KEYS);
 export const WRAPPER_EVENTS = [
     'init', 'pageChange', 'zoomChange', 'thumbsToggle', 'tocToggle', 'singlePageModeChange', 'orientationChange',
     'progress', 'error', 'deepLinkChange', 'bookmarkChange', 'noteChange', 'searchChange', 'searchProgress',
-    'hotspotActivate', 'hotspotOpen', 'hotspotClose', 'annotationActivate', 'annotationChange'
+    'hotspotActivate', 'hotspotOpen', 'hotspotClose', 'annotationActivate', 'annotationChange',
+    'drawingChange', 'drawingError', 'drawingModeChange'
 ] as const satisfies readonly FlipbookEngineEventName[];
 
 export type WrapperEventName = (typeof WRAPPER_EVENTS)[number];

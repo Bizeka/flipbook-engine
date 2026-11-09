@@ -126,6 +126,14 @@ export class PageFlipAdapter {
     }
 
     private setupSignalSync() {
+        // Drawing mode: the hover corner fold is off, so a pen or mouse moving over a page only draws.
+        this.unsubs.push(
+            effect(() => {
+                const drawing = this.store.drawingMode.value;
+                const settings = (this.pageFlip as { getSettings?: () => { showPageCorners?: boolean } } | null)?.getSettings?.();
+                if (settings) settings.showPageCorners = !drawing;
+            })
+        );
         // When our signal changes, tell the library to flip (if needed)
         this.unsubs.push(
             effect(() => {

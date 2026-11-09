@@ -129,6 +129,24 @@ As in React, an update sends only the options that changed, and a new `pages` ar
 
 ---
 
+## Drawing
+
+The drawing options are ordinary options in both wrappers: `drawing`, `drawingProvider`, `drawingStorage` and `documentId` (props in React, plain props or `options` in Vue). Give `drawing` and `drawingProvider` stable references, because a new object on every render is sent to the engine again. See [drawing.md](drawing.md).
+
+```tsx
+const colors = ['#ffeb3b', '#4caf50', '#e91e63', '#212121'];
+const drawing = useMemo(() => ({ colors }), []);
+const provider = useMemo(() => createRestDrawingProvider('/api/reader'), []);
+
+<Flipbook pdfUrl="/catalog.pdf" pages={pages} drawing={drawing} drawingProvider={provider} documentId="catalog-2026" />
+```
+
+```vue
+<Flipbook pdfUrl="/catalog.pdf" :pages="pages" :drawing="drawing" :drawingProvider="provider" documentId="catalog-2026" />
+```
+
+The drawing events are forwarded like the other events: React `onDrawingChange`, `onDrawingError`, `onDrawingModeChange`; Vue `@drawing-change`, `@drawing-error`, `@drawing-mode-change`. The drawing methods (`setDrawingMode`, `setDrawingTool`, `getStrokes`, `undoStroke` and the rest) are engine methods too.
+
 ## Other events
 
 The wrappers forward every [event](api-reference.md#supported-events) except `destroy`: React as `onError`, `onHotspotOpen`, ... props, Vue as `@error`, `@hotspot-open`, ... listeners. `destroy` happens when the component unmounts. You can still subscribe through the engine (`engine.on(...)`), as shown above.
