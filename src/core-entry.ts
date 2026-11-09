@@ -28,6 +28,7 @@ export type { FlipbookLocale, FlipbookMessages, PartialFlipbookMessages } from '
 export type { FlipbookThemeMode, FlipbookBackgroundStyle, FlipbookBackgrounds } from './theme/theme';
 export type { PdfPageMode, PdfPageLayout } from './core/PdfRenderer';
 export { isA3Landscape } from './core/PdfRenderer';
+export type { PageSource, PageImageRequest, PageImageTier, PageSourceSearchResult } from './core/PageSource';
 
 export type { FlipbookHotspot, FlipbookHotspotKind, FlipbookHotspotMedia, FlipbookHotspotMediaType, FlipbookHotspotGalleryItem } from './model/hotspots';
 export { resolveEmbedUrl } from './model/hotspots';

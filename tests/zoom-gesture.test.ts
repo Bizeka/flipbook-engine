@@ -231,3 +231,30 @@ test('zoom steps do not rebuild the single page, only swap its image to full qua
   assert.ok(img.getAttribute('src')?.endsWith('1.png') && !img.getAttribute('src')?.endsWith('1-low.png'));
   engine.destroy();
 });
+
+test('a swipe that starts on a page arrow turns the page, a tap on it does not', () => {
+  const { send, calls, container, manager } = setup(false);
+  const arrow = document.createElement('button');
+  arrow.className = 'bk-nav-arrow';
+  container.append(arrow);
+  const sendOn = (type: string, touches: TouchPoint[], changed: TouchPoint[] = touches) => {
+    const event = new window.Event(type, { bubbles: true, cancelable: true }) as Event & { touches: TouchPoint[]; changedTouches: TouchPoint[] };
+    event.touches = touches; event.changedTouches = changed;
+    arrow.dispatchEvent(event);
+    return event;
+  };
+  sendOn('touchstart', [p(300, 300)]);
+  const end = sendOn('touchend', [], [p(150, 305)]);
+  assert.deepEqual(calls, ['next']);
+  assert.ok(end.defaultPrevented, 'the swipe must not also click the arrow');
+  sendOn('touchstart', [p(100, 300)]);
+  sendOn('touchend', [], [p(250, 300)]);
+  assert.deepEqual(calls, ['next', 'prev']);
+  // A tap, or a mostly vertical drag, leaves the button alone.
+  sendOn('touchstart', [p(300, 300)]);
+  assert.equal(sendOn('touchend', [], [p(302, 301)]).defaultPrevented, false);
+  sendOn('touchstart', [p(300, 300)]); sendOn('touchend', [], [p(340, 500)]);
+  assert.deepEqual(calls, ['next', 'prev']);
+  void send;
+  manager.destroy();
+});
