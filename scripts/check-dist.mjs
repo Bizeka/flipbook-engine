@@ -25,6 +25,10 @@ for (const name of required) {
 for (const name of ['notePinSize', 'searchHighlightStyle', 'noteColors', 'noteGroups', 'noteGroupProvider', 'optimisticNotes']) {
   if (!types.includes(name)) problems.push(`dist type declarations do not contain "${name}"`);
 }
+for (const file of files.filter((f) => f.endsWith('.d.ts'))) {
+  const bare = readFileSync(file, 'utf8').match(/(?:from\s*|import\s*\(\s*)['"]\.{1,2}\/[^'"]*?(?<!\.js)['"]/g);
+  if (bare) problems.push(`${file} has relative imports without a .js extension (node16/nodenext consumers get any): ${bare[0]}`);
+}
 if (/cssText/.test(bundle)) problems.push('dist bundle assigns cssText, which a nonce-only style-src blocks');
 if (oldestBuild < newestSource - 60_000) problems.push('dist is older than the sources, rebuild before publishing');
 
