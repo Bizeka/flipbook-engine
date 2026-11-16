@@ -12,9 +12,10 @@
     "clean": "rimraf dist",
     "pack:check": "npm pack --dry-run",
     "check:dist": "node scripts/check-dist.mjs",
-    "prepublishOnly": "npm run typecheck && npm test && npm run clean && npm run build && npm run check:dist && npm run pack:check",
+    "prepublishOnly": "npm run typecheck && npm test && npm run clean && npm run build && npm run check:dist && npm run check:types && npm run pack:check",
     "audit:deps": "npm audit --omit=dev --audit-level=high",
-    "release:verify": "npm run typecheck && npm test && npm run build && npm run check:dist && npm run audit:deps && npm run pack:check"
+    "release:verify": "npm run typecheck && npm test && npm run build && npm run check:dist && npm run check:types && npm run audit:deps && npm run pack:check",
+    "check:types": "node scripts/check-types.mjs"
   },
   "keywords": [
     "flipbook",
