@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'path';
 import dts from 'vite-plugin-dts';
 import { cspSafePageFlip } from './scripts/csp-safe-page-flip.js';
+import { dtsExtensions } from './scripts/dts-extensions.js';
 
 const { version } = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf8'));
 
@@ -12,7 +13,7 @@ export default defineConfig({
     jsx: 'automatic',
     jsxImportSource: '@serenity-is/domwise'
   },
-  plugins: [cspSafePageFlip(), dts({ insertTypesEntry: true, outDir: 'dist' })],
+  plugins: [cspSafePageFlip(), dts({ insertTypesEntry: true, outDir: 'dist', beforeWriteFile: dtsExtensions(__dirname) })],
   build: {
     lib: {
       entry: {
