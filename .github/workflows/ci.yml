@@ -36,6 +36,8 @@ jobs:
         run: npm run build
       - name: Check the build output
         run: npm run check:dist
+      - name: Check consumer types
+        run: npm run check:types
       - name: Verify package contents
         run: npm run pack:check
   browser-e2e:
